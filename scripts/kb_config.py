@@ -27,12 +27,16 @@ SCHEMA_VERSION = 1
 # 默认偏好（写入新配置；均为可配置默认值，非个人习惯硬编码）
 DEFAULT_PREFERENCES = {
     "dailyFormat": "YYYY-MM/YYYY-MM-DD",
-    "dailyFolder": "10-Daily",
+    "dailyFolder": "日志",
     "structure": "default",
     "templateDir": "99-Meta/Templates",
     "attachmentDir": "Attachments",
     "clipDir": "40-Resources/Clips",
     "inboxDir": "00-Inbox",
+    "questionDir": "问题",
+    "projectsDir": "项目",
+    "knowledgeDir": "知识与经验",
+    "todoFile": "TODO.md",
     "exportDirName": "HTML-Export",
     "gitCommit": True,
 }
