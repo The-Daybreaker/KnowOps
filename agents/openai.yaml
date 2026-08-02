@@ -1,0 +1,3 @@
+display_name: "Obsidian 知识库"
+short_description: "基于 Obsidian CLI 的知识库管理：笔记、日记、任务、剪藏、Bases/Canvas、HTML 镜像导出"
+default_prompt: "用 obsidian-kb 管理我的 Obsidian 知识库。首次使用请先完成初始化向导（确认 vault 实际路径与名称、配置写入大知识库文件夹、HTML 导出目录），之后按安全红线操作：写入/修改/删除只走 Obsidian CLI，修改与删除前征得同意，创建前做相似检查，每次写后自动更新 HTML 镜像并按需 Git 提交。"
