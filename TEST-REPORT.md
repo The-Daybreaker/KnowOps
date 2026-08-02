@@ -1,0 +1,139 @@
+# obsidian-kb 测试记录与 forward-test 结果（v1.0.0，2026-08-03）
+
+> 开发期交付物，不随 skill 打包。环境：Windows 11、Obsidian 1.13.4（CLI 随应用，
+> `Obsidian.com`）、受管 Python 3.13.12、受管 Node 22.22.2（defuddle 隔离安装）。
+
+## 一、脚本自测
+
+### kb_config.py（22 项，全部通过）
+
+- init 默认写入 vault 上级目录、中文 vault 名、cliPath 写入、警告提示（无 .obsidian）✅
+- find 从子目录向上发现 ✅；list / path（默认与按名）✅
+- add-vault（重名拒绝、路径重复拒绝、不存在路径拒绝）✅；set-default ✅；
+  remove-vault（默认回退）✅
+- get/set：布尔 coercion（true/false）、字符串 ✅
+- 拒绝项：配置写入 vault 内 ❌→拦截 ✅；exportRoot 写入 vault 内 ❌→拦截 ✅
+- validate（问题/警告分级）✅；migrate（当前版本 no-op）✅
+- 两个大知识库文件夹（KB-Home / KB-Home2）各自配置、互不冲突 ✅
+
+### kb_env.py（通过）
+
+- cli-path 三来源（配置 cliPath / PATH / 平台候选）✅
+- check 全绿：配置有效、CLI 可用、Obsidian 运行（1.13.4）、vault 路径有效、
+  目标 vault 已注册 ✅
+- 拉起逻辑：`_obsidian_app_path` 由 Obsidian.com 正确推导同目录 Obsidian.exe ✅
+  （真实拉起未测：需关闭用户 Obsidian，按约定不打扰；失败路径会明确提示手动打开）
+
+### html_export.py（通过）
+
+- 假 vault 全量：3 笔记 + 2 附件镜像、相对路径结构、index 双级 ✅
+- 增量：mtime 未变全 skipped ✅；export-one 单篇 ✅
+- 删除同步：源删除后 export 自动 prune 对应 HTML 并清理空目录 ✅
+- 转换保真：frontmatter 属性表、标题锚点、wikilink（含 #标题锚点与 |别名）、
+  未解析链接降级、callout、GFM 表格、任务列表（嵌套）、行内标签、
+  代码块（verilog 原样）、Mermaid（CDN + 离线降级代码块）、
+  注释 %% %% 剔除、数学降级等宽 ✅
+- 修复记录：Markdown 相对图片路径按 笔记相对→vault 相对→basename 解析 ✅
+
+### update_skill.py（通过）
+
+- check：缺 CHANGELOG/DESIGN/手册时正确报缺 ✅
+- package：zip 到 dist/，排除 REQUIREMENTS.md/.test-env/dist ✅
+- commit 守卫：**曾误提交到上层仓库（knowledge-base），已用 `git reset --mixed HEAD~1`
+  完整回滚（全部为新文件，工作区无损）**；修复为"要求 skill 目录本身是仓库根 +
+  `git add -A -- .` 限定路径"后复测拒绝 ✅
+
+## 二、forward-test（测试 vault：`.test-env/KB-Home/测试学习库`，用户 GUI 注册）
+
+### 首次初始化（§4.9 / §14）
+
+- 配置写入大知识库文件夹（vault 上级）、vault 内零 skill 残留 ✅
+- 用户手册复制到根目录；追加一行后重跑不覆盖 ✅
+- 日记按月切分（1.13.4 实测三步法）：
+  `eval app.vault.setConfig('daily-notes',{folder,format})`（持久化 app.json）→
+  `eval instance.options.folder/format=...`（立即生效）→
+  目录缺失时 `eval app.vault.createFolder(...)`；
+  `daily:append` 生成 `10-Daily/2026-08/2026-08-03.md` ✅
+
+### 场景 A：FPGA 问题记录（§4.1 原样）
+
+- 未回答技术问题 ✅；相似检查（search 无命中）✅
+- 结构化笔记：`type: question`、`status: pending`、`source`、`created`、
+  `tags: [fpga, 课程/小梅哥]` ✅；两段 Verilog 代码块逐字符保真 ✅
+- Git 自动提交（`docs:` 前缀中文信息）✅；反馈路径并提示可发起复盘 ✅
+- 复盘流：append 学习进展 → 再提交 ✅
+
+### 场景 B：网页剪藏
+
+- defuddle `--md` 提取 + `-p title` ✅（`-p domain` 为空 → 域名为 URL 解析）
+- 笔记含 `type: clip`、`source_url`、`source_domain`、`clipped_at`（ISO）✅；
+  存入 `40-Resources/Clips/` ✅
+
+### 场景 C/D：日记与任务
+
+- 日记按月生成（见初始化）✅；`daily:append` 加 `- [ ]` 任务 ✅；
+  `tasks` 全库汇总（日记 + 笔记两处任务均列出）✅
+
+### 场景 F：Bases / Canvas
+
+- `.base`：真实换行 content 经 CLI 创建，`base:query` 正常返回（YAML 合法）✅
+- `.canvas`：直写（CLI 无法保留 JSON 内字面 `\n`，例外已说明）→
+  `json.load` 校验：合法、ID 唯一、边引用有效 ✅
+
+### 场景 G：HTML 镜像
+
+- 创建/修改 → export-one 增量 ✅；移动/删除 → export prune ✅；
+  目录结构对应、index 可打开 ✅
+
+### 场景 H：多 vault
+
+- `vaults verbose` 列出 3 个已注册 vault ✅；
+  `vault=<名>` 切换（测试学习库 / Obsidian知识库 只读 / Obsidian Vault 只读）✅；
+  生产库全程只读（search/vault/files），零写入 ✅
+
+### 安全与红线
+
+- 删除回收站：2 篇测试笔记 CLI delete → `D:\$RECYCLE.BIN\<SID>` 内容逐字节一致、
+  可还原 ✅（详见 `references/trash-verification.md`）
+- 同意流程：移动前展示方案（源→目标、链接影响）后执行 ✅
+- move 链接自动更新：Canvas 中 file 引用被 Obsidian 同步改写 ✅
+- 高相似提示：再次检索"异步复位 同步复位"命中既有笔记，交由用户决策 ✅
+- 非 Git 仓库跳过提交并提示；建仓后自动提交 ✅
+- move 目标目录不存在时报 ENOENT → 先 `eval createFolder`（已写入 references）✅
+
+### 发现的 CLI 怪癖（已写入 references/cli-commands.md）
+
+1. 盘符陷阱：`\n` 转义形式下 `<字母>:\n`（如 `tags:\n`）被误判盘符，`\`→`/`
+   → frontmatter 列表用行内数组；
+2. `\n` 与 `\\n` 都会转成真实换行 → .canvas（JSON）无法经 CLI 写入，须直写；
+3. `.` 开头文件名 create/delete 解析异常；
+4. 单引号用 `'"'"'` 拼接；重要写入回读校验。
+
+## 三、验收标准（§14）核对
+
+| 条目 | 结果 |
+|---|---|
+| 从零初始化：配置与手册在 vault 上级、vault 无残留 | ✅ |
+| 任意自定义 vault 名接入（测试学习库/第二个库） | ✅ |
+| 手册与模板一致、重复初始化不覆盖 | ✅ |
+| 两项目目录配置隔离 | ✅ |
+| HTML 导出默认在大知识库文件夹内、名称位置经确认 | ✅ |
+| CHANGELOG 与 DESIGN 内置且与版本一致 | ✅ |
+| 版本升级模拟：配置可读取/迁移（migrate no-op + 缺省补齐逻辑） | ✅ |
+| FPGA 示例全链路 | ✅ |
+| 日记按月分目录 | ✅ |
+| 剪藏带 source_url/source_domain | ✅ |
+| 镜像结构对应、index 可打开、增删改同步 | ✅ |
+| 删除进回收站可恢复 | ✅ |
+| 修改/删除前同意环节 | ✅（流程演示） |
+| 多 vault 切换 | ✅ |
+| 高相似提示不阻断 | ✅ |
+| Windows 可用、无 Windows 专属依赖（脚本纯 stdlib） | ✅ |
+| quick_validate 通过、SKILL.md <500 行（243 行） | ✅ |
+
+## 四、遗留说明
+
+- `kb_env.py` 的真实拉起路径（Obsidian 关闭时）未实测——不打扰用户运行中的
+  Obsidian；逻辑已实现（推导同级 Obsidian.exe → 拉起 → 轮询 40s → 明确提示）；
+- Mermaid 渲染依赖 CDN（jsdelivr），手机端离线时降级为代码块（设计决策）；
+- defuddle 安装于受管 Node 隔离环境，未污染系统；用户侧使用见其 defuddle skill。
