@@ -125,7 +125,7 @@ def cmd_check(args) -> dict:
 def cmd_package(args) -> dict:
     dist = os.path.join(SKILL_ROOT, "dist")
     os.makedirs(dist, exist_ok=True)
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    timestamp = time.strftime("%Y%m%d-%H%M")
     zip_name = f"{SKILL_NAME}-v{args.version}-{timestamp}.zip"
     zip_path = os.path.join(dist, zip_name)
 

@@ -1,4 +1,4 @@
-# DESIGN — obsidian-kb 设计文档（v1.0.0）
+# DESIGN — obsidian-kb 设计文档（v1.1.0）
 
 ## 1. 架构决策
 
@@ -61,6 +61,7 @@ CLI `search` 已完备，由 agent 直接调用；skill 不提供搜索工具。
 | `scripts/update_skill.py` | 发布辅助：检查 / 打包 / 提交 | 提交要求 skill 目录本身是仓库根（防止污染上层仓库）；永不 `git init`；打包排除开发期文件（REQUIREMENTS.md / .test-env / dist） |
 | `assets/user-manual.md` | 最终用户手册模板 | 初始化复制到大知识库文件夹，已存在不覆盖 |
 | `references/` | 渐进披露的细节文档 | CLI 速查、属性约定、Bases / Canvas 要点、回收站实测 |
+| `references/skills/`（v1.1.0 起） | 内置五份独立参考技能 | obsidian-markdown / obsidian-cli / obsidian-bases / json-canvas / defuddle，编写对应内容时按需加载；仅收录 SKILL.md 与其 references/，不含本地安装元数据 |
 
 数据流：用户意图 → agent 按 SKILL.md 工作流 → CLI（写）/ 脚本（配置、导出）→
 vault → 写后三件套（HTML 镜像 → Git 提交 → 反馈）。

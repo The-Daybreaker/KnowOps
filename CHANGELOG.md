@@ -3,6 +3,22 @@
 本文件记录 obsidian-kb 的版本历史。格式遵循语义化版本；
 每次发布的兼容性说明见对应条目。
 
+## [1.1.0] - 2026-08-03
+
+### 新增
+
+- 内置五份参考技能到 `references/skills/`（渐进披露，编写对应内容时按需加载）：
+  `obsidian-markdown`（含 CALLOUTS / EMBEDS / PROPERTIES 细节文档）、
+  `obsidian-cli`、`obsidian-bases`（含 FUNCTIONS_REFERENCE 函数全集）、
+  `json-canvas`（含 EXAMPLES）、`defuddle`。
+- SKILL.md 描述与 references 索引同步收录上述技能。
+
+### 兼容性
+
+- 向后兼容：仅新增 references 内容，配置 schema 不变（`version: 1`），
+  旧配置直接可读；vault 内容与已生成用户手册不受影响。
+- 打包文件名时间戳改为分钟精度（`obsidian-kb-vX.Y.Z-<yyyymmdd-hhmm>.zip`）。
+
 ## [1.0.0] - 2026-08-03
 
 首个版本，全新开发。
