@@ -10,6 +10,7 @@
 | `source_url` / `source_domain` | 网页剪藏来源 | `https://…` / `www.bilibili.com` |
 | `clipped_at` | 剪藏时间（ISO） | `2026-08-03T10:00:00+08:00` |
 | `created` / `updated` | 创建 / 更新时间 | `2026-08-03` |
+| `resolved` | 问题解决日期（沉淀时标注） | `2026-08-15` |
 | `due` / `finished_date` | 任务截止 / 完成时间 | `2026-08-10` |
 | `tags` | 标签（也可用行内 `#tag`） | `[fpga, 课程/小梅哥]` |
 | `aliases` | 别名 | `[异步复位问题记录]` |
@@ -30,12 +31,17 @@
 ├── 用户手册.md                    # 用户手册（vault 外）
 ├── HTML-Export/                   # HTML 导出（vault 外，名称可改）
 └── <Obsidian Vault>/              # 名称由用户创建时自定，skill 不假设
-    ├── 00-Inbox/                  # 收件箱（preferences.inboxDir）
-    ├── 10-Daily/                  # 原生日记（preferences.dailyFolder）
+    ├── 问题/                      # 进行中的问题（preferences.questionDir）
+    │   ├── <纯文字问题>.md        # 纯文字：单文件
+    │   └── <含资源问题>/          # 含图片等资源：整个文件夹存放
+    ├── 项目/                      # 项目（preferences.projectsDir）
+    │   └── <项目名>/<记录>.md
+    ├── 日志/                      # 原生日记（preferences.dailyFolder）
     │   └── YYYY-MM/YYYY-MM-DD.md  # 年月/日 两层（preferences.dailyFormat）
-    ├── 20-Projects/               # 项目
-    ├── 30-Areas/                  # 领域/主题
-    ├── 40-Resources/              # 资源（剪藏在 Clips/，preferences.clipDir）
+    ├── 知识与经验/                # 已解决问题的沉淀（preferences.knowledgeDir）
+    ├── TODO.md                    # 唯一待办文件（preferences.todoFile，vault 根）
+    ├── 00-Inbox/                  # 收件箱：未分类记录（preferences.inboxDir）
+    ├── 40-Resources/Clips/        # 网页剪藏（preferences.clipDir）
     ├── 50-Archive/                # 归档
     ├── 99-Meta/
     │   ├── Templates/             # 模板（preferences.templateDir）
@@ -43,6 +49,15 @@
     │   └── Canvas/                # .canvas 画布
     └── Attachments/               # 附件（preferences.attachmentDir）
 ```
+
+### 模块生命周期
+
+- **问题**：记录于 `问题/`；解决后移入 `知识与经验/`，属性标注 `created`
+  （问题出现日期，勿改）、`resolved`（解决日期）、`status: done`，正文追加
+  "经验总结"；TODO.md 中对应待办同步勾选（`task path=TODO.md line=<n> done`）。
+- **TODO.md**：问题 / 项目记录时自动追加
+  `- [ ] [类型] 标题 → [[链接]]（YYYY-MM-DD 记录）`；人工待办也可直接写入；
+  全库任务仍可用 `tasks` 与 Bases 视图聚合。
 
 配置键见 `kb_config.py list` 输出的 `preferences`；修改用
 `kb_config.py set preferences.<键> <值>`（用户知情后进行）。

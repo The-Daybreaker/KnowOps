@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "defaultVault": "旧库",
+  "vaults": {
+    "旧库": {
+      "name": "旧库",
+      "path": "D:/Peojects/MyProject/知识库skill测试"
+    }
+  },
+  "exportRoot": "D:/Peojects/MyProject/knowledge-base/obsidian-kb/.test-env/HTML-Export",
+  "preferences": {
+    "dailyFormat": "YYYY-MM/YYYY-MM-DD",
+    "dailyFolder": "10-Daily",
+    "gitCommit": false,
+    "structure": "default",
+    "templateDir": "99-Meta/Templates",
+    "attachmentDir": "Attachments",
+    "clipDir": "40-Resources/Clips",
+    "inboxDir": "00-Inbox",
+    "questionDir": "问题",
+    "projectsDir": "项目",
+    "knowledgeDir": "知识与经验",
+    "todoFile": "TODO.md",
+    "exportDirName": "HTML-Export"
+  }
+}

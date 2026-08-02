@@ -3,6 +3,19 @@
 > 开发期交付物，不随 skill 打包。环境：Windows 11、Obsidian 1.13.4（CLI 随应用，
 > `Obsidian.com`）、受管 Python 3.13.12、受管 Node 22.22.2（defuddle 隔离安装）。
 
+## 〇、v1.2.0 分类路由 forward-test（2026-08-03，vault「知识库skill测试」）
+
+- 相似检查命中既有笔记（00-Inbox/FPGA…疑问.md）→ 高相似提示成立 ✅
+- 问题（纯文字）→ `问题/异步复位与同步复位问题.md`；问题（含资源）→
+  `问题/引脚电平异常问题/`（md + png 同目录，附件复制例外已说明）✅
+- 项目 → `项目/FPGA学习/第12讲课程笔记.md` ✅
+- 联动：日志写入 `日志/2026-08/2026-08-03.md`（4 行分类日志）；
+  TODO.md 自动创建并追加 3 条 `- [ ]` ✅
+- 问题沉淀：property:set status=done/resolved → append 经验总结 →
+  move 到 `知识与经验/` → `task path=TODO.md line=4 done` 勾选 `[x]` → 经验日志 ✅
+- 镜像 export：6 笔记 + 1 附件，结构对应 ✅
+- 兼容性：旧配置 migrate 补齐新偏好键且旧值（dailyFolder/gitCommit）不动 ✅
+
 ## 一、脚本自测
 
 ### kb_config.py（22 项，全部通过）

@@ -59,7 +59,8 @@ agent_created: true
 4. 确认配置文件位置：**默认大知识库文件夹（vault 上级目录）**，可改（但不得在 vault 内）。
 5. 确认 HTML 导出目录：默认 `<大知识库文件夹>/HTML-Export/`，可改（不得在 vault 内）。
 6. 询问是否还有其他 vault（逐个注册）。
-7. 展示默认目录结构（见 `references/structure.md`）供确认或修改，结果写入偏好。
+7. 展示默认目录结构（见 `references/properties.md` 的目录模板，含 问题 / 项目 /
+   日志 / 知识与经验 / TODO.md 模块约定）供确认或修改，结果写入偏好。
 8. 执行初始化：
    ```bash
    python scripts/kb_config.py --json init \
@@ -80,7 +81,7 @@ agent_created: true
     # ③ 若 daily:path 报 Folder not found，先建目录（eval 走 CLI，合规）
     "<cliPath>" eval code="app.vault.createFolder('<dailyFolder>')"
     ```
-    最后用 `daily:path` 验证路径形态（应形如 `10-Daily/2026-08/2026-08-03.md`）。
+    最后用 `daily:path` 验证路径形态（应形如 `日志/2026-08/2026-08-03.md`）。
     eval 全部不可用时给用户一次性人工指引：设置 → 日记 → 日期格式
     `YYYY-MM/YYYY-MM-DD`、新笔记位置 `<dailyFolder>`。
 12. 首次全量导出：`python scripts/html_export.py --json export --full`。
@@ -88,27 +89,59 @@ agent_created: true
 
 ## 日常工作流
 
-### 创建笔记（记录问题 / 随手记）
+### 创建笔记：先分类，再路由（核心规则）
 
-1. 从用户描述提取关键词，CLI 相似检查：
-   ```bash
-   "<cliPath>" search query="<关键词>" limit=5
-   ```
-   命中高相似 → 展示结果，由用户决定合并 / 跳过 / 仍写入。
-2. 组装结构化内容：frontmatter 属性（默认核心集见 `references/properties.md`，
-   如 `type` / `status` / `source` / `created`）+ 正文。**代码块必须原样保留格式**。
-3. CLI 创建（路径用配置中的目标目录，如 `inboxDir` 或用户指定目录）。
-   多行内容**优先用 shell 单引号内的真实换行**；用 `\n` 转义时注意：
-   `tags:` 等以字母结尾的键接 `\n` 会触发 CLI 盘符误判（`\`→`/`），
-   frontmatter 列表一律用行内数组 `tags: [a, b]`；单引号用 `'"'"'` 拼接：
-   ```bash
-   "<cliPath>" create path="<目录>/<标题>.md" silent content='---'
-   '...真实换行的内容...'
-   ```
-   写入后回读校验（`read path=...`）关键结构（frontmatter、代码块）。
-4. 写后固定流程（见下节"写后三件套"）。
-5. 反馈笔记路径；若用户表示"记录以便将来复盘"，提示学到该知识点后可随时发起
-   复盘（不自动写日记、不自动建任务）。**用户让记录问题时不回答技术问题**。
+收到任何记录请求（再笼统也要分类），**先判定模块类型，再按规则路由**；
+禁止一律写入收件箱。目录名全部来自配置偏好（`kb_config.py list` 查看）。
+
+| 类型 | 判定线索 | 目标位置（配置键 → 默认） | 联动 |
+|---|---|---|---|
+| 问题 | "问题 / 没搞懂 / 不懂 / 为什么 / 待复盘 / bug" | `questionDir` → `问题/` | 日志 + TODO |
+| 项目 | "项目 / 工程 / 学习项目 / 课题" | `projectsDir` → `项目/<项目名>/` | 日志 + TODO |
+| 剪藏 | 给出 URL | `clipDir` → `40-Resources/Clips/` | 日志 |
+| 日记 | "日记 / 今天" | 原生日记 `daily:*`（`dailyFolder` → `日志/`） | — |
+| 普通 | 其余 | `inboxDir` → `00-Inbox/` | — |
+
+通用步骤（全部类型）：
+1. CLI 相似检查：`search query="<关键词>" limit=5`；高相似 → 展示给用户决策。
+2. 组装结构化内容：frontmatter（`type` / `status` / `source` / `created` 等，见
+   `references/properties.md`）+ 正文；**代码块原样保留**。
+3. CLI 创建：多行 content 优先 shell 单引号内**真实换行**；frontmatter 列表用
+   行内数组 `tags: [a, b]`（`\n` 转义会触发盘符误判，见
+   `references/cli-commands.md`）；单引号用 `'"'"'`；写后回读校验。
+4. 联动（见下）；5. 写后三件套；6. 反馈路径。
+
+**问题类**：
+- 含图片/附件等资源 → 建文件夹 `问题/<标题>/`，md 与资源同目录存放
+  （资源复制属附件例外，回复中说明）；纯文字 → `问题/<标题>.md`。
+- frontmatter 至少含 `type: question`、`status: pending`、`created`（= 问题出现日期）。
+- 用户让记录问题时不回答技术问题；反馈时提示"解决后可随时发起沉淀"。
+
+**项目类**：`项目/<项目名>/<标题>.md`；项目主页不存在时可一并创建。
+
+**联动动作**（问题 / 项目 / 剪藏记录后执行）：
+1. **写日志**：`daily:append content="- [<类型>] 记录：<标题> → [[<标题>]]"`；
+   当日日记或日志目录不存在时，先
+   `eval code="app.vault.createFolder('<dailyFolder>')"` 再重试。
+2. **追加 TODO**（仅问题 / 项目）：`todoFile`（默认 `TODO.md`）不存在则先创建：
+   `create path="TODO.md" content='# 待办\n\n各模块记录自动追踪的待办。'`；
+   然后 `append path="TODO.md" content="- [ ] [<类型>] <标题> → [[<标题>]]（<YYYY-MM-DD> 记录）"`。
+
+### 问题沉淀（解决后移入知识与经验）
+
+触发：用户表示某问题已解决 / 已复盘 / 已学会。
+
+1. **展示方案征得同意**：源（`问题/...`）→ 目标（`knowledgeDir` → `知识与经验/`），
+   说明链接由 CLI 自动更新；含资源的问题整个文件夹移动。
+2. **更新属性**：`property:set name=status value=done`、
+   `property:set name=resolved value=<YYYY-MM-DD>`（created 即问题出现日期，勿改）。
+3. **追加经验总结**：`append` 写入 `## 经验总结` 小节（内容向用户索要或按其复盘整理）。
+4. **移动**：目标目录不存在先 `eval code="app.vault.createFolder('知识与经验')"`，再
+   `move path="<源>" to="知识与经验"`。
+5. **勾选 TODO**：`read path="TODO.md"` 定位对应条目行号 →
+   `task path="TODO.md" line=<n> done`。
+6. **写日志**：`daily:append content="- [经验] 解决：<标题> → [[<标题>]]"`。
+7. 执行"写后三件套"。
 
 ### 写后三件套（每次新增 / 修改 / 删除后固定执行）
 
@@ -145,9 +178,10 @@ agent_created: true
 
 - 写今天的日记：`"<cliPath>" daily:append content="<内容>"`；读：`daily:read`；
   查路径：`daily:path`（验证按月目录形态 `YYYY-MM/YYYY-MM-DD`）。
-- 日记目录与格式来自配置 `preferences.dailyFolder` / `preferences.dailyFormat`。
-- 复盘场景：把问题笔记 `property:set name=status value=done`，并 `append` 链接到
-  复盘笔记或日记。
+- 日记目录与格式来自配置 `preferences.dailyFolder`（默认 `日志/`）/
+  `preferences.dailyFormat`。
+- 分类路由的记录动作会自动写一行日志（见"创建笔记"联动动作），无需重复写。
+- 复盘场景：按"问题沉淀"工作流处理，不要只改属性。
 
 ### 任务
 

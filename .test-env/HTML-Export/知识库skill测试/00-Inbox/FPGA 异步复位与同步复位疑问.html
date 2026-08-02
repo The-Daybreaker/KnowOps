@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FPGA 异步复位与同步复位疑问</title>
+<style>
+:root { --fg:#1f2328; --muted:#6a737d; --bg:#ffffff; --panel:#f6f8fa; --border:#d0d7de;
+        --accent:#0969da; --code-bg:#eff1f3; }
+* { box-sizing: border-box; }
+body { margin:0; padding:24px 16px; background:var(--bg); color:var(--fg);
+       font:16px/1.7 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif; }
+main { max-width:820px; margin:0 auto; }
+a { color:var(--accent); text-decoration:none; } a:hover { text-decoration:underline; }
+h1,h2,h3,h4,h5,h6 { line-height:1.35; margin:1.4em 0 .5em; }
+h1 { padding-bottom:.3em; border-bottom:1px solid var(--border); }
+h2 { padding-bottom:.2em; border-bottom:1px solid var(--border); }
+code { background:var(--code-bg); border-radius:6px; padding:.15em .4em; font-size:.9em;
+       font-family:ui-monospace,Consolas,"Courier New",monospace; }
+pre { background:var(--panel); border:1px solid var(--border); border-radius:8px;
+      padding:12px 14px; overflow-x:auto; }
+pre code { background:none; padding:0; }
+blockquote { margin:1em 0; padding:.2em 1em; color:var(--muted);
+             border-left:4px solid var(--border); background:var(--panel); }
+table { border-collapse:collapse; margin:1em 0; width:100%; }
+th,td { border:1px solid var(--border); padding:6px 12px; text-align:left; }
+th { background:var(--panel); }
+img { max-width:100%; }
+mark { background:#fff8c5; padding:0 .2em; border-radius:3px; }
+hr { border:none; border-top:1px solid var(--border); margin:1.6em 0; }
+.tag { display:inline-block; background:#ddf4ff; color:#0550ae; border-radius:12px;
+       padding:0 .6em; font-size:.85em; }
+.wikilink { border-bottom:1px dashed var(--accent); }
+.unresolved { color:var(--muted); border-bottom:1px dashed var(--muted); }
+li.task { list-style:none; margin-left:-1.4em; }
+li.task input { margin-right:.4em; }
+.props { width:100%; margin:0 0 1.2em; font-size:.9em; }
+.props th { width:8em; color:var(--muted); }
+.callout { border:1px solid var(--border); border-left-width:4px; border-radius:8px;
+           padding:10px 14px; margin:1em 0; background:var(--panel); }
+.callout-title { font-weight:600; margin-bottom:4px; }
+.callout-note,.callout-info,.callout-tip { border-left-color:#0969da; }
+.callout-warning,.callout-caution { border-left-color:#bf8700; }
+.callout-danger,.callout-bug,.callout-failure { border-left-color:#d1242f; }
+.callout-success { border-left-color:#1a7f37; }
+.callout-question,.callout-example { border-left-color:#8250df; }
+.meta-bar { color:var(--muted); font-size:.85em; margin-bottom:1em;
+            padding-bottom:.6em; border-bottom:1px solid var(--border); }
+footer { margin-top:3em; color:var(--muted); font-size:.8em; text-align:center; }
+pre.mermaid { background:var(--panel); }
+.idx-folder { margin-top:1.2em; font-weight:600; }
+.idx-list { list-style:none; padding-left:1em; }
+.idx-list li { margin:.25em 0; }
+.idx-time { color:var(--muted); font-size:.8em; margin-left:.6em; }
+#filter { width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px;
+          font-size:1em; margin-bottom:1em; }
+</style></head><body><main>
+<div class="meta-bar"><a href="../index.html">⌂ 索引</a> · 源文件：00-Inbox/FPGA 异步复位与同步复位疑问.md</div>
+<table class="props"><tbody>
+<tr><th>type</th><td>question</td></tr>
+<tr><th>status</th><td>open</td></tr>
+<tr><th>source</th><td>B站小梅哥2024 FPGA教程</td></tr>
+<tr><th>created</th><td>2026-08-03</td></tr>
+<tr><th>tags</th><td>[FPGA, 异步复位, 同步复位, Verilog, RTL, rst_n]</td></tr>
+</tbody></table>
+<h1 id="fpga-异步复位与同步复位疑问">FPGA 异步复位与同步复位疑问</h1>
+<h2 id="背景">背景</h2>
+<p>跟随 B 站小梅哥 2024 年 FPGA 教程学习，当前进度尚未学到「异步复位 / 同步复位」相关知识点，先把目前遇到的疑问记录下来，等学到该知识点后回来复盘。</p>
+<h2 id="疑问代码">疑问代码</h2>
+<h3 id="第一段counter-计数器">第一段（counter 计数器）</h3>
+<pre><code class="language-verilog">always@(posedge clk) begin 
+    if(!rst_n)
+        counter &lt;= 0;
+    else if(counter == 25000000)
+        counter &lt;= 0;
+    else 
+        counter &lt;= counter + 1'd1;
+end
+</code></pre>
+<h3 id="第二段led-翻转">第二段（led 翻转）</h3>
+<pre><code class="language-verilog">always@(posedge clk or negedge rst_n ) begin 
+    if(!rst_n)
+        led &lt;=1'b0;
+    else if(counter == 25000000)
+        led &lt;= !led;
+end
+</code></pre>
+<h2 id="待复盘的问题">待复盘的问题</h2>
+<ol><li>两段代码中的 <code>or negedge rst_n</code> 是否都有必要？为什么？</li><li>为什么每少一个 <code>or negedge rst_n</code>，在进行 RTL ANALYSIS 后的 schematic 图里就会多出一个 RTL MUX？</li><li>在硬件中，异步复位和同步复位有什么区别？</li></ol>
+<h2 id="复盘">复盘</h2>
+<div class="callout callout-note"><div class="callout-title">待复盘</div><div class="callout-body">学到「异步复位 / 同步复位」知识点后回到此笔记，补充解答与理解，并将 status 改为 done。</div></div>
+<footer>由 obsidian-kb html_export 生成</footer>
+</main>
+</body></html>
