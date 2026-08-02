@@ -1,6 +1,6 @@
 ---
 name: obsidian-kb
-description: 基于 Obsidian CLI 的通用知识库管理。当用户要求记录笔记或问题、搜索/读取/整理 Obsidian vault、写原生日记、管理任务、设置属性标签、创建 Bases 视图或 Canvas 画布、网页剪藏、HTML 镜像导出、多 vault 切换、首次接入知识库时使用。写入/修改/删除只走 Obsidian CLI，Vault 是唯一数据源，删除进系统回收站。
+description: 基于 Obsidian CLI 的通用知识库管理。当用户要求记录笔记或问题、搜索/读取/整理 Obsidian vault、写原生日记、管理任务、设置属性标签、创建 Bases 视图或 Canvas 画布、网页剪藏、HTML 镜像导出、多 vault 切换、首次接入知识库时使用。写入/修改/删除只走 Obsidian CLI，Vault 是唯一数据源，删除进系统回收站。内置五份参考技能（references/skills/）：Obsidian Markdown 语法、Obsidian CLI 用法、Obsidian Bases、JSON Canvas、defuddle 网页剪藏。
 agent_created: true
 ---
 
@@ -235,6 +235,19 @@ agent_created: true
 | `references/bases.md` | 创建 / 编辑 .base 视图时 |
 | `references/canvas.md` | 创建 / 编辑 .canvas 画布时 |
 | `references/trash-verification.md` | 需要引用删除安全性实测结论时 |
+
+## 内置参考技能（references/skills/，按需加载）
+
+五份独立参考技能随包分发，编写对应内容时优先查阅其 `SKILL.md`
+（大型细节文档位于各自的 `references/` 子目录）：
+
+| 目录 | 何时读 |
+|---|---|
+| `references/skills/obsidian-markdown/` | 撰写 Obsidian Markdown：wikilink、嵌入、callout、属性、标签（细节见其子 references：CALLOUTS / EMBEDS / PROPERTIES） |
+| `references/skills/obsidian-cli/` | 需要 CLI 调用约定、插件开发命令时 |
+| `references/skills/obsidian-bases/` | 编写 .base 的复杂过滤 / 公式 / 视图（函数全集见其子 references：FUNCTIONS_REFERENCE） |
+| `references/skills/json-canvas/` | 编写 .canvas：节点/边属性、布局、完整示例（见其子 references：EXAMPLES） |
+| `references/skills/defuddle/` | 网页剪藏提取正文的参数细节 |
 
 ## 项目文档
 
