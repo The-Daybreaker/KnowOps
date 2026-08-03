@@ -2,6 +2,8 @@
 .workbuddy/
 # 发布产物（由 update_skill.py 生成，可随时重建）
 dist/
+# 测试产物（forward-test 配置与 HTML 镜像，不入库）
+.test-env/
 # Python
 __pycache__/
 *.pyc
