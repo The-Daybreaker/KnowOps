@@ -1,4 +1,4 @@
-# DESIGN — obsidian-kb 设计文档（v1.3.0）
+# DESIGN — obsidian-kb 设计文档（v1.4.0）
 
 ## 1. 架构决策
 
@@ -77,10 +77,9 @@ CLI `search` 已完备，由 agent 直接调用；skill 不提供搜索工具。
 | `scripts/kb_config.py` | 配置发现与读写、多 vault 管理、schema 迁移 | 原子写（临时文件 + replace）；init 拒绝写入 vault 内；validate 区分问题与警告 |
 | `scripts/kb_env.py` | CLI 发现、Obsidian 运行检查与拉起、配置 / vault 校验 | CLI 发现顺序：配置 cliPath → PATH → 平台常见位置；拉起用 cliPath 同级 `Obsidian.exe`（macOS 用 `open -a`），轮询等待就绪 |
 | `scripts/html_export.py` | MD→HTML 转换、镜像导出、索引生成、附件复制、孤儿清理 | 增量按 mtime；wikilink 以 basename→路径映射解析；Markdown 相对资源按 笔记相对→vault 相对→basename 解析 |
-| `scripts/update_skill.py` | 发布辅助：检查 / 打包 / 提交 | 提交要求 skill 目录本身是仓库根（防止污染上层仓库）；永不 `git init`；打包排除开发期文件（REQUIREMENTS.md / .test-env / dist） |
+| `scripts/update_skill.py` | 发布辅助：检查 / 打包 / 提交 | 提交要求 skill 目录本身是仓库根（防止污染上层仓库）；永不 `git init`；打包仅含运行时文件，排除开发期文档（REQUIREMENTS.md / TEST-REPORT.md / CHANGELOG.md / DESIGN.md / .test-env / dist） |
 | `assets/user-manual.md` | 最终用户手册模板 | 初始化复制到大知识库文件夹，已存在不覆盖 |
 | `references/` | 渐进披露的细节文档 | CLI 速查、属性约定、Bases / Canvas 要点、回收站实测 |
-| `references/skills/`（v1.1.0 起） | 内置五份独立参考技能 | obsidian-markdown / obsidian-cli / obsidian-bases / json-canvas / defuddle，编写对应内容时按需加载；仅收录 SKILL.md 与其 references/，不含本地安装元数据 |
 
 数据流：用户意图 → agent 按 SKILL.md 工作流 → CLI（写）/ 脚本（配置、导出）→
 vault → 写后三件套（HTML 镜像 → Git 提交 → 反馈）。
@@ -98,12 +97,19 @@ vault → 写后三件套（HTML 镜像 → Git 提交 → 反馈）。
 1. 更新 `CHANGELOG.md` 与 `DESIGN.md`（`vX.Y.Z - 描述`，含兼容性说明）；
 2. 兼容性检查（见上节）；
 3. 测试：`quick_validate.py` + 脚本自测 + 真实场景 forward-test；
-4. 打包：`update_skill.py package` 生成 `dist/obsidian-kb-vX.Y.Z-<timestamp>.zip`；
+4. 打包：`update_skill.py package` 生成 `dist/obsidian-kb-vX.Y.Z-<timestamp>.zip`
+   （仅运行时文件，开发期文档 CHANGELOG / DESIGN / REQUIREMENTS / TEST-REPORT 不随包分发）；
 5. Git 提交：`feat:/fix:/docs: vX.Y.Z - 描述`（`update_skill.py commit`）；
 6. **仅在用户明确要求时执行发布**；日常开发不打包、不提交。
 
 ## 5. 已知限制与决策备忘（v1.0.0）
 
+- **打包纯净（v1.4.0 决策）**：分发包仅含运行时文件（SKILL.md、agents/、
+  scripts/、references/、assets/）；CHANGELOG / DESIGN / REQUIREMENTS /
+  TEST-REPORT 为开发期文档，由 git 管理，不随包分发（打包排除项见
+  `update_skill.py` EXCLUDE_*）。内置参考技能 `references/skills/`
+  （obsidian-markdown / obsidian-cli / obsidian-bases / json-canvas / defuddle）
+  自 v1.4.0 起移除，能力说明收敛于 SKILL.md 与顶层 references/ 文档。
 - CLI 非 headless：写操作需要 Obsidian 运行；`kb_env.py` 显式拉起兜底，
   失败时提示用户手动打开；
 - Daily Notes 格式无专用 CLI 设置项：初始化用 `eval` 写插件设置并验证，

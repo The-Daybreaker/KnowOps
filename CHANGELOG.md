@@ -3,6 +3,27 @@
 本文件记录 obsidian-kb 的版本历史。格式遵循语义化版本；
 每次发布的兼容性说明见对应条目。
 
+> 说明：CHANGELOG 为开发期文档，随仓库（git）维护，**不随 skill 包分发**
+> （v1.4.0 起打包排除）。
+
+## [1.4.0] - 2026-08-04
+
+### 变更
+
+- **移除内置参考技能**：删除 `references/skills/`（obsidian-markdown /
+  obsidian-cli / obsidian-bases / json-canvas / defuddle 五份参考技能不再
+  随包分发）；SKILL.md 描述与 references 索引同步清理。
+- **打包内容纯净化**：开发期文档（CHANGELOG.md / DESIGN.md / REQUIREMENTS.md /
+  TEST-REPORT.md 等）不再随包分发，仅由 git 管理；分发包仅含运行时文件
+  （SKILL.md、agents/、scripts/、references/、assets/）。
+
+### 兼容性
+
+- 配置 schema 不变（`version: 1`），旧配置无需迁移。
+- vault 内容与已生成用户手册不受影响。
+- 功能行为不变：移除的是内置参考资料，核心工作流（CLI 写入、分类路由、
+  HTML 导出、剪藏等）无变化。
+
 ## [1.3.0] - 2026-08-03
 
 ### 变更

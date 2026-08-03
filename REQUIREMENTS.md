@@ -66,7 +66,7 @@
 - Git 提交（不创建仓库）；
 - 多 Vault 配置与切换；
 - 首次初始化：配置写入大知识库文件夹（vault 外）并生成用户手册；
-- 长期演进：skill 内置更新日志与设计文档，每次更新保证兼容性。
+- 长期演进：更新日志与设计文档随仓库维护（git 管理、不随包分发），每次更新保证兼容性。
 
 ### 3.2 非目标（明确不做）
 
@@ -289,7 +289,7 @@
 
 ### FR-20 长期演进、更新日志与设计文档
 
-- skill 内置 `CHANGELOG.md`（更新日志，从 v1.0.0 起）与 `DESIGN.md`（设计文档：架构决策、模块职责、数据流、兼容性策略）；
+- `CHANGELOG.md`（更新日志，从 v1.0.0 起）与 `DESIGN.md`（设计文档：架构决策、模块职责、数据流、兼容性策略）为**开发期项目文档**，随仓库（git）维护，**不随 skill 包分发**（v1.4.0 起）；
 - 每次版本发布必须同步更新两份文档；
 - 兼容性要求：升级不得破坏已有配置、vault 内容与已生成的用户手册；配置文件带版本号，schema 变更必须提供迁移路径；破坏性变更必须升主版本并在 CHANGELOG/DESIGN 中说明。
 
@@ -490,7 +490,7 @@
 |---|---|
 | `assets/user-manual.md` | 用户手册模板（使用说明、设计理念、目录结构、FAQ）；首次初始化时复制到大知识库文件夹根目录，已存在则不覆盖 |
 
-> `CHANGELOG.md` 与 `DESIGN.md` 属于 skill 项目文档（FR-20），随 skill 目录一起维护，不属于 assets。
+> `CHANGELOG.md` 与 `DESIGN.md` 属于开发期项目文档（FR-20），随 git 维护、不随包分发，不属于 assets。
 
 ---
 
@@ -542,7 +542,7 @@
 1. 更新 `CHANGELOG.md` 与 `DESIGN.md`（`vX.Y.Z - 变更描述`，含兼容性说明）；
 2. 兼容性检查：旧配置（schema version）可读取或可迁移、vault 内容不受影响、已生成的用户手册不被覆盖；
 3. 运行测试：`skill-creator` 的 `quick_validate.py` + 脚本自测 + 真实场景 forward-test；
-4. 打包：生成 zip 到 `dist/`，命名含版本号与时间戳（如 `obsidian-kb-v1.0.0-<timestamp>.zip`）；
+4. 打包：生成 zip 到 `dist/`，命名含版本号与时间戳（如 `obsidian-kb-v1.0.0-<timestamp>.zip`）；分发包仅含运行时文件（SKILL.md、agents/、scripts/、references/、assets/），开发期文档（CHANGELOG / DESIGN / REQUIREMENTS / TEST-REPORT）不随包分发；
 5. Git 提交：`feat:/fix:/docs: vX.Y.Z - 描述`；
 6. 用 `scripts/update_skill.py`（重写后的精简版）辅助执行。
 
@@ -570,7 +570,7 @@
 - [ ] 用户手册内容与 skill 内置模板一致；重复初始化不覆盖已有手册；
 - [ ] 两个不同项目目录分别初始化配置，各自管理不同 vault，互不冲突；
 - [ ] HTML 导出目录默认生成在大知识库文件夹内（vault 外），名称与位置经首次初始化确认；
-- [ ] skill 内置 CHANGELOG.md 与 DESIGN.md，且与当前版本一致；
+- [ ] 开发目录中 CHANGELOG.md 与 DESIGN.md 与当前版本一致（开发期文档，不随包分发）；
 - [ ] 模拟一次版本升级：旧配置可读取或按迁移说明升级成功，vault 内容与用户手册不受破坏；
 - [ ] FPGA 示例（§4.1）完整跑通：记录 → 代码块无丢失 → 属性写入 → 相似检查 → Git 提交 → 反馈链接；
 - [ ] 原生日记按月分目录生成（`10-Daily/2026-08/2026-08-02.md` 形态）；

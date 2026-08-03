@@ -6,6 +6,8 @@
   1. check   — 发布前检查：CHANGELOG/DESIGN 已同步版本、兼容性（配置可迁移、
                用户手册模板存在）、quick_validate 校验
   2. package — 打包 zip 到 dist/，命名 obsidian-kb-vX.Y.Z-<timestamp>.zip
+               （仅含运行时文件，开发期文档 CHANGELOG/DESIGN/REQUIREMENTS/
+               TEST-REPORT 不随包分发）
   3. commit  — git add -A + git commit（feat:/fix:/docs: vX.Y.Z - 描述）；永不 git init
   4. release — 顺序执行 check → package → commit
 """
@@ -28,9 +30,11 @@ sys.path.insert(0, SCRIPT_DIR)
 import kb_config  # noqa: E402
 
 SKILL_NAME = "obsidian-kb"
-# 打包排除项（相对 skill 根目录）
+# 打包排除项（相对 skill 根目录）：分发包仅含运行时文件，
+# 开发期文档由 git 管理，不随包分发（v1.4.0 起）
 EXCLUDE_DIRS = {".git", ".test-env", "dist", "__pycache__", ".workbuddy"}
-EXCLUDE_FILES = {"REQUIREMENTS.md", "PROMPT.md", "TEST-REPORT.md"}
+EXCLUDE_FILES = {"REQUIREMENTS.md", "PROMPT.md", "TEST-REPORT.md",
+                 "CHANGELOG.md", "DESIGN.md"}
 EXCLUDE_SUFFIXES = {".pyc"}
 
 
