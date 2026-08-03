@@ -40,7 +40,6 @@
     │   └── YYYY-MM/YYYY-MM-DD.md  # 年月/日 两层（preferences.dailyFormat）
     ├── 知识与经验/                # 已解决问题的沉淀（preferences.knowledgeDir）
     ├── TODO.md                    # 唯一待办文件（preferences.todoFile，vault 根）
-    ├── 00-Inbox/                  # 收件箱：未分类记录（preferences.inboxDir）
     ├── 40-Resources/Clips/        # 网页剪藏（preferences.clipDir）
     ├── 50-Archive/                # 归档
     ├── 99-Meta/
@@ -49,6 +48,10 @@
     │   └── Canvas/                # .canvas 画布
     └── Attachments/               # 附件（preferences.attachmentDir）
 ```
+
+> v1.3.0 起**不再有"普通笔记 → 收件箱"兜底**：判断不出类型时由 agent 询问用户
+> 决策归属，不得静默写入。`inboxDir`（00-Inbox）配置键仅保留兼容，不再作为
+> 默认路由目标。
 
 ### 模块生命周期
 

@@ -519,10 +519,10 @@ def render_page(title: str, body_html: str, frontmatter: dict[str, str],
     return "\n".join(parts)
 
 
-def render_index(vault_name: str, entries: list[tuple[str, float]], root: bool = False) -> str:
+def render_index(vault_name: str, entries: list[tuple[str, float]]) -> str:
     items = []
     for rel, mtime in sorted(entries):
-        href = rel[: -len(NOTE_EXT)] + ".html" if not root else rel
+        href = rel[: -len(NOTE_EXT)] + ".html"
         folder = posixpath.dirname(rel) or "（根目录）"
         t = time.strftime("%Y-%m-%d %H:%M", time.localtime(mtime))
         items.append((folder, href, posixpath.basename(rel), t))
@@ -651,7 +651,7 @@ def cmd_export(args) -> dict:
                      for rel in notes]
     with open(os.path.join(mirror_root, "index.html"), "w", encoding="utf-8", newline="\n") as f:
         f.write(render_index(vault_name, index_entries))
-    _write_root_index(export_root)
+    _clean_root_index(export_root)
 
     return {
         "vault": vault_name, "mirrorRoot": mirror_root,
@@ -680,20 +680,20 @@ def cmd_export_one(args) -> dict:
     os.makedirs(mirror_root, exist_ok=True)
     with open(os.path.join(mirror_root, "index.html"), "w", encoding="utf-8", newline="\n") as f:
         f.write(render_index(vault_name, index_entries))
-    _write_root_index(export_root)
+    _clean_root_index(export_root)
     return {"vault": vault_name, "file": rel, "status": status,
             "html": (rel[: -len(NOTE_EXT)] + ".html")}
 
 
-def _write_root_index(export_root: str) -> None:
-    entries = []
-    if os.path.isdir(export_root):
-        for name in sorted(os.listdir(export_root)):
-            sub = os.path.join(export_root, name)
-            if os.path.isdir(sub) and os.path.isfile(os.path.join(sub, "index.html")):
-                entries.append((f"{name}/index.html", os.path.getmtime(sub)))
-    with open(os.path.join(export_root, "index.html"), "w", encoding="utf-8", newline="\n") as f:
-        f.write(render_index("知识库 HTML 镜像", entries, root=True))
+def _clean_root_index(export_root: str) -> None:
+    """v1.3.0 起不再生成导出根级 index.html（只保留 vault 级详细索引）；
+    若历史导出残留了根级 index.html，在此尽力移除（失败不阻断导出）。"""
+    root_index = os.path.join(export_root, "index.html")
+    if os.path.isfile(root_index):
+        try:
+            os.unlink(root_index)
+        except OSError:
+            pass
 
 
 class ExportError(Exception):

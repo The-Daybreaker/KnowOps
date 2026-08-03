@@ -93,7 +93,7 @@ def cli_alive(cli: str) -> tuple[bool, str]:
     except OSError as e:
         return False, f"CLI 无法执行：{e}"
     out = (r.stdout or "") + (r.stderr or "")
-    if r.returncode == 0 and r.stdout.strip():
+    if r.returncode == 0 and r.stdout.strip() and not out.lstrip().startswith("Error:"):
         return True, r.stdout.strip()
     return False, out.strip() or "CLI 无响应"
 
@@ -113,25 +113,43 @@ def _obsidian_app_path(cli: str) -> str | None:
     return None
 
 
+# 无 GPU/远程/沙箱环境下拉起失败时使用的 Electron 兜底参数（实测有效）
+_GPU_FALLBACK_FLAGS = ["--in-process-gpu", "--disable-gpu", "--disable-software-rasterizer"]
+_RETRY_AFTER = 12.0  # 普通方式拉起后等待多久未见效则换 GPU 兜底重拉
+
+
+def _spawn_win(app: str, flags: list[str]) -> None:
+    subprocess.Popen(
+        [app, *flags],
+        creationflags=getattr(subprocess, "DETACHED_PROCESS", 0)
+        | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
+        close_fds=True,
+    )
+
+
 def launch_obsidian(cli: str) -> tuple[bool, str]:
-    """尝试拉起 Obsidian 并轮询等待 CLI 可用。"""
+    """尝试拉起 Obsidian 并轮询等待 CLI 可用。
+
+    Windows：先普通拉起；若 12 秒内未见效，换 GPU 兜底参数（--in-process-gpu 等，
+    解决无 GPU 桌面/远程/沙箱环境 Obsidian 因 "GPU process isn't usable" 退出
+    的问题）再拉，直到超时。
+    """
     app = _obsidian_app_path(cli)
     try:
         if sys.platform.startswith("win"):
             if not app:
                 return False, "无法由 CLI 路径推导 Obsidian.exe，请手动打开 Obsidian"
-            subprocess.Popen(
-                [app],
-                creationflags=getattr(subprocess, "DETACHED_PROCESS", 0)
-                | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
-                close_fds=True,
-            )
+            _spawn_win(app, [])
+            retried = False
+            retry_at = time.time() + _RETRY_AFTER
         elif sys.platform == "darwin":
             subprocess.Popen(["open", "-a", "Obsidian"], close_fds=True)
+            retried, retry_at = True, time.time()  # macOS 无 GPU 兜底，直接等到超时
         else:
             if not app:
                 return False, "无法定位 Obsidian 可执行文件，请手动打开"
             subprocess.Popen([app], start_new_session=True, close_fds=True)
+            retried, retry_at = True, time.time()
     except OSError as e:
         return False, f"拉起 Obsidian 失败：{e}。请手动打开 Obsidian"
 
@@ -140,8 +158,11 @@ def launch_obsidian(cli: str) -> tuple[bool, str]:
         alive, detail = cli_alive(cli)
         if alive:
             return True, f"Obsidian 已拉起并就绪（{detail}）"
+        if sys.platform.startswith("win") and not retried and time.time() >= retry_at:
+            _spawn_win(app, _GPU_FALLBACK_FLAGS)
+            retried = True
         time.sleep(POLL_INTERVAL)
-    return False, f"已尝试拉起 Obsidian，但 {int(POLL_TIMEOUT)} 秒内 CLI 仍不可用。请手动打开 Obsidian 后重试"
+    return False, f"已尝试拉起 Obsidian（含 GPU 兜底参数），但 {int(POLL_TIMEOUT)} 秒内 CLI 仍不可用。请手动打开 Obsidian 后重试"
 
 
 # ---------------------------------------------------------------------------
