@@ -3,6 +3,20 @@
 > 开发期交付物，不随 skill 打包。环境：Windows 11、Obsidian 1.13.4（CLI 随应用，
 > `Obsidian.com`）、受管 Python 3.13.12、受管 Node 22.22.2（defuddle 隔离安装）。
 
+## 〇〇、v1.3.0 变更 forward-test（2026-08-03，vault「知识库skill测试」）
+
+- **HTML 只留 vault 级索引**：fake vault 导出验证——根级 `index.html` 不再生成，
+  历史残留的根级索引被尽力清理；`<exportRoot>/<vault名>/index.html` 即详细索引 ✅
+- **超长文本两步写入**：CLI create 占位（创建走 CLI）→ 直写 10152 字符 →
+  回读长度一致（无截断）→ search 命中（Obsidian 索引识别直写内容）✅
+- **kb_env 拉起（GPU 兜底）**：Obsidian 未运行环境下实测——普通拉起 12 秒无效果
+  后自动以 `--in-process-gpu --disable-gpu --disable-software-rasterizer` 重拉，
+  最终 "Obsidian 已拉起并就绪（1.13.4）" ✅（解决无 GPU 桌面/远程/沙箱环境
+  "GPU process isn't usable. Goodbye." 导致拉起失败的问题；`cli_alive` 同时加固
+  为忽略应用半就绪时的 "Error:" 假成功输出）
+- 取消"普通→收件箱"兜底：SKILL.md 路由表更新为"无法判定 → 询问用户"（规则级
+  变更，配置兼容）✅
+
 ## 〇、v1.2.0 分类路由 forward-test（2026-08-03，vault「知识库skill测试」）
 
 - 相似检查命中既有笔记（00-Inbox/FPGA…疑问.md）→ 高相似提示成立 ✅
