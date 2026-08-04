@@ -92,7 +92,7 @@ CLI 命令、Markdown 语法、Bases/Canvas 语法、剪藏提取等操作细节
     （设置 → 日记 → 日期格式 / 新笔记位置）。
 12. 首次全量导出：`python scripts/html_export.py --json export --full`。
 13. **询问是否创建看板**（v2.2.0 可选组件）：同意 → 按「看板」小节动态生成
-    `看板.md`（`preferences.dashboardFile`）与各模块 .base（只建有内容的）；
+    `看板.md`（`preferences.dashboardFile`）与 `看板.base`（只含有内容的板块视图）；
     不同意 → 仅记录偏好，用户可随时要求按需补建。
 14. 向用户反馈：配置路径、vault 列表、导出目录、手册位置、日记格式验证结果、看板状态。
 
@@ -214,7 +214,7 @@ CLI 命令、Markdown 语法、Bases/Canvas 语法、剪藏提取等操作细节
 - **完成 / 取消**：更新 `status`（`done` / `cancelled`）+ `updated`（精确到分钟）；
   **不移动文件**；及时写操作日志。
 - **提醒联动**：录入时含明确时间信号或用户要求提醒 → 按「自动化提醒」小节创建提醒。
-- **Bases 呈现**：`日程` 标签 + `date` 属性经「日程.base」聚合（见「看板」小节），
+- **Bases 呈现**：`日程` 标签 + `date` 属性经「看板.base」聚合（见「看板」小节），
   改属性即实时反映，无需重建视图。
 
 ### 操作后流程（每次对知识库的操作后固定执行）
@@ -231,7 +231,7 @@ CLI 命令、Markdown 语法、Bases/Canvas 语法、剪藏提取等操作细节
 4. **看板反映确认**（若看板已创建且操作涉及看板板块内容）：Bases 视图读笔记属性
    自动实时反映，**无需重建看板**；确认对应板块已正确反映（必要时读回核对），
    保证"日程与看板及时更新"；**若某板块首次出现内容**（如第一次剪藏），按「看板」
-   小节为该 .base 增补视图并更新看板文件。
+   小节为 `看板.base` 增补视图并更新看板文件。
 5. **Git 提交**（写操作）：vault 是 Git 仓库时执行
    `git -C <vault> add -A -- . && git -C <vault> commit -m "docs: <简述>"`；
    不是仓库则跳过并提示一次（可在配置 `preferences.gitCommit=false` 关闭提醒）。
@@ -387,4 +387,5 @@ WorkBuddy 用其自动化工具，其他平台用对应等价能力）：
 | `references/properties.md` | 属性集含义、标签约定、目录模板、模块生命周期（知识库设计） |
 | `references/bases.md` | 「看板板块」过滤要点（生成看板时）；Bases 语法以 obsidian-bases 为准 |
 | `references/cli-commands.md` | CLI 实测怪癖（盘符陷阱、eval 副作用等）与例外清单；命令用法以 obsidian-cli 为准 |
+| `references/canvas.md` | CLI 写 Canvas 的实测经验与校验要求；语法以 json-canvas 为准 |
 | `references/trash-verification.md` | 需要引用删除安全性实测结论时 |

@@ -6,6 +6,20 @@
 > 说明：CHANGELOG 为开发期文档，随仓库（git）维护，**不随 skill 包分发**
 > （v1.4.0 起打包排除）。
 
+## [2.3.3] - 2026-08-05
+
+### 修复（全面审计 + 全类型测试）
+
+- **一致性修复（10 处）**：SKILL.md 初始化向导/日程小节/操作后流程中的"各模块
+  .base""日程.base"旧表述改为「看板.base」（v2.3.2 定稿形态）；references 索引
+  补 canvas.md；agents/openai.yaml 补齐日程/自动化提醒/看板/obsidian-suite 委托；
+  user-manual 区分"看板总览"与"按需 .base 视图"；REQUIREMENTS 初始化/目录模板/
+  验收标准同步看板.base 形态；DESIGN 标题升至 v2.3.2。
+- **测试**：quick_validate、4 脚本编译、kb_config 全命令端到端（init/add-vault/
+  list/get/set/set-default/path/validate/migrate v1→v3/remove-vault）、html_export
+  （渲染/索引/孤儿清理）、测试库真实 forward-test **12/12 通过**（问题解决/沉淀/
+  TODO 折叠归档/看板动态增补/日程完成/操作日志/HTML 导出/删除回收站）。
+
 ## [2.3.2] - 2026-08-05
 
 ### 调整
