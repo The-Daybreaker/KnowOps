@@ -72,7 +72,9 @@
   `knowledge_type` + `created` + `resolved`（沉淀日期）；类型由 agent 判定并交用户审核。
 - **TODO.md**：问题 / 项目记录时自动追加
   `- [ ] [类型] 标题 → [[链接]]（YYYY-MM-DD 记录）`；人工待办也可直接写入；
-  全库任务仍可用 `tasks` 与 Bases 视图聚合。
+  全库任务仍可用 `tasks` 与 Bases 视图聚合；
+  **勾选完成后（v2.1.0）**：条目自动移入 TODO.md 底部「已完成」折叠块
+  （callout `> [!success]- 已完成`，默认折叠），最新完成排最上、完成越久越靠下。
 
 配置键见 `kb_config.py list` 输出的 `preferences`；修改用
 `kb_config.py set preferences.<键> <值>`（用户知情后进行）。
