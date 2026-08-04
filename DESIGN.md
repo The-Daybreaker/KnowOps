@@ -143,12 +143,15 @@ Git 提交 → 反馈）。
 - **日程模块（v2.2.0 决策）**：`日程/` 为内容模块（与问题/项目/日志/知识同级，
   scheduleDir 键）；日程笔记 `type: event` + `date`/`end`/`location`/`status` +
   `日程` 标签；状态变更即时写入（Bases 视图自动实时反映，及时更新）。
-- **看板总览（v2.2.0 决策，v2.3.0 重构）**：vault 根目录 `看板.md`（dashboardFile 键）
-  嵌入**一个「总看板.base」多视图**（v2.3.0 起不再生成多个分类 .base），为
-  **初始化可选组件**（用户同意才建）；**动态板块**——生成时只加载已有内容的模块，
-  板块首次出现内容时自动增补视图；交互全 Bases 原生不依赖插件；数据随笔记属性
-  实时反映、无需重建；美化用 CSS snippet（`.obsidian/snippets/`，编辑/阅读都生效，
-  写 `.obsidian` 前征得同意）；与"agent 日常按需创建 Bases 不固化模板"决策并行。
+- **看板总览（v2.2.0 决策，v2.3.0/v2.3.1 调整）**：vault 根目录 `看板.md`
+  （dashboardFile 键）是**唯一看板文件**；各模块数据源为**按内容命名的 .base**
+  （`问题.base` / `日程.base` / `任务.base`…，只建有内容的模块），看板.md 嵌入
+  `![[<模块>.base#视图名]]`；**不存在"总看板"级聚合 base 文件**；为**初始化可选
+  组件**（用户同意才建）；**动态板块**——生成时只加载已有内容的模块，板块首次
+  出现内容时自动建 .base 并加入看板；交互全 Bases 原生不依赖插件；数据随笔记
+  属性实时反映、无需重建；美化用 CSS snippet（`.obsidian/snippets/`，编辑/阅读
+  都生效，写 `.obsidian` 前征得同意）；**Bases 不支持 calendar 视图类型**
+  （实测 1.13.4），日程一律 table；与"agent 日常按需创建 Bases 不固化模板"决策并行。
 - **Obsidian 操作委托（v2.3.0 决策）**：SKILL.md 不编写 Obsidian 操作规范，改为由
   `@skill:obsidian-suite` 调度指导，各子领域查看 obsidian-cli / obsidian-markdown /
   obsidian-bases / json-canvas / defuddle 专用 skill（外部维护可及时更新）；
