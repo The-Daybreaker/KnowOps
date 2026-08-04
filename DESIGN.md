@@ -1,4 +1,4 @@
-# DESIGN — obsidian-kb 设计文档（v2.0.1）
+# DESIGN — obsidian-kb 设计文档（v2.1.0）
 
 ## 1. 架构决策
 
@@ -133,6 +133,9 @@ vault → 操作后流程（updated 同步 → HTML 镜像 → 操作日志 → 
   知识模块按类型子目录切分；剪藏/模板/附件/Bases/Canvas 为文件类型分类，
   位置以用户指令为准（不预设目录）；无收件箱、无归档；操作日志在 vault 外
   `log/` 按月/日切分；updated 精确到分钟；标签与双向链接为硬性要求。
+- **TODO 折叠归档（v2.1.0 决策）**：勾选完成后条目移入 TODO.md 底部「已完成」
+  折叠块（callout `[!success]-` 默认折叠），最新完成排最上；实现为 SKILL.md
+  内联工作流（CLI read → 对比定位 → 重组 → `create overwrite`），不新增脚本。
 - CLI 非 headless：写操作需要 Obsidian 运行；`kb_env.py` 显式拉起兜底，
   失败时提示用户手动打开；
 - Daily Notes 格式无专用 CLI 设置项：初始化用 `eval` 写插件设置并验证，

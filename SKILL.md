@@ -157,10 +157,35 @@ agent_created: true
    `created`（记录日期）保持问题出现日期勿改。
 3. **移动**：目标目录不存在先 `eval code="app.vault.createFolder('<questionDir>/已解决')"`，
    再 `move path="<源>" to="<questionDir>/已解决"`。
-4. **勾选 TODO**：`read path="TODO.md"` 定位对应条目行号 →
-   `task path="TODO.md" line=<n> done`。
+4. **勾选 TODO**：按下方「TODO 勾选与折叠归档」工作流执行。
 5. **写日志**：`daily:append content="- [解决] <标题> → [[<标题>]]"`。
 6. 执行"操作后流程"。
+
+### TODO 勾选与折叠归档（v2.1.0）
+
+勾选完成（`- [ ]` → `- [x]`）后，把已完成条目移到 TODO.md 底部「已完成」折叠块，
+最新完成排最上、完成越久越靠下。全程 CLI：
+
+1. **读全文记录进行中行**：`read path="<todoFile>"`，记下所有 `- [ ]` 行内容
+   （用于勾选后对比定位）。
+2. **勾选**：`task path="<todoFile>" line=<n> done`。
+3. **重读全文**：`read path="<todoFile>"`，找出"上次是 `- [ ]`、现在是 `- [x]`"
+   的行 = 刚完成的条目。
+4. **重组全文**：
+   - 进行中条目（`- [ ]`）保持原序在上；
+   - 底部接「已完成」折叠块：
+     ```markdown
+     > [!success]- 已完成
+     > - [x] <条目>（保持行内容）
+     > - [x] <条目>
+     ```
+     刚完成的条目放**块内最上方**，其余已完成条目保持相对顺序；
+     折叠块不存在则新建，已存在则合并（把所有 `- [x]` 收进块内）。
+5. **写回**：`create path="<todoFile>" overwrite content="<重组后全文>"`
+   （CLI create 支持 `overwrite`，覆盖写合规，不绕红线）。
+
+> 说明：折叠用 Obsidian callout `[!success]-`（`-` 后缀即默认折叠）；行号以
+> 勾选前 `read` 输出的行为准。历史遗留的块外 `- [x]` 行在下次重组时一并收进块内。
 
 ### 知识沉淀（创建知识笔记，链接回原问题）
 
@@ -233,6 +258,8 @@ agent_created: true
 
 - 统一 `- [ ]` 语法；汇总用 `"<cliPath>" tasks`（`todo` / `daily` 等过滤见
   `references/cli-commands.md`）；看板用 Bases 视图（`references/bases.md`）。
+- **勾选完成**（`task ... done`）后，按「TODO 勾选与折叠归档」工作流把已完成条目
+  移入 TODO.md 底部「已完成」折叠块（默认折叠，最新完成在最上）。
 
 ### 属性、标签与双向链接
 
