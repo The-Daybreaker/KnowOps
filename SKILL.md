@@ -126,7 +126,7 @@ agent_created: true
 
 **问题类**：
 - 文件名统一 `YYYY-MM-DD 文件名.md`（**日期为问题出现日期**；"文件名"用简短
-  主题词如 `2026-08-04 异步复位.md`，**不要用长句描述做文件名**）。
+  描述如 `2026-08-04 FPGA同步异步复位问题.md`，**不要用长句描述做文件名**）。
 - 纯文字 → `<questionDir>/未解决/<文件名>.md`；含图片/附件等资源 → 建文件夹
   `<questionDir>/未解决/<文件名>/`，md 与资源同目录存放（资源复制属附件例外，回复中说明）。
 - frontmatter 至少含 `type: question`、`status: pending`、`created`（= 问题出现日期）、
@@ -170,7 +170,7 @@ agent_created: true
    设计 / 规范 / 案例 / 模板）中选择；**内容不适合现有类型时，提出新类型并交
    用户确认**（确认后即为新子目录，知识类型可动态扩展）。
 2. **展示方案征得同意**：目标 `<knowledgeDir>/<类型>/<YYYY-MM-DD 标题>.md`
-   （日期为沉淀日期，标题用简短主题词）；向用户展示拟创建位置与类型，确认后执行。
+   （日期为沉淀日期，标题用简短描述）；向用户展示拟创建位置与类型，确认后执行。
 3. **创建知识笔记**：CLI 创建，frontmatter 含 `type: knowledge`、
    `knowledge_type: <类型>`、`created`、`resolved`（沉淀日期）、`source`、领域标签；
    正文含**经验总结**小节，并**双向链接回原问题**：`[[<原问题文件名>]]`（原问题
@@ -312,7 +312,7 @@ agent_created: true
 | `scripts/kb_config.py` | 配置与多 vault：init / find / add-vault / remove-vault / list / set-default / path / get / set / validate / migrate |
 | `scripts/kb_env.py` | 环境自检：check（CLI/Obsidian/配置/vault，自动拉起）/ launch / cli-path |
 | `scripts/html_export.py` | HTML 镜像：export（增量+清理，--full 全量）/ export-one（单篇） |
-| `scripts/update_skill.py` | 发布辅助（仅用户明确要求时用）：check / package / commit / release |
+| `scripts/update_skill.py` | 发布辅助（每次改动后自动执行）：check / package / commit / release |
 
 ## references 索引（按需加载）
 
