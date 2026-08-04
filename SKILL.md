@@ -1,22 +1,34 @@
 ---
 name: obsidian-kb
-description: 基于 Obsidian CLI 的通用知识库管理。当用户要求记录笔记或问题（按未解决/已解决管理）、搜索/读取/整理 Obsidian vault、知识沉淀（按类型归档）、写原生日记、管理任务、记录日程、创建自动化提醒、搭建看板总览、设置属性标签与双向链接、创建 Bases 视图或 Canvas 画布、网页剪藏、HTML 镜像导出、多 vault 切换、首次接入知识库时使用。写入/修改/删除只走 Obsidian CLI，Vault 是唯一数据源，删除进系统回收站。
+description: 基于 Obsidian CLI 的通用知识库管理。当用户要求记录笔记或问题（按未解决/已解决管理）、搜索/读取/整理 Obsidian vault、知识沉淀（按类型归档）、写原生日记、管理任务、记录日程、创建自动化提醒、搭建看板总览、设置属性标签与双向链接、创建 Bases 视图或 Canvas 画布、网页剪藏、HTML 镜像导出、多 vault 切换、首次接入知识库时使用。写入/修改/删除只走 Obsidian CLI，Vault 是唯一数据源，删除进系统回收站。Obsidian 具体操作由 obsidian-suite 系列 skill 指导。
 agent_created: true
 ---
 
 # obsidian-kb 知识库管理
 
-以 Obsidian 本体 + Obsidian CLI 管理知识库。Vault 是唯一数据源；本 skill 不构建任何
-索引、同步、数据库或守护进程。
+## 职责边界（重要）
+
+本 skill 只负责**知识库管理逻辑**：模块路由、问题生命周期、知识沉淀、日程、看板、
+自动化提醒、操作日志、HTML 镜像导出、配置与初始化。
+
+**Obsidian 的具体操作由 @skill:obsidian-suite 调度指导**：本 skill 不再编写
+CLI 命令、Markdown 语法、Bases/Canvas 语法、剪藏提取等操作细节。需要操作时：
+1. 加载 `@skill:obsidian-suite` 获取各子 skill 的调度方式；
+2. 具体用法分别查看：`@skill:obsidian-cli`（CLI 命令与 vault 操作）、
+   `@skill:obsidian-markdown`（笔记语法与属性）、`@skill:obsidian-bases`
+   （.base 视图）、`@skill:json-canvas`（.canvas 画布）、`@skill:defuddle`
+   （网页剪藏提取）。
+3. 本 skill 的 `references/` 仅保留**实测经验与领域约定**（标注"仅供参考"），
+   不替代上述专用 skill。
 
 ## 安全红线（每次操作前默念）
 
-1. 写入 / 修改 / 移动 / 重命名 / 删除：**只走 Obsidian CLI**。直接读写文件仅限
-   `references/cli-commands.md` 末尾的例外清单，且必须在回复中说明原因。
+1. 写入 / 修改 / 移动 / 重命名 / 删除：**只走 Obsidian CLI**（命令见 obsidian-cli）。
+   直接读写文件仅限 `references/cli-commands.md` 末尾的例外清单，且必须在回复中说明原因。
 2. 修改 / 移动 / 重命名已有内容前：**先展示变更方案并征得用户同意**。
 3. 删除：只用 CLI `delete`（默认进系统回收站，可恢复）；**严禁 `permanent` 参数**；
    删除前征得用户同意并告知"进回收站可恢复"。
-4. 创建新内容无需同意，但写入前**必须用 CLI `search` 做相似检查**；高相似时展示给
+4. 创建新内容无需同意，但写入前**必须用 CLI 搜索做相似检查**；高相似时展示给
    用户由其决策（合并 / 跳过 / 仍写入），不强制阻断、不强制标题规范。
 5. 永不执行 `git init`；HTML 导出**绝不写入 vault 内部**；配置与用户手册只写入
    大知识库文件夹（vault 上级目录），绝不写入 vault 内部。
@@ -38,9 +50,7 @@ agent_created: true
 - CLI 路径：读配置 `cliPath` → `kb_env.py cli-path` 自动发现（PATH / 平台常见位置）。
 - 首次使用或关键操作前执行 `kb_env.py check`：CLI 不可用或 Obsidian 未运行时，
   脚本会尝试拉起并轮询等待；失败则明确提示用户手动打开 Obsidian。
-- 所有 CLI 命令用绝对路径调用（如 `"<cliPath>" create ...`），不依赖 PATH。
-- 多 vault：命令首参加 `vault="<名称>"`（名称为 Obsidian 注册名，与配置一致）；
-  单 vault 可省略。
+- 多 vault：按 obsidian-cli 的 vault 指定方式操作（与配置中的注册名一致）。
 
 ### 配置发现
 
@@ -53,7 +63,7 @@ agent_created: true
 
 1. 告知：vault 在 agent 项目建立前已存在、名称不统一，skill 只读取实际路径与名称，
    不假设固定名称（如 MyVault）。
-2. 确认 vault 实际路径与名称：可先用 CLI `vaults` 列出已注册 vault 供用户点选；
+2. 确认 vault 实际路径与名称：用 CLI 列出已注册 vault 供用户点选；
    若目标文件夹尚未注册，请用户在 Obsidian 中「打开文件夹作为仓库」。
 3. 发现 CLI 路径（`kb_env.py cli-path`），确认后随初始化写入配置。
 4. 确认配置文件位置：**默认大知识库文件夹（vault 上级目录）**，可改（但不得在 vault 内）。
@@ -76,22 +86,14 @@ agent_created: true
    手册在 vault 外。）
 10. 检查 vault 是否已是 Git 仓库（存在 `.git`）：是 → 告知将自动提交；否 → 提示用户
     可自行建仓，**绝不代为 init**。
-11. 日记按月切分：用 CLI 依次执行（1.13.4 实测有效）：
-    ```bash
-    # ① 持久化到 .obsidian/app.json（重启后仍有效）
-    "<cliPath>" eval code="app.vault.setConfig('daily-notes',{folder:'<dailyFolder>',format:'<dailyFormat>'})"
-    # ② 同步运行中实例的内存设置（立即生效）
-    "<cliPath>" eval code="const p=app.internalPlugins.plugins['daily-notes'].instance;p.options.folder='<dailyFolder>';p.options.format='<dailyFormat>'"
-    # ③ 若 daily:path 报 Folder not found，先建目录（eval 走 CLI，合规）
-    "<cliPath>" eval code="app.vault.createFolder('<dailyFolder>')"
-    ```
-    最后用 `daily:path` 验证路径形态（应形如 `日志/2026-08/2026-08-03.md`）。
-    eval 全部不可用时给用户一次性人工指引：设置 → 日记 → 日期格式
-    `YYYY-MM/YYYY-MM-DD`、新笔记位置 `<dailyFolder>`。
+11. 日记按月切分：按 obsidian-cli 的"日记设置"方法配置（文件夹 `<dailyFolder>`、
+    日期格式 `<dailyFormat>`），完成后用 CLI 验证 `daily:path` 形态
+    （应形如 `日志/2026-08/2026-08-03.md`）；CLI 无法设置时给用户一次性人工指引
+    （设置 → 日记 → 日期格式 / 新笔记位置）。
 12. 首次全量导出：`python scripts/html_export.py --json export --full`。
-13. **询问是否创建看板**（v2.2.0 可选组件）：同意 → 按「看板」小节在 vault 根目录
-    生成 `看板.md`（`preferences.dashboardFile`）与 7 个 `.base` 板块视图；
-    不同意 → 仅记录偏好，用户可随时要求按需补建。
+13. **询问是否创建看板**（v2.2.0 可选组件）：同意 → 按「看板」小节动态生成
+    `看板.md`（`preferences.dashboardFile`）与「总看板.base」；不同意 → 仅记录偏好，
+    用户可随时要求按需补建。
 14. 向用户反馈：配置路径、vault 列表、导出目录、手册位置、日记格式验证结果、看板状态。
 
 ## 日常工作流
@@ -107,7 +109,7 @@ agent_created: true
 | 项目 | "项目 / 工程 / 学习项目 / 课题" | `<projectsDir>` → `项目/<项目名>/` | 日志 + TODO + log |
 | 日程 | "日程 / 会议 / 约 / 几点 / 什么时候 / 提醒我" | `<scheduleDir>` → `日程/` | 提醒 + log |
 | 剪藏 | 给出 URL | **用户指令指定位置**（不预设目录） | 日志 + log |
-| 日记 | "日记 / 今天" | 原生日记 `daily:*`（`dailyFolder` → `日志/`） | log |
+| 日记 | "日记 / 今天" | 原生日记（`dailyFolder` → `日志/`） | log |
 | 知识 | "沉淀 / 总结 / 整理成知识" | `<knowledgeDir>/<类型>/` → `知识/<类型>/`（类型交用户审核） | 链接 + log |
 | 无法判定 | 不属于上述任何一类 | **询问用户归属**，由用户决定写入哪一模块（无收件箱） | 按用户决定 |
 
@@ -115,17 +117,13 @@ agent_created: true
 > 决策，确认后再写入；不再有任何静默兜底目录。
 
 通用步骤（全部类型）：
-1. CLI 相似检查：`search query="<关键词>" limit=5`；高相似 → 展示给用户决策。
+1. 相似检查：用 obsidian-cli 的搜索能力（如 `search`）检查相似内容；高相似 → 展示给用户决策。
 2. 组装结构化内容：frontmatter（`type` / `status` / `source` / `created` / `tags` 等，
-   见 `references/properties.md`）+ 正文；**代码块原样保留**；
-   **积极打层级标签**（领域 / 类型 / 来源，如 `#领域/fpga`、`#知识/经验`）。
-3. CLI 创建：多行 content 优先 shell 单引号内**真实换行**；frontmatter 列表用
-   行内数组 `tags: [a, b]`（`\n` 转义会触发盘符误判，见
-   `references/cli-commands.md`）；单引号用 `'"'"'`；写后回读校验。
-   **超长内容（>4000 字符）改用两步写入**：先用 CLI 创建占位文件
-   `create path="<路径>.md" silent content="占位"`（**创建动作必须走 CLI**，
-   保证 Obsidian 索引注册），再用文件系统直接写入完整内容（CLI 参数长度受限，
-   属例外清单第 5 条，回复中说明原因），最后仍执行回读校验与操作后流程。
+   属性集见 `references/properties.md`；**语法见 obsidian-markdown**）+ 正文；
+   **代码块原样保留**；**积极打层级标签**（领域 / 类型 / 来源）。
+3. 创建：按 obsidian-cli 的创建方法写入（多行内容、特殊字符处理、回读校验等
+   以 obsidian-cli / obsidian-markdown 为准；超长内容的两步写入经验见
+   `references/cli-commands.md`）。
 4. 联动（见下）；5. 操作后流程；6. 反馈路径。
 
 **问题类**：
@@ -140,12 +138,10 @@ agent_created: true
 **项目类**：`项目/<项目名>/<标题>.md`；项目主页不存在时可一并创建。
 
 **联动动作**（问题 / 项目 / 剪藏 / 知识记录后执行）：
-1. **写日志**：`daily:append content="- [<类型>] 记录：<标题> → [[<标题>]]"`；
-   当日日记或日志目录不存在时，先
-   `eval code="app.vault.createFolder('<dailyFolder>')"` 再重试。
-2. **追加 TODO**（仅问题 / 项目）：`todoFile`（默认 `TODO.md`）不存在则先创建：
-   `create path="TODO.md" content='# 待办\n\n各模块记录自动追踪的待办。'`；
-   然后 `append path="TODO.md" content="- [ ] [<类型>] <标题> → [[<标题>]]（<YYYY-MM-DD> 记录）"`。
+1. **写日志**：在当日日记追加一行记录（按 obsidian-cli 的日记追加方法）；
+   当日日记或日志目录不存在时先创建目录。
+2. **追加 TODO**（仅问题 / 项目）：`todoFile`（默认 `TODO.md`）不存在则先创建，
+   然后追加 `- [ ] [<类型>] <标题> → [[<标题>]]（<YYYY-MM-DD> 记录）`。
 3. **建立双向链接**（知识 / 剪藏 / 沉淀时）：链接原问题、相关笔记（见"知识沉淀"）。
 4. **自动化提醒判断**（追加 TODO 后）：按「自动化提醒」小节判断时间信号；
    命中 → 创建提醒，TODO 条目旁标注「已设提醒」；无信号 → 跳过。
@@ -157,41 +153,29 @@ agent_created: true
 1. **展示方案征得同意**：源（`<questionDir>/未解决/...`）→ 目标（`<questionDir>/已解决/`），
    说明链接由 CLI 自动更新；含资源的问题整个文件夹移动；**文件名保持
    `YYYY-MM-DD 文件名.md` 不变**。
-2. **更新属性**：`property:set name=status value=done`、
-   `property:set name=resolved value=<YYYY-MM-DD>`（解决日期）、
-   `property:set name=updated value=<YYYY-MM-DDTHH:MM>`（精确到分钟）；
+2. **更新属性**：`status: done`、`resolved`（解决日期）、`updated`（精确到分钟）；
    `created`（记录日期）保持问题出现日期勿改。
-3. **移动**：目标目录不存在先 `eval code="app.vault.createFolder('<questionDir>/已解决')"`，
-   再 `move path="<源>" to="<questionDir>/已解决"`。
+3. **移动**：目标目录不存在先创建，再移动（obsidian-cli）。
 4. **勾选 TODO**：按下方「TODO 勾选与折叠归档」工作流执行。
-5. **写日志**：`daily:append content="- [解决] <标题> → [[<标题>]]"`。
+5. **写日志**：当日日记追加 `- [解决] <标题> → [[<标题>]]`。
 6. 执行"操作后流程"。
 
 ### TODO 勾选与折叠归档（v2.1.0）
 
 勾选完成（`- [ ]` → `- [x]`）后，把已完成条目移到 TODO.md 底部「已完成」折叠块，
-最新完成排最上、完成越久越靠下。全程 CLI：
+最新完成排最上、完成越久越靠下。全程走 CLI：
 
-1. **读全文记录进行中行**：`read path="<todoFile>"`，记下所有 `- [ ]` 行内容
-   （用于勾选后对比定位）。
-2. **勾选**：`task path="<todoFile>" line=<n> done`。
-3. **重读全文**：`read path="<todoFile>"`，找出"上次是 `- [ ]`、现在是 `- [x]`"
-   的行 = 刚完成的条目。
+1. **读全文记录进行中行**：记下所有 `- [ ]` 行内容（用于勾选后对比定位）。
+2. **勾选**：按 obsidian-cli 的任务勾选方法标记完成。
+3. **重读全文**：找出"上次是 `- [ ]`、现在是 `- [x]`"的行 = 刚完成的条目。
 4. **重组全文**：
    - 进行中条目（`- [ ]`）保持原序在上；
-   - 底部接「已完成」折叠块：
-     ```markdown
-     > [!success]- 已完成
-     > - [x] <条目>（保持行内容）
-     > - [x] <条目>
-     ```
+   - 底部接「已完成」折叠块（callout 语法见 obsidian-markdown，`-` 后缀即默认折叠）：
      刚完成的条目放**块内最上方**，其余已完成条目保持相对顺序；
      折叠块不存在则新建，已存在则合并（把所有 `- [x]` 收进块内）。
-5. **写回**：`create path="<todoFile>" overwrite content="<重组后全文>"`
-   （CLI create 支持 `overwrite`，覆盖写合规，不绕红线）。
+5. **写回**：用 CLI 覆盖写回（obsidian-cli，不绕红线）。
 
-> 说明：折叠用 Obsidian callout `[!success]-`（`-` 后缀即默认折叠）；行号以
-> 勾选前 `read` 输出的行为准。历史遗留的块外 `- [x]` 行在下次重组时一并收进块内。
+> 历史遗留的块外 `- [x]` 行在下次重组时一并收进块内。
 
 ### 知识沉淀（创建知识笔记，链接回原问题）
 
@@ -202,66 +186,16 @@ agent_created: true
    用户确认**（确认后即为新子目录，知识类型可动态扩展）。
 2. **展示方案征得同意**：目标 `<knowledgeDir>/<类型>/<YYYY-MM-DD 标题>.md`
    （日期为沉淀日期，标题用简短描述）；向用户展示拟创建位置与类型，确认后执行。
-3. **创建知识笔记**：CLI 创建，frontmatter 含 `type: knowledge`、
-   `knowledge_type: <类型>`、`created`、`resolved`（沉淀日期）、`source`、领域标签；
-   正文含**经验总结**小节，并**双向链接回原问题**：`[[<原问题文件名>]]`（原问题
-   保留在 `<questionDir>/已解决/`，不删除、不移动）。
+3. **创建知识笔记**：frontmatter 含 `type: knowledge`、`knowledge_type: <类型>`、
+   `created`、`resolved`（沉淀日期）、`source`、领域标签；正文含**经验总结**小节，
+   并**双向链接回原问题**：`[[<原问题文件名>]]`（原问题保留在
+   `<questionDir>/已解决/`，不删除、不移动）。
 4. **回写原问题**：在原问题笔记正文追加"已沉淀"链接（`[[<知识笔记>]]`），
    形成双向链接。
-5. **写日志**：`daily:append content="- [知识] 沉淀：<标题> → [[<标题>]]"`。
+5. **写日志**：当日日记追加 `- [知识] 沉淀：<标题> → [[<标题>]]`。
 6. 执行"操作后流程"。
 
 > 知识类型子目录**用到才建**（首次沉淀到某类型时创建），不预建空目录。
-
-### 操作后流程（每次对知识库的操作后固定执行）
-
-1. **更新 `updated` 属性**（仅修改已有笔记时）：`property:set name=updated
-   value=<YYYY-MM-DDTHH:MM>`（精确到分钟，v2.0 硬性要求）。
-2. **HTML 镜像增量更新**（仅写操作）：单篇变更用
-   `python scripts/html_export.py --json export-one --file "<相对路径>"`；
-   涉及删除 / 移动 / 重命名用 `python scripts/html_export.py --json export`
-   （自动同步移除多余镜像）。
-3. **记录操作日志**（**所有操作**，含读取/搜索）：向大知识库文件夹（vault 外，
-   与配置同层）`<logDir>/<YYYY-MM>/<YYYY-MM-DD>.md`（默认 `log/`）追加一行
-   `- <HH:MM> [<操作类型>] <目标路径或简述>`；日志目录不存在先创建；
-   日志在 vault 外，直接写文件（与配置/手册同理，非 CLI 操作）。
-4. **看板反映确认**（若看板已创建且操作涉及看板板块内容）：Bases 视图读笔记属性
-   自动实时反映，**无需重建看板**；确认对应板块已正确反映（必要时
-   `read path="<dashboardFile>"` 核对），保证"日程与看板及时更新"。
-5. **Git 提交**（写操作）：vault 是 Git 仓库时（`test -d <vault>/.git`）执行
-   `git -C <vault> add -A -- . && git -C <vault> commit -m "docs: <简述>"`；
-   不是仓库则跳过并提示一次（可在配置 `preferences.gitCommit=false` 关闭提醒）。
-6. **反馈**：笔记路径 / 变更摘要。
-
-### 读取与搜索
-
-- 读取：`"<cliPath>" read file="<名称>"`（或 `path=` 精确路径）。
-- 搜索：`"<cliPath>" search query="<词>" limit=<n>`；要上下文用 `search:context`。
-- 不封装搜索工具，直接调 CLI。列表类：`files` / `folders` / `tags` / `backlinks`。
-- **读取 / 搜索也算操作**：结束后在操作日志记录一行（见"操作后流程"第 3 条）。
-
-### 修改与整理（移动 / 重命名）
-
-1. 先展示方案（源 → 目标、影响的链接）并征得用户同意。
-2. 简单变更优先 CLI 原生命令：`property:set name="<k>" value="<v>" file="<f>"`、
-   `append` / `prepend`；移动 / 重命名用
-   `"<cliPath>" move file="<f>" to="<目标目录或新路径>"`（CLI 会自动更新链接）。
-3. 修改内容后必须同步 `updated` 属性（精确到分钟）；执行"操作后流程"。
-
-### 删除
-
-1. 征得用户同意，并说明"删除后进入系统回收站，可恢复"。
-2. `"<cliPath>" delete file="<名称>"`（或 `path=`）。**永不加 `permanent`**。
-3. `python scripts/html_export.py --json export`（同步移除镜像）+ 记录日志 + Git 提交。
-
-### 日记（原生日记，按月切分）
-
-- 写今天的日记：`"<cliPath>" daily:append content="<内容>"`；读：`daily:read`；
-  查路径：`daily:path`（验证按月目录形态 `YYYY-MM/YYYY-MM-DD`）。
-- 日记目录与格式来自配置 `preferences.dailyFolder`（默认 `日志/`）/
-  `preferences.dailyFormat`。
-- 分类路由的记录动作会自动写一行日志（见"创建笔记"联动动作），无需重复写。
-- 复盘场景：按"问题解决"→"知识沉淀"工作流处理，不要只改属性。
 
 ### 日程（v2.2.0）
 
@@ -276,19 +210,65 @@ agent_created: true
   status: scheduled        # scheduled / done / cancelled
   tags: [日程, 领域/xxx]     # 必须含「日程」标签（看板聚合依据）
   ```
-  创建前相似检查 → CLI 创建 → 操作后流程。
-- **完成 / 取消**：`property:set name=status value=done|cancelled` + `updated`
-  （精确到分钟）；**不移动文件**；及时写操作日志。
+  创建前相似检查 → 创建（obsidian-cli）→ 操作后流程。
+- **完成 / 取消**：更新 `status`（`done` / `cancelled`）+ `updated`（精确到分钟）；
+  **不移动文件**；及时写操作日志。
 - **提醒联动**：录入时含明确时间信号或用户要求提醒 → 按「自动化提醒」小节创建提醒。
-- **Bases 呈现**：`日程` 标签 + `date` 属性经 `.base` 日历/表格视图自动聚合
-  （见「看板」小节），改属性即实时反映，无需重建视图。
+- **Bases 呈现**：`日程` 标签 + `date` 属性经「看板」的总看板.base 聚合，
+  改属性即实时反映，无需重建视图。
+
+### 操作后流程（每次对知识库的操作后固定执行）
+
+1. **更新 `updated` 属性**（仅修改已有笔记时）：精确到分钟（v2.0 硬性要求）。
+2. **HTML 镜像增量更新**（仅写操作）：单篇变更用
+   `python scripts/html_export.py --json export-one --file "<相对路径>"`；
+   涉及删除 / 移动 / 重命名用 `python scripts/html_export.py --json export`
+   （自动同步移除多余镜像）。
+3. **记录操作日志**（**所有操作**，含读取/搜索）：向大知识库文件夹（vault 外，
+   与配置同层）`<logDir>/<YYYY-MM>/<YYYY-MM-DD>.md`（默认 `log/`）追加一行
+   `- <HH:MM> [<操作类型>] <目标路径或简述>`；日志目录不存在先创建；
+   日志在 vault 外，直接写文件（与配置/手册同理，非 CLI 操作）。
+4. **看板反映确认**（若看板已创建且操作涉及看板板块内容）：Bases 视图读笔记属性
+   自动实时反映，**无需重建看板**；确认对应板块已正确反映（必要时读回核对），
+   保证"日程与看板及时更新"；**若某板块首次出现内容**（如第一次剪藏），按「看板」
+   小节为该 .base 增补视图并更新看板文件。
+5. **Git 提交**（写操作）：vault 是 Git 仓库时执行
+   `git -C <vault> add -A -- . && git -C <vault> commit -m "docs: <简述>"`；
+   不是仓库则跳过并提示一次（可在配置 `preferences.gitCommit=false` 关闭提醒）。
+6. **反馈**：笔记路径 / 变更摘要。
+
+### 读取与搜索
+
+- 用 obsidian-cli 的读取 / 搜索能力（`read` / `search` / 列表类命令）。
+- **读取 / 搜索也算操作**：结束后在操作日志记录一行（见"操作后流程"第 3 条）。
+
+### 修改与整理（移动 / 重命名）
+
+1. 先展示方案（源 → 目标、影响的链接）并征得用户同意。
+2. 简单变更（属性修改、追加内容）与移动 / 重命名按 obsidian-cli 执行
+   （CLI 会自动更新链接）。
+3. 修改内容后必须同步 `updated` 属性（精确到分钟）；执行"操作后流程"。
+
+### 删除
+
+1. 征得用户同意，并说明"删除后进入系统回收站，可恢复"。
+2. 按 obsidian-cli 的删除方法执行；**永不加 `permanent`**。
+3. `python scripts/html_export.py --json export`（同步移除镜像）+ 记录日志 + Git 提交。
+
+### 日记（原生日记，按月切分）
+
+- 写 / 读 / 查路径：按 obsidian-cli 的原生日记方法（`daily:*`）。
+- 日记目录与格式来自配置 `preferences.dailyFolder`（默认 `日志/`）/
+  `preferences.dailyFormat`。
+- 分类路由的记录动作会自动写一行日志（见"创建笔记"联动动作），无需重复写。
+- 复盘场景：按"问题解决"→"知识沉淀"工作流处理，不要只改属性。
 
 ### 任务
 
-- 统一 `- [ ]` 语法；汇总用 `"<cliPath>" tasks`（`todo` / `daily` 等过滤见
-  `references/cli-commands.md`）；看板用 Bases 视图（`references/bases.md`）。
-- **勾选完成**（`task ... done`）后，按「TODO 勾选与折叠归档」工作流把已完成条目
-  移入 TODO.md 底部「已完成」折叠块（默认折叠，最新完成在最上）。
+- 统一 `- [ ]` 语法；汇总与勾选按 obsidian-cli 的任务方法；看板用 Bases 视图
+  （见「看板」小节）。
+- **勾选完成**后，按「TODO 勾选与折叠归档」工作流把已完成条目移入 TODO.md 底部
+  「已完成」折叠块（默认折叠，最新完成在最上）。
 
 ### 自动化提醒（v2.2.0，平台无关）
 
@@ -302,12 +282,12 @@ agent_created: true
 
 **创建**：使用**当前 agent 平台可用的自动化 / 定时提醒能力**（不写死特定工具；
 WorkBuddy 用其自动化工具，其他平台用对应等价能力）：
-- 一次性：`once` + 具体日期时间；
-- 周期：`recurring` + 规则表达式（如每周五 = 每周五重复）；
+- 一次性：一次性计划 + 具体日期时间；
+- 周期：周期计划 + 规则表达式（如每周五）；
 - 提醒内容 prompt 写明：**调用本 skill 读取对应 TODO/日程条目与相关笔记，向用户
   展示进度并询问是否完成**；工作目录指向该知识库的 vault 所在项目目录。
 
-**创建后**：TODO 条目旁标注「已设提醒」（如 `⏰` 或文字说明）；操作日志记录
+**创建后**：TODO 条目旁标注「已设提醒」；操作日志记录
 `[自动化] 创建提醒：<标题>（<时间/周期>）`。
 
 **取消 / 查看**：用户说"取消 XX 的提醒 / 有哪些提醒" → 用平台自动化工具的查询 /
@@ -315,60 +295,47 @@ WorkBuddy 用其自动化工具，其他平台用对应等价能力）：
 
 ### 属性、标签与双向链接
 
-- frontmatter 属性：`property:set` / `property:read` / `property:remove`；
-  默认核心属性集见 `references/properties.md`。
+- frontmatter 属性：默认核心属性集见 `references/properties.md`（属性**含义**是
+  知识库设计；**写法**见 obsidian-markdown）。
 - **积极打标签**（v2.0 硬性要求）：创建笔记时根据内容主动打层级标签
   （`#领域/fpga`、`#知识/经验`、`#课程/小梅哥` 等），为 Bases 聚合与检索建立索引。
 - **建立双向链接**（v2.0 硬性要求）：知识沉淀链接原问题、剪藏链接相关笔记、
   相关知识互相链接；发现相关内容时主动补链。
 
-### Bases 视图
-
-- 创建 `.base`：用 CLI 写入，content 用 **shell 单引号内的真实换行**（不要用 `\n`
-  转义——`key:\n` 会触发 CLI 的盘符误判，见 `references/cli-commands.md` 怪癖节）：
-  ```bash
-  "<cliPath>" create path="<目录>/<名>.base" silent content='filters:
-    and:
-      - file.hasTag("task")
-  views:
-    - type: table
-      name: "进行中"'
-  ```
-- 校验：`base:query path="<同路径>"` 能返回结果（空数组也算 YAML 合法）；
-  语法要点与任务看板 / 阅读清单 / 日记索引示例见 `references/bases.md`；
-  `.base` 存放位置由用户指令决定（不预设目录）。
-
 ### 看板（vault 根目录看板文件，v2.2.0 可选组件）
 
-- **创建**：初始化时用户同意，或用户随时要求（"建一个看板"）。生成
-  `preferences.dashboardFile`（默认 `看板.md`，vault 根目录）+ 7 个 `.base` 板块
-  视图（问题 / 任务 / 日程 / 知识 / 项目 / 剪藏 / 日记，各板块过滤要点见
-  `references/bases.md`「看板板块」）；`.base` 与看板文件默认同在 vault 根目录，
-  位置以用户指令为准。
-- **看板文件结构**：分区标题 + 嵌入 `![[问题看板.base]]` 等 + 少量内嵌 CSS 美化
-  （Obsidian 渲染笔记内 `<style>` 生效，不依赖插件）。
-- **及时更新**：Bases 视图读取笔记属性，问题解决 / 任务勾选 / 日程状态 / 沉淀 /
-  剪藏等操作**自动实时反映到看板**，无需重建；每次相关操作后在操作日志记录
-  且反馈时确认看板对应板块已正确反映（必要时 `read path="<dashboardFile>"` 核对）。
-- **校验**：`.base` 用 `base:query` 验证；看板文件创建后用 CLI 读回检查嵌入引用完整。
+**形态**：**一个「总看板.base」文件**（`views` 数组承载多个板块视图，每个视图
+各自过滤条件）+ 一篇 `看板.md` 嵌入它（`![[总看板.base]]`）。不生成多个分类 .base。
 
-### Canvas 画布
+**动态板块（只加载已有模块）**：
+1. 生成时用 CLI 检查各模块是否已有笔记（问题 / 任务 / 日程 / 知识 / 项目 / 剪藏 /
+   日记），**只为有内容的模块创建视图**；看板.md 也只写有内容的板块分区。
+2. 板块与过滤要点见 `references/bases.md`「看板板块」；视图与过滤写法见
+   `@skill:obsidian-bases`。
+3. 更新时（操作后流程第 4 条）：某板块**首次出现内容** → 为该 .base 增补视图并
+   在看板.md 增加板块；板块内容清空不强制移除（可保留空视图或询问用户）。
 
-- `.canvas` 是 JSON，其字符串内的 `\n` 必须保持两个字面字符；而 CLI 会把各种
-  形式的 `\n` 都转成真实换行 → **CLI 写不出合法 Canvas，一律直接写文件**
-  （例外清单第 1/2 条：CLI 对该内容类型不可用 + 需格式校验，回复中说明原因）。
-- 节点/边 ID 用 16 位十六进制且唯一，边引用必须有效；写后用 Python `json.load`
-  校验（合法、ID 唯一、边不悬空）；规范要点见 `references/canvas.md`；
-  `.canvas` 存放位置由用户指令决定（不预设目录）。
+**创建步骤**（初始化同意或用户要求时）：
+1. 检查各模块内容 → 组装「总看板.base」YAML（只含有内容的视图）→ 创建到
+   vault 根目录（位置以用户指令为准）；
+2. 创建 `看板.md`：分区标题 + `![[总看板.base]]` 嵌入 + 使用说明；
+3. **CSS snippet（v2.3.0，可选美化）**：样式写入 `<vault>/.obsidian/snippets/
+   obsidian-kb-dashboard.css` 并启用（编辑 / 阅读模式都生效；用 `.dashboard` 前缀
+   限定作用域）。写 `.obsidian` 属 Obsidian 自身配置，**先征得用户同意**并在回复中
+   说明；用户不要求美化则跳过（跟随 Obsidian 主题即可）；
+4. 校验：.base 与看板文件创建后用 CLI 读回核对嵌入引用完整。
+
+**及时更新**：Bases 视图读取笔记属性，问题解决 / 任务勾选 / 日程状态 / 沉淀 /
+剪藏等操作**自动实时反映到看板**，无需重建；操作后流程负责确认与新板块增补。
 
 ### 网页剪藏
 
-1. `defuddle parse <url> --md` 提取正文（defuddle 未安装则提示用户
-   `npm install -g defuddle`，或用 WebFetch 兜底并说明降级）。
+1. 正文提取：按 `@skill:defuddle` 的方法从 URL 提取干净 Markdown
+   （defuddle 不可用时的降级方案以该 skill 为准）。
 2. 组装笔记：`type: clip`、`source_url`、`source_domain`、`clipped_at`（ISO 时间）+
    正文；标题取页面标题；打来源/领域标签；如与现有笔记相关，建立双向链接。
 3. **确认存放位置**：剪藏位置不预设，**询问用户存到哪个文件夹**（或按用户指令）；
-   确认后相似检查 → CLI 创建 → 操作后流程 → 反馈链接。
+   确认后相似检查 → 创建（obsidian-cli）→ 操作后流程 → 反馈链接。
 
 ### 附件
 
@@ -377,8 +344,7 @@ WorkBuddy 用其自动化工具，其他平台用对应等价能力）：
 
 ### 模板
 
-- 列出：`"<cliPath>" templates`；用模板创建：
-  `"<cliPath>" create name="<名>" template="<模板名>" silent`；
+- 列出 / 使用模板创建：按 obsidian-cli 的模板方法；
   模板目录位置由用户指令决定，skill 不内置个人模板。
 
 ### Git 提交（仅提交）
@@ -396,7 +362,7 @@ WorkBuddy 用其自动化工具，其他平台用对应等价能力）：
 ### 多 vault
 
 - 列出 / 切换默认：`kb_config.py list` / `set-default --name <名>`；
-  指定 vault 操作：CLI 命令首参 `vault="<名>"`，脚本加 `--vault <名>`。
+  指定 vault 操作：按 obsidian-cli 的 vault 指定方式，脚本加 `--vault <名>`。
 
 ## 脚本一览（均 `--json` 输出，`-h` 查看完整参数）
 
@@ -407,12 +373,11 @@ WorkBuddy 用其自动化工具，其他平台用对应等价能力）：
 | `scripts/html_export.py` | HTML 镜像：export（增量+清理，--full 全量）/ export-one（单篇） |
 | `scripts/update_skill.py` | 发布辅助（每次改动后自动执行）：check / package / commit / release |
 
-## references 索引（按需加载）
+## references 索引（按需加载；仅实测经验与领域约定，Obsidian 操作以专用 skill 为准）
 
 | 文件 | 何时读 |
 |---|---|
-| `references/cli-commands.md` | 需要命令细节、参数、例外清单、CLI 行为备注时 |
-| `references/properties.md` | 需要属性集、标签约定、目录模板细节时 |
-| `references/bases.md` | 创建 / 编辑 .base 视图时 |
-| `references/canvas.md` | 创建 / 编辑 .canvas 画布时 |
+| `references/properties.md` | 属性集含义、标签约定、目录模板、模块生命周期（知识库设计） |
+| `references/bases.md` | 「看板板块」过滤要点（生成看板时）；Bases 语法以 obsidian-bases 为准 |
+| `references/cli-commands.md` | CLI 实测怪癖（盘符陷阱、eval 副作用等）与例外清单；命令用法以 obsidian-cli 为准 |
 | `references/trash-verification.md` | 需要引用删除安全性实测结论时 |

@@ -1,4 +1,7 @@
-# 属性、标签与目录结构约定（均为可配置默认值，非强制规范）
+# 属性、标签与目录结构约定（obsidian-kb 领域设计，均为可配置默认值，非强制规范）
+
+> 属性**含义**与知识库设计以本文件为准；属性的**写法**（frontmatter / 标签语法）
+> 见 `@skill:obsidian-markdown`；CLI 操作见 `@skill:obsidian-cli`。
 
 ## 默认核心属性集（frontmatter）
 
@@ -85,12 +88,12 @@
   改属性即时反映（及时更新）。
 - **TODO.md**：问题 / 项目记录时自动追加
   `- [ ] [类型] 标题 → [[链接]]（YYYY-MM-DD 记录）`；人工待办也可直接写入；
-  全库任务仍可用 `tasks` 与 Bases 视图聚合；
+  全库任务仍可用 CLI 任务查询与 Bases 视图聚合；
   **勾选完成后（v2.1.0）**：条目自动移入 TODO.md 底部「已完成」折叠块
-  （callout `> [!success]- 已完成`，默认折叠），最新完成排最上、完成越久越靠下；
+  （callout，`-` 后缀即默认折叠；语法见 obsidian-markdown），最新完成排最上、
+  完成越久越靠下；
   **含时间信号的待办（v2.2.0）**：自动创建定时提醒，条目旁标注「已设提醒」。
 
-配置键见 `kb_config.py list` 输出的 `preferences`；修改用
-`kb_config.py set preferences.<键> <值>`（用户知情后进行）。
-旧配置（v1）用 `kb_config.py migrate` 迁移（自动移除收件箱/文件类型目录键，
-knowledgeDir 改名「知识」，补齐 logDir）。
+配置键见 `kb_config.py list` 输出的 `preferences`（kb_config 为 skill 自带脚本）；
+修改用 `kb_config.py set preferences.<键> <值>`（用户知情后进行）。
+旧配置用 `kb_config.py migrate` 迁移（自动补齐新键、移除废弃键）。
