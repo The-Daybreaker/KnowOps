@@ -86,12 +86,12 @@ views:
       - author
 ```
 
-## 示例 3：日记索引（按月目录 `10-Daily/YYYY-MM/`）
+## 示例 3：日记索引（按月目录 `日志/YYYY-MM/`）
 
 ```yaml
 filters:
   and:
-    - file.inFolder("10-Daily")
+    - file.inFolder("日志")
     - '/^\d{4}-\d{2}-\d{2}$/.matches(file.basename)'
 formulas:
   day_of_week: 'date(file.basename).format("dddd")'

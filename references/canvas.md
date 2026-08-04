@@ -46,7 +46,7 @@
     {"id": "6f0ad84f44ce9c17", "type": "text", "x": 0, "y": 0,
      "width": 300, "height": 120, "text": "# 学习路线\nFPGA 基础"},
     {"id": "a1b2c3d4e5f67890", "type": "file", "x": 400, "y": 0,
-     "width": 400, "height": 300, "file": "20-Projects/FPGA学习/课程笔记.md"}
+     "width": 400, "height": 300, "file": "项目/FPGA学习/课程笔记.md"}
   ],
   "edges": [
     {"id": "0123456789abcdef", "fromNode": "6f0ad84f44ce9c17",

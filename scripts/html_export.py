@@ -6,7 +6,8 @@
   - 将 vault 内 Markdown 笔记按相对路径镜像导出为独立 HTML 到 vault 外目录：
         <exportRoot>/<vault名>/<相对路径>.html
   - 增量导出（按 mtime）与全量导出（--full）；删除的笔记同步移除对应 HTML；
-    附件按相对路径一并复制；生成索引页 index.html（含导出根总索引）。
+    附件按相对路径一并复制；生成 vault 级详细索引 index.html
+    （v1.3.0 起不再生成导出根级索引，历史残留自动清理）。
   - 不依赖 Obsidian 处于打开状态；转换目标为"跨设备可读"，不追求与 Obsidian 完全一致。
 
 自写轻量 Markdown 转换器覆盖（Obsidian Flavored Markdown 子集）：
