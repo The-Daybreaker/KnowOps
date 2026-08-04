@@ -1,7 +1,7 @@
 # Obsidian Bases（.base）要点
 
 `.base` 文件 = 合法 YAML。结构：`filters`（全局过滤）→ `formulas`（公式属性）→
-`properties`（显示名）→ `views`（table / cards / list / map 视图）。
+`properties`（显示名）→ `views`（table / cards / list / map / calendar 视图）。
 
 ## 创建与校验流程
 
@@ -104,6 +104,44 @@ views:
       - formula.day_of_week
       - file.mtime
 ```
+
+## 示例 4：日程日历（calendar 月历 + table 列表，v2.2.0）
+
+```yaml
+filters:
+  and:
+    - file.hasTag("日程")
+views:
+  - type: calendar
+    name: "日程月历"
+    dateField: date
+  - type: table
+    name: "即将到来"
+    filters:
+      and:
+        - 'date >= today()'
+    order:
+      - date
+      - file.name
+```
+
+> calendar 视图依赖 Obsidian 版本支持；不支持时回退纯 table（按 date 排序），
+> 功能不受影响。`date` 属性须为 ISO 格式（如 `2026-08-07T15:00`）才能被识别为日期。
+
+## 看板板块过滤要点（v2.2.0 可选组件，用户要求创建看板时参考）
+
+| 板块 | 全局过滤 | 视图与列 |
+|---|---|---|
+| 问题看板 | `file.inFolder("<questionDir>")` | 视图：未解决（`status != "done"`）/ 已解决（`status == "done"`）；列：file.name / status / created / resolved / tags |
+| 任务看板 | `file.hasTag("task")` | 视图：进行中 / 已完成；公式：`days_until_due`、`is_overdue`（逾期高亮）；列：file.name / due / status / tags |
+| 日程日历 | `file.hasTag("日程")` | calendar（dateField=date）+ table「即将到来」（`date >= today()`） |
+| 知识索引 | `type == "knowledge"` | table 按 `knowledge_type` 分组；列：file.name / knowledge_type / created / resolved / tags |
+| 项目进展 | `file.inFolder("<projectsDir>")` | table 按项目名分组；列：file.name / status / created / tags |
+| 剪藏列表 | `type == "clip"` | table 按 `clipped_at` 倒序；列：file.name / source_domain / clipped_at |
+| 日记索引 | `file.inFolder("<dailyFolder>")` | table 按日期倒序；列：file.name / file.mtime |
+
+> 看板是**用户指令指定的可选组件**（初始化询问或按需创建），不是 agent 日常
+> 按需创建 Bases 的固化模板；上述过滤要点供生成看板时参考，agent 可按需调整。
 
 ## 嵌入笔记
 

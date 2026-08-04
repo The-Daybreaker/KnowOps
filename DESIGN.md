@@ -1,4 +1,4 @@
-# DESIGN — obsidian-kb 设计文档（v2.1.0）
+# DESIGN — obsidian-kb 设计文档（v2.2.0）
 
 ## 1. 架构决策
 
@@ -98,7 +98,8 @@ CLI `search` 已完备，由 agent 直接调用；skill 不提供搜索工具。
 | `references/` | 渐进披露的细节文档 | CLI 速查、属性约定、Bases / Canvas 要点、回收站实测 |
 
 数据流：用户意图 → agent 按 SKILL.md 工作流 → CLI（写）/ 脚本（配置、导出）→
-vault → 操作后流程（updated 同步 → HTML 镜像 → 操作日志 → Git 提交 → 反馈）。
+vault → 操作后流程（updated 同步 → HTML 镜像 → 操作日志 → 看板反映确认 →
+Git 提交 → 反馈）。
 
 ## 3. 兼容性策略
 
@@ -136,6 +137,16 @@ vault → 操作后流程（updated 同步 → HTML 镜像 → 操作日志 → 
 - **TODO 折叠归档（v2.1.0 决策）**：勾选完成后条目移入 TODO.md 底部「已完成」
   折叠块（callout `[!success]-` 默认折叠），最新完成排最上；实现为 SKILL.md
   内联工作流（CLI read → 对比定位 → 重组 → `create overwrite`），不新增脚本。
+- **自动化提醒（v2.2.0 决策）**：待办/日程含时间信号时自动创建定时提醒；**平台
+  无关**——SKILL.md 只描述"用当前 agent 平台可用的自动化能力"，不写死任何工具
+  （WorkBuddy 用其自动化工具，其他平台用等价能力）；强信号直接创建、弱信号询问。
+- **日程模块（v2.2.0 决策）**：`日程/` 为内容模块（与问题/项目/日志/知识同级，
+  scheduleDir 键）；日程笔记 `type: event` + `date`/`end`/`location`/`status` +
+  `日程` 标签；状态变更即时写入（Bases 视图自动实时反映，及时更新）。
+- **看板总览（v2.2.0 决策）**：vault 根目录 `看板.md`（dashboardFile 键）嵌入
+  7 个 `.base` 板块视图，为**初始化可选组件**（用户同意才建）；交互全 Bases 原生
+  不依赖插件；数据随笔记属性实时反映、无需重建；与"agent 日常按需创建 Bases
+  不固化模板"决策并行不冲突。
 - CLI 非 headless：写操作需要 Obsidian 运行；`kb_env.py` 显式拉起兜底，
   失败时提示用户手动打开；
 - Daily Notes 格式无专用 CLI 设置项：初始化用 `eval` 写插件设置并验证，
