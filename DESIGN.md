@@ -1,4 +1,4 @@
-# DESIGN — obsidian-kb 设计文档（v2.3.2）
+# DESIGN — obsidian-kb 设计文档（v2.3.3）
 
 ## 1. 架构决策
 
