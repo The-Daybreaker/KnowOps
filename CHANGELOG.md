@@ -6,6 +6,18 @@
 > 说明：CHANGELOG 为开发期文档，随仓库（git）维护，**不随 skill 包分发**
 > （v1.4.0 起打包排除）。
 
+## [2.3.1] - 2026-08-05
+
+### 修复与调整
+
+- **修复：Bases 不支持 `calendar` 视图类型**（实测 Obsidian 1.13.4 报"未知视图
+  类型"）——看板中日程板块一律用 `table` 视图（按 `date` 排序 +「即将到来」
+  过滤 `date >= today()`），不再使用 calendar；
+- **看板结构调整**：取消"总看板.base"聚合文件——**看板.md 是唯一看板文件**，
+  各模块数据源为按内容命名的 .base（`问题.base` / `日程.base` / `任务.base`…，
+  只建有内容的模块），看板.md 嵌入 `![[<模块>.base#视图名]]`；
+- 同步更新 SKILL.md / references/bases.md / REQUIREMENTS.md / DESIGN.md。
+
 ## [2.3.0] - 2026-08-05
 
 ### 变更
