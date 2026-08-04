@@ -7,7 +7,7 @@
   - 首次初始化写入：默认写入大知识库文件夹（vault 的上级目录），绝不写入 vault 内部
   - 多 vault：注册 / 列出 / 移除 / 默认切换 / 按名解析路径 / 路径校验
   - 偏好读写：get / set（点号键，如 preferences.gitCommit）
-  - schema version 检查与迁移（migrate）
+  - schema version 检查与迁移（migrate；v1→v2→v3 链式迁移）
 
 设计原则：零硬编码个人路径；配置文件是保存"位置与习惯"的唯一地方。
 所有子命令支持 --json 输出机器可读结果，供 agent 消费。
@@ -22,11 +22,12 @@ import sys
 import tempfile
 
 CONFIG_FILENAME = "obsidian-kb.config.json"
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 # 默认偏好（写入新配置；均为可配置默认值，非个人习惯硬编码）
 # v2.0 起：剪藏/模板/附件/Bases/Canvas 为文件类型分类，位置不预设，
 # 使用时以用户指令为准（配置中不设目录键）；收件箱已移除。
+# v2.2.0 起：新增 scheduleDir（日程内容模块目录）与 dashboardFile（看板可选组件）。
 DEFAULT_PREFERENCES = {
     "dailyFormat": "YYYY-MM/YYYY-MM-DD",
     "dailyFolder": "日志",
@@ -34,6 +35,8 @@ DEFAULT_PREFERENCES = {
     "questionDir": "问题",
     "projectsDir": "项目",
     "knowledgeDir": "知识",
+    "scheduleDir": "日程",
+    "dashboardFile": "看板.md",
     "todoFile": "TODO.md",
     "logDir": "log",
     "exportDirName": "HTML-Export",
@@ -287,7 +290,23 @@ def _migrate_v1_to_v2(data: dict) -> dict:
     return data
 
 
+def _migrate_v2_to_v3(data: dict) -> dict:
+    """v2 → v3（v2.2.0）：新增日程目录与看板可选组件配置键。
+
+    - 补齐 scheduleDir（默认「日程」）与 dashboardFile（默认「看板.md」），
+      缺省补齐、不覆盖用户自定义值；
+    - 不删除任何旧键（v2 无废弃键）。
+    """
+    prefs = data.setdefault("preferences", {})
+    defaults = DEFAULT_PREFERENCES
+    for key in ("scheduleDir", "dashboardFile"):
+        if key not in prefs:
+            prefs[key] = defaults[key]
+    return data
+
+
 MIGRATIONS[1] = _migrate_v1_to_v2
+MIGRATIONS[2] = _migrate_v2_to_v3
 
 
 def migrate(data: dict, path: str) -> tuple[dict, list[str]]:
