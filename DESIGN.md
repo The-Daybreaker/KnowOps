@@ -1,4 +1,4 @@
-# DESIGN — obsidian-kb 设计文档（v2.0.0）
+# DESIGN — obsidian-kb 设计文档（v2.0.1）
 
 ## 1. 架构决策
 
@@ -116,7 +116,10 @@ vault → 操作后流程（updated 同步 → HTML 镜像 → 操作日志 → 
 4. 打包：`update_skill.py package` 生成 `dist/obsidian-kb-vX.Y.Z-<timestamp>.zip`
    （仅运行时文件，开发期文档 CHANGELOG / DESIGN / REQUIREMENTS / TEST-REPORT 不随包分发）；
 5. Git 提交：`feat:/fix:/docs: vX.Y.Z - 描述`（`update_skill.py commit`）；
-6. **仅在用户明确要求时执行发布**；日常开发不打包、不提交。
+6. **每次改动完成后自动执行发布（v2.0.1 起，用户拍板）**：完成任何变更后
+   立即执行 `update_skill.py release`（check → package → commit），不再等待用户
+   明确要求；版本号按语义化版本推进（patch：文档/小修正；minor：新功能；
+   major：破坏性变更）。
 
 ## 5. 已知限制与决策备忘（v1.0.0）
 
