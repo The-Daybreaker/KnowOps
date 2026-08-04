@@ -1,42 +1,10 @@
-# Obsidian CLI 命令速查（基于 1.13.4 实测）
+# Obsidian CLI 实测经验与例外清单（仅供参考）
 
-> CLI 随版本演进，一切以 `"<cliPath>" help` 输出为准；单命令详情用
-> `"<cliPath>" help <命令>`。本文件为 1.13.4 的实测摘要。
+> **本文件仅保留 1.13.4 实测的操作经验与坑**，以及本 skill 的直接文件访问例外清单。
+> 命令的完整用法、参数与当前版本行为以 `@skill:obsidian-cli` 为准；
+> 本文件内容可能过时，**使用时需自行验证**。
 
-## 调用约定
-
-- 参数带值用 `=`，值含空格加引号：`create name="My Note" content="Hello"`
-- 布尔开关直接写：`silent`、`overwrite`、`total`
-- 多行内容用 `\n`，制表用 `\t`
-- `file=<名>` 按 wikilink 解析（可省路径与扩展名）；`path=<路径>` 从 vault 根算精确路径
-- 省略 file/path 时作用于当前活动文件
-- 多 vault：`vault="<名>"` 作**首参**
-- 全量命令清单：`"<cliPath>" help`（约 90 个命令）
-
-## 高频命令
-
-| 需求 | 命令 |
-|---|---|
-| 创建 | `create name="<名>" content="<文本>" [template="<模板>"] [silent] [overwrite]`，或用 `path="<路径>.md"` |
-| 追加 / 前插 | `append file="<f>" content="<t>"` / `prepend ...`（`inline` 不换行） |
-| 读取 | `read file="<f>"` |
-| 搜索 | `search query="<词>" limit=<n>`；带行上下文 `search:context` |
-| 任务 | `tasks [todo\|daily]`、`task`（查看/更新单个任务） |
-| 标签 | `tags sort=count counts`、`tag` |
-| 属性 | `property:set name="<k>" value="<v>" file="<f>"`、`property:read`、`property:remove`、`properties` |
-| 日记 | `daily`（打开）、`daily:append content="<t>"`、`daily:read`、`daily:path`、`daily:prepend` |
-| 反链/出链 | `backlinks file="<f>"`、`links` |
-| 移动/重命名 | `move file="<f>" to="<目标目录或新路径>"`（自动更新链接）、`rename` |
-| 删除 | `delete file="<f>"`（**默认进系统回收站**；`permanent`= 彻底删除，本 skill 禁用） |
-| 模板 | `templates`、`template:read`、`template:insert` |
-| Bases | `bases`、`base:query file="<b>" [view="<v>"] format=json`、`base:create`、`base:views` |
-| 文件/目录 | `files`、`folders`、`file`、`folder` |
-| vault | `vault`（当前信息）、`vaults`（已注册列表，`verbose` 带路径） |
-| 应用 | `version`、`open file="<f>"`、`reload`、`restart` |
-| 插件命令 | `commands`（列命令 ID）、`command id=<id>`（执行） |
-| 执行 JS | `eval code="<js>"`（在应用上下文运行，可改设置，如 Daily Notes 格式） |
-
-## 已实测的 CLI 行为（1.13.4，Windows）
+## 已实测的 CLI 行为（1.13.4，Windows，仅供参考）
 
 1. **非 headless**：CLI 通过本地 socket/命名管道连接已运行的 Obsidian。
    官方称"未运行时首条命令会拉起 app"，但自定义安装目录 / PATH 不全时不可靠
@@ -53,7 +21,7 @@
 6. **长参数截断风险**：CLI content 参数超长时可能被截断导致内容缺失/语法破坏
    （命令行参数长度受限）。超长内容（>4000 字符）**两步写入**：CLI `create` 先建
    占位文件（创建动作仍走 CLI）→ 文件系统直写完整内容 → 回读校验（例外第 5 条）。
-7. 怪癖（均为 1.13.4 实测）：
+7. 怪癖（均为 1.13.4 实测，**不同版本需自行验证**）：
    - **换行策略**：content 多行优先用 shell 单引号内的**真实换行**（最可靠）；
      `\n` 与 `\\n` 转义都会被 CLI 转成真实换行——因此 **JSON（.canvas）无法经
      CLI 写入**（JSON 字符串内的字面 `\n` 会被破坏），一律直接写文件（例外）；

@@ -1,4 +1,4 @@
-# DESIGN — obsidian-kb 设计文档（v2.2.0）
+# DESIGN — obsidian-kb 设计文档（v2.3.0）
 
 ## 1. 架构决策
 
@@ -143,10 +143,20 @@ Git 提交 → 反馈）。
 - **日程模块（v2.2.0 决策）**：`日程/` 为内容模块（与问题/项目/日志/知识同级，
   scheduleDir 键）；日程笔记 `type: event` + `date`/`end`/`location`/`status` +
   `日程` 标签；状态变更即时写入（Bases 视图自动实时反映，及时更新）。
-- **看板总览（v2.2.0 决策）**：vault 根目录 `看板.md`（dashboardFile 键）嵌入
-  7 个 `.base` 板块视图，为**初始化可选组件**（用户同意才建）；交互全 Bases 原生
-  不依赖插件；数据随笔记属性实时反映、无需重建；与"agent 日常按需创建 Bases
-  不固化模板"决策并行不冲突。
+- **看板总览（v2.2.0 决策，v2.3.0 重构）**：vault 根目录 `看板.md`（dashboardFile 键）
+  嵌入**一个「总看板.base」多视图**（v2.3.0 起不再生成多个分类 .base），为
+  **初始化可选组件**（用户同意才建）；**动态板块**——生成时只加载已有内容的模块，
+  板块首次出现内容时自动增补视图；交互全 Bases 原生不依赖插件；数据随笔记属性
+  实时反映、无需重建；美化用 CSS snippet（`.obsidian/snippets/`，编辑/阅读都生效，
+  写 `.obsidian` 前征得同意）；与"agent 日常按需创建 Bases 不固化模板"决策并行。
+- **Obsidian 操作委托（v2.3.0 决策）**：SKILL.md 不编写 Obsidian 操作规范，改为由
+  `@skill:obsidian-suite` 调度指导，各子领域查看 obsidian-cli / obsidian-markdown /
+  obsidian-bases / json-canvas / defuddle 专用 skill（外部维护可及时更新）；
+  references 仅保留实测经验与领域约定（标注仅供参考、需自行验证）；避免在本 skill
+  内复制易过时的操作教程。
+- **自测约定（v2.3.0 决策）**：测试库
+  `D:\Peojects\MyProject\Skills\知识库skill测试\Obsidian测试知识库`（已注册）；
+  每次更新后发布前跑真实 forward-test（见发布约定第 3 条）。
 - CLI 非 headless：写操作需要 Obsidian 运行；`kb_env.py` 显式拉起兜底，
   失败时提示用户手动打开；
 - Daily Notes 格式无专用 CLI 设置项：初始化用 `eval` 写插件设置并验证，

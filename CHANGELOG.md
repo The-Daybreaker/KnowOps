@@ -6,6 +6,26 @@
 > 说明：CHANGELOG 为开发期文档，随仓库（git）维护，**不随 skill 包分发**
 > （v1.4.0 起打包排除）。
 
+## [2.3.0] - 2026-08-05
+
+### 变更
+
+- **Obsidian 操作委托（用户拍板）**：SKILL.md 移除全部 Obsidian 操作规范
+  （CLI 命令、Markdown / Bases / Canvas 语法、defuddle 用法等），改为由
+  `@skill:obsidian-suite` 调度指导，具体用法查看 `obsidian-cli` /
+  `obsidian-markdown` / `obsidian-bases` / `json-canvas` / `defuddle` 专用 skill；
+  references 四文件（cli-commands / bases / canvas / trash-verification）仅保留
+  **实测经验**（盘符陷阱、CLI 写 Canvas 的坑、回收站验证、看板板块过滤设计等），
+  标注"仅供参考、需自行验证、以专用 skill 为准"；properties.md 保留领域设计。
+- **看板重构**：由"多个分类 .base 文件"改为**一个「总看板.base」多视图** +
+  看板.md 嵌入；**只加载已有模块**（生成时检查各模块是否有笔记，只为有内容的
+  模块建视图；板块首次出现内容时自动增补）；CSS 美化改用 **snippet**
+  （`.obsidian/snippets/obsidian-kb-dashboard.css`，编辑/阅读模式都生效，
+  `.dashboard` 前缀限定作用域，写 `.obsidian` 前征得同意）。
+- **测试约定**：记录测试库
+  `D:\Peojects\MyProject\Skills\知识库skill测试\Obsidian测试知识库`（已注册）；
+  发布流程增加"每次更新后自测"（真实 forward-test）。
+
 ## [2.2.0] - 2026-08-05
 
 ### 新增

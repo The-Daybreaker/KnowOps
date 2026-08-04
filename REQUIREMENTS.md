@@ -204,6 +204,18 @@
 - **读取：优先 CLI**（`read` / `search` / `tasks` / `tags` / `backlinks` 等）；
 - 直接读写文件仅限 §10.2 例外清单；每次使用直接文件操作时，必须在回复中说明原因。
 
+### FR-3.1 Obsidian 操作委托（v2.3.0）
+
+- **SKILL.md 不编写 Obsidian 操作规范**（CLI 命令、Markdown / Bases / Canvas 语法、
+  剪藏提取等）——Obsidian 的具体操作由 `@skill:obsidian-suite` 调度指导，
+  各子领域用法分别查看 `obsidian-cli` / `obsidian-markdown` / `obsidian-bases` /
+  `json-canvas` / `defuddle` 专用 skill（外部维护、可及时更新）；
+- obsidian-kb 的 `references/` 仅保留**实测经验与领域约定**（属性集、目录模板、
+  生命周期、看板板块设计、CLI 坑与例外清单），文件标注"仅供参考、需自行验证、
+  以专用 skill 为准"；不复制专用 skill 的教程内容；
+- obsidian-kb 自有机制（kb_config / kb_env / html_export / update_skill 脚本、
+  初始化向导、模块路由、操作日志、自动化提醒、Git 提交）仍由本 skill 编写。
+
 ### FR-4 创建与记录
 
 - 使用 CLI `create`（支持 `template=`、`silent` 等参数）；
@@ -297,21 +309,37 @@
 - 语法要点沉淀到 references（FUNCTIONS_REFERENCE 摘要），SKILL.md 只包含核心用法；
 - `.base` 文件存放位置由用户指令决定（不预设固定目录）；agent 日常按需创建，不固化模板。
 
-### FR-10.1 看板总览（v2.2.0，初始化可选组件）
+### FR-10.1 看板总览（v2.2.0，初始化可选组件；v2.3.0 重构）
 
-- **看板文件**：vault 根目录 `看板.md`（配置键 `dashboardFile`，默认 `看板.md`），嵌入多个 `.base` 视图，打开即一屏总览；
-- **板块**（默认 7 个，可按用户指令增删）：
-  1. **问题看板**：过滤 `file.inFolder(问题Dir)`，视图分「未解决 / 已解决」，列含文件名、status、created、resolved、tags；
-  2. **任务看板**：过滤 `file.hasTag("task")`，视图分「进行中 / 已完成」，公式列剩余天数 / 是否逾期，逾期高亮；
-  3. **日程日历**：过滤 `file.hasTag("日程")`，calendar 月历视图（dateField=date）+ table「即将到来」列表；版本不支持 calendar 时回退纯表格（按日期排序）；
+- **看板文件**：vault 根目录 `看板.md`（配置键 `dashboardFile`，默认 `看板.md`），
+  打开即一屏总览；
+- **形态（v2.3.0 重构）**：**一个「总看板.base」文件**（`views` 数组承载多个板块
+  视图，每个视图各自过滤条件）+ 看板.md 嵌入它（`![[总看板.base]]`）；
+  **不生成多个分类 .base 文件**；
+- **动态板块（只加载已有模块，v2.3.0）**：生成时用 CLI 检查各模块是否已有笔记
+  （问题 / 任务 / 日程 / 知识 / 项目 / 剪藏 / 日记），**只为有内容的模块创建视图**；
+  看板.md 也只写有内容的板块分区；操作后流程检测到某板块**首次出现内容** →
+  为该 .base 增补视图并更新看板文件；
+- **板块过滤**（默认 7 种，只建已有模块，可按用户指令增删）：
+  1. **问题看板**：过滤 `file.inFolder(问题Dir)`，视图分「未解决 / 已解决」；
+  2. **任务看板**：过滤 `file.hasTag("task")`，视图分「进行中 / 已完成」，公式列剩余天数 / 是否逾期；
+  3. **日程日历**：过滤 `file.hasTag("日程")`，calendar 月历视图（dateField=date）+ table「即将到来」；版本不支持 calendar 时回退纯表格；
   4. **知识索引**：过滤 `type == "knowledge"`，按 `knowledge_type` 分组；
   5. **项目进展**：过滤 `file.inFolder(项目Dir)`，按项目名分组；
   6. **剪藏列表**：过滤 `type == "clip"`，按剪藏时间倒序；
   7. **日记索引**：过滤日记目录，按日期倒序；
-- **样式与交互**：全部 Bases 原生（视图切换 / 排序 / 过滤 / 分组 / 点击打开笔记），不依赖任何插件；看板文件可用少量内嵌 CSS 美化（Obsidian 渲染笔记内的 `<style>`）；
-- **及时更新**：Bases 视图读取笔记属性，问题解决 / 任务勾选 / 日程状态 / 沉淀 / 剪藏等操作完成后，看板对应板块自动实时反映，**无需重建看板**；每次相关操作后 agent 验证看板对应板块已正确反映（读一次核对）；
-- **创建时机**：首次初始化时询问用户（FR-2）；不同意则随时可要求按需补建；已有库可手动触发创建；
-- **与"不固化模板"决策的关系**：看板是用户指令指定的场景（可选组件），不属于 agent 日常按需创建 Bases 的固化模板；references/bases.md 仍只保留语法要点。
+  （过滤要点见 `references/bases.md`「看板板块」；Bases 语法以 obsidian-bases 为准）
+- **样式与交互**：交互全部 Bases 原生（视图切换 / 排序 / 过滤 / 分组 / 点击打开笔记），
+  不依赖任何插件；美化用 **CSS snippet（v2.3.0）**——样式写入
+  `<vault>/.obsidian/snippets/obsidian-kb-dashboard.css` 并启用（编辑 / 阅读模式
+  都生效，`.dashboard` 前缀限定作用域）；写 `.obsidian` 属 Obsidian 自身配置，
+  须先征得用户同意；用户不要求美化则跟随 Obsidian 主题；
+- **及时更新**：Bases 视图读取笔记属性，问题解决 / 任务勾选 / 日程状态 / 沉淀 /
+  剪藏等操作完成后，看板对应板块自动实时反映，**无需重建看板**；每次相关操作后
+  agent 验证看板对应板块已正确反映（读一次核对）；
+- **创建时机**：首次初始化时询问用户（FR-2）；不同意则随时可要求按需补建；
+- **与"不固化模板"决策的关系**：看板是用户指令指定的场景（可选组件），不属于
+  agent 日常按需创建 Bases 的固化模板。
 
 ### FR-11 Canvas
 
@@ -656,7 +684,9 @@
 
 1. 更新 `CHANGELOG.md` 与 `DESIGN.md`（`vX.Y.Z - 变更描述`，含兼容性说明）；
 2. 兼容性检查：旧配置（schema version）可读取或可迁移、vault 内容不受影响、已生成的用户手册不被覆盖；
-3. 运行测试：`skill-creator` 的 `quick_validate.py` + 脚本自测 + 真实场景 forward-test；
+3. 运行测试：`skill-creator` 的 `quick_validate.py` + 脚本自测 + 真实场景 forward-test
+   （测试库：`D:\Peojects\MyProject\Skills\知识库skill测试\Obsidian测试知识库`，
+   已注册；每次发布前在测试库跑核心工作流自测，v2.3.0 起）；
 4. 打包：生成 zip 到 `dist/`，命名含版本号与时间戳（如 `obsidian-kb-v1.0.0-<timestamp>.zip`）；分发包仅含运行时文件（SKILL.md、agents/、scripts/、references/、assets/），开发期文档（CHANGELOG / DESIGN / REQUIREMENTS / TEST-REPORT）不随包分发；
 5. Git 提交：`feat:/fix:/docs: vX.Y.Z - 描述`；
 6. 用 `scripts/update_skill.py`（重写后的精简版）辅助执行；
