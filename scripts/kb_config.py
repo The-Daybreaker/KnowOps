@@ -22,21 +22,20 @@ import sys
 import tempfile
 
 CONFIG_FILENAME = "obsidian-kb.config.json"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 # 默认偏好（写入新配置；均为可配置默认值，非个人习惯硬编码）
+# v2.0 起：剪藏/模板/附件/Bases/Canvas 为文件类型分类，位置不预设，
+# 使用时以用户指令为准（配置中不设目录键）；收件箱已移除。
 DEFAULT_PREFERENCES = {
     "dailyFormat": "YYYY-MM/YYYY-MM-DD",
     "dailyFolder": "日志",
     "structure": "default",
-    "templateDir": "99-Meta/Templates",
-    "attachmentDir": "Attachments",
-    "clipDir": "40-Resources/Clips",
-    "inboxDir": "00-Inbox",
     "questionDir": "问题",
     "projectsDir": "项目",
-    "knowledgeDir": "知识与经验",
+    "knowledgeDir": "知识",
     "todoFile": "TODO.md",
+    "logDir": "log",
     "exportDirName": "HTML-Export",
     "gitCommit": True,
 }
@@ -269,6 +268,26 @@ def _coerce_value(raw: str, old):
 # ---------------------------------------------------------------------------
 
 MIGRATIONS = {}  # version -> callable(data) -> data；未来 schema 变更在此注册
+
+
+def _migrate_v1_to_v2(data: dict) -> dict:
+    """v1 → v2（v2.0.0）：移除文件类型目录键与收件箱；knowledgeDir 改名。
+
+    - 删除 inboxDir / clipDir / templateDir / attachmentDir
+      （v2.0 起文件类型位置以用户指令为准，不预设目录）；
+    - knowledgeDir 默认值由「知识与经验」改为「知识」：
+      仅当旧值等于旧默认时改名，用户自定义值保持不变；
+    - logDir 由 migrate 兜底补齐（缺省补齐、不覆盖）。
+    """
+    prefs = data.setdefault("preferences", {})
+    for key in ("inboxDir", "clipDir", "templateDir", "attachmentDir"):
+        prefs.pop(key, None)
+    if prefs.get("knowledgeDir") == "知识与经验":
+        prefs["knowledgeDir"] = "知识"
+    return data
+
+
+MIGRATIONS[1] = _migrate_v1_to_v2
 
 
 def migrate(data: dict, path: str) -> tuple[dict, list[str]]:
