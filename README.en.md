@@ -1,51 +1,93 @@
-# knowledge-workflow / kb-obsidian / obsidian-suite
+# Obsidian Knowledge Base Management Skills
 
-An **Obsidian skill combo** for general knowledge management: `knowledge-workflow`
-defines *how the knowledge base should be organized* (workflow specification),
-`kb-obsidian` defines *how to operate the tools* (Obsidian operation rules &
-red lines), and `obsidian-suite` is the dispatch entry (tells the agent which
-skill to load and in what order). Clear boundaries, designed to be used together.
+A set of **Obsidian knowledge-base management skills** for AI agents: three skills
+that keep your knowledge base well organized — **workflow specification + tool
+operation specification + dispatch entry**, with clear boundaries, designed to be
+used together.
 
-## The three skills
+## What is this
 
-| | knowledge-workflow | kb-obsidian | obsidian-suite |
-|---|---|---|---|
-| Role | **Workflow specification** | **Tool operation specification** | **Dispatch entry** |
-| Audience | Process rules shared by user & agent | Unified requirements on tools/operators + Obsidian-specific operations | Agent (loading-order guidance) |
-| Includes | Module routing (questions/projects/schedule/clips/daily/knowledge/tasks), question lifecycle (unresolved → resolved → distillation), knowledge archiving by type, dashboard, schedule, automation reminders, operation log, onboarding wizard, config & HTML export policy | Unified red lines (ask consent before modify/delete, never `git init`, delete to system trash, ask the user for record ownership, info comes from the user, direct file access exceptions); Obsidian-specific (CLI usage & quirks, note CRUD, daily notes setup, Markdown/Bases/Canvas syntax essentials, web clipping, two-step write, read-back verification) | Loading order: knowledge-workflow (business flow) first → kb-obsidian (operation rules) → tool skills on demand |
-| Excludes | Requirements on agent behavior, tool operation requirements, any tool names | Knowledge-base business rules (routing/lifecycle/distillation flows, etc.) | Concrete business & operation content |
+When managing a personal knowledge base in Obsidian (question tracking, knowledge
+distillation, schedule, todos, dashboard...), an agent needs two things: *how the
+content should be organized* (what modules the knowledge base has, how a question
+moves from "unresolved" to "resolved" and then "distilled into knowledge"), and
+*how to operate Obsidian* (read/write notes via the official CLI, respect delete
+red lines, handle quirks). This repo splits those into two complementary skills,
+plus a dispatch entry that tells the agent in which order to load them:
 
-In one sentence: **knowledge-workflow answers "how the knowledge base should look
-and flow"; kb-obsidian answers "what constraints apply to tools & operators, and
-how to operate Obsidian concretely"; obsidian-suite answers "in what order to
-load them".**
+| Skill | Role | One-liner |
+|---|---|---|
+| **knowledge-workflow** | Workflow specification | "How the knowledge base should look and flow" — a neutral spec shared by user & agent |
+| **kb-obsidian** | Tool operation specification | "How to operate Obsidian" — CLI usage, red lines, syntax essentials |
+| **obsidian-suite** | Dispatch entry | "In what order to load them" — flow first, operations next, tools on demand |
+
+## Features
+
+- **Full question lifecycle**: unresolved → resolved → distillation; resolved
+  questions become knowledge notes with **bidirectional links back to the original
+  question** (the original is kept);
+- **Knowledge distillation**: archived by type (experience / principle / tool /
+  design / convention / case / template), **created only when used**, extensible;
+- **Schedule + automated reminders**: enter with one sentence ("project review at
+  3pm Friday"), reminders auto-created when explicit time signals are present;
+- **Unified TODO management**: single todo file; checking an item moves it into the
+  collapsed "Completed" section, newest first;
+- **Real-time dashboard**: Bases views read note properties — change a status or
+  tag and the dashboard updates, no manual refresh;
+- **Web clipping / daily notes / operation log**: every action (including reads &
+  searches) is logged;
+- **Config-driven & migratable**: no hardcoded vault names or paths; everything
+  from config, old configs migrate in one command;
+- **Data-safety red lines**: ask consent before modify/delete, delete always goes
+  to the system trash, **never permanent delete**, never initialize a repo on
+  behalf of the user.
+
+## Installation
+
+Copy the three skills under `skills/` (`knowledge-workflow`, `kb-obsidian`,
+`obsidian-suite`) into your agent's **user-level skill directory** (location
+varies by platform; see your platform's skill installation docs; typically
+`~/.<platform>/skills/`), or clone this repo:
+
+```sh
+git clone https://github.com/The-Daybreaker/knowledge-base.git
+# then copy the three directories under skills/ into the user-level skill directory
+```
+
+> **Dependencies**: the tool skills referenced by `kb-obsidian` (obsidian-cli /
+> obsidian-markdown / obsidian-bases / json-canvas / defuddle) come from the
+> official Obsidian skills repository
+> [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) and must be
+> installed separately (see "Related projects").
 
 ## Quick start
 
-1. Load `obsidian-suite` (dispatch entry) → follow its guidance, load
-   `knowledge-workflow` and run the onboarding wizard:
+1. Load `obsidian-suite` (dispatch entry), then load `knowledge-workflow` and run
+   the **onboarding wizard**:
    - Confirm the vault's actual path & name;
    - Config defaults to the hidden `.config/` directory inside the vault (changeable);
    - Optionally enable HTML mirror export and create a dashboard.
-2. When operating the knowledge base, follow `kb-obsidian` for the
-   Obsidian-side execution rules and red lines.
-3. Load the tool skills (CLI / Markdown / Bases / Canvas / web extraction)
-   on demand when their capability is needed.
+2. When operating Obsidian, follow `kb-obsidian` for the red lines and operation
+   rules (CLI usage, delete discipline, read-back verification, etc.).
+3. Load the tool skills (CLI / Markdown / Bases / Canvas / web extraction) on
+   demand when their capability is needed.
 
-> The tool-layer connection is left to the user to arrange (e.g. loading both
-> skills in the agent, or configuring the dispatch relationship); knowledge-workflow
-> itself does not bind to any specific tool.
+Usage examples:
+
+| You say | The agent does |
+|---|---|
+| "Log a question: how to handle FPGA clock domain crossing" | Creates a question note (`问题/未解决/`), adds properties & tags, links TODO and log |
+| "Project review at 3pm Friday" | Creates a schedule note + auto-creates a reminder |
+| "This question is resolved" | Moves it to `问题/已解决/`, updates properties, checks the TODO |
+| "Distill this question" | Determines knowledge type, creates a knowledge note with bidirectional link back to the question |
 
 ## Layout
 
 ```
 knowledge-base/
-├── README.md                 # Chinese docs
-├── README.en.md              # English
-├── LICENSE                   # MIT
-├── .gitignore
+├── README.md / README.en.md / LICENSE / .gitignore
 └── skills/
-    ├── knowledge-workflow/          # Skill A: knowledge workflow specification
+    ├── knowledge-workflow/          # Skill A: workflow specification
     │   ├── SKILL.md
     │   ├── references/properties.md   # properties/dirs/lifecycle design
     │   ├── scripts/                  # kb_config / kb_env / html_export
@@ -57,29 +99,16 @@ knowledge-base/
         └── SKILL.md
 ```
 
-## Core conventions
-
-- **No inbox**: classify every record request before routing; ask the user when
-  the type is unclear;
-- **Similarity check before create**; **consent before modify/delete**;
-  **delete goes to system trash, never permanent**;
-- **Knowledge-base-irrelevant files default to the hidden `.config/` directory**
-  inside the vault (config/log/manual/export) — never touch the user's note area;
-- **Config-driven**: vault name, directories and preferences all live in
-  `knowledge-workflow.config.json`; no hardcoded names; old configs migratable
-  (`kb_config.py migrate`);
-- **Active tags & bidirectional links**; `updated` (to the minute) on every edit;
-- **Operation log on every action** (`.config/log/`, including reads & searches).
-
 ## Related projects
 
-The tool skills (obsidian-cli / obsidian-markdown / obsidian-bases / json-canvas /
-defuddle) are installed copies from the **official Obsidian skills repository**,
-and can be updated from upstream:
+The tool skills are installed copies from the **official Obsidian skills
+repository**, updatable from upstream:
 
-- **https://github.com/kepano/obsidian-skills** — Official Obsidian agent skills
-  (obsidian-cli, obsidian-markdown, obsidian-bases, json-canvas, defuddle)
-- defuddle itself: https://github.com/kepano/defuddle
+- [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) — Official
+  Obsidian agent skills (obsidian-cli / obsidian-markdown / obsidian-bases /
+  json-canvas / defuddle)
+- [kepano/defuddle](https://github.com/kepano/defuddle) — web page content
+  extraction library
 
 ## License
 
