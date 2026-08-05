@@ -3,6 +3,17 @@
 > 开发期交付物，不随 skill 打包。环境：Windows 11、Obsidian 1.13.4（CLI 随应用，
 > `Obsidian.com`）、受管 Python 3.13.12、受管 Node 22.22.2（defuddle 隔离安装）。
 
+## v0.9.0 规范视角中立化测试（2026-08-05）
+
+- **quick_validate**：`skills/knowledge-workflow/` 与 `skills/kb-obsidian/` 双 skill
+  均通过 ✅
+- **脚本级测试 20/20**（.test-env/kb_test.py）：配置/迁移/导出链路无回归 ✅
+- **真实 forward-test 6/6**（.test-env/forward_test.py，测试库全量场景）：
+  CLI 创建/回读 → html_export export-one → CLI delete 进回收站 → 删除验证 →
+  操作日志写入 `.config/log/` ✅
+- **改动范围**：本次为规范表述修订（SKILL.md / properties.md / redlines.md），
+  不涉及脚本逻辑；脚本级与 forward-test 全绿确认无回归。
+
 ## v0.7.0 改名整理审计测试（2026-08-05）
 
 - **quick_validate**：`skills/knowledge-workflow/` 与
