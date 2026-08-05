@@ -1,4 +1,4 @@
-# knowledge-workflow / knowledge-manager-obsidian
+# knowledge-workflow / kb-obsidian
 
 A **two-skill combo** for general knowledge management: one defines *how the
 knowledge base should be organized* (workflow specification), the other defines
@@ -7,7 +7,7 @@ boundaries, designed to be used together.
 
 ## The two skills
 
-| | knowledge-workflow | knowledge-manager-obsidian |
+| | knowledge-workflow | kb-obsidian |
 |---|---|---|
 | Role | **Workflow specification** | **Tool operation specification** |
 | Audience | Process rules shared by user & agent | Unified requirements on tools/operators + Obsidian-specific operations |
@@ -15,7 +15,7 @@ boundaries, designed to be used together.
 | Excludes | Requirements on agent behavior, tool operation requirements, any tool names | Knowledge-base business rules (routing/lifecycle/distillation flows, etc.) |
 
 In one sentence: **knowledge-workflow answers "how the knowledge base should look
-and flow"; knowledge-manager-obsidian answers "what constraints apply to tools &
+and flow"; kb-obsidian answers "what constraints apply to tools &
 operators, and how to operate Obsidian concretely".**
 
 ## Quick start
@@ -24,7 +24,7 @@ operators, and how to operate Obsidian concretely".**
    - Confirm the vault's actual path & name;
    - Config defaults to the hidden `.config/` directory inside the vault (changeable);
    - Optionally enable HTML mirror export and create a dashboard.
-2. When operating the knowledge base, follow `knowledge-manager-obsidian` for the
+2. When operating the knowledge base, follow `kb-obsidian` for the
    Obsidian-side execution rules and red lines.
 
 > The tool-layer connection is left to the user to arrange (e.g. loading both
@@ -39,9 +39,8 @@ operators, and how to operate Obsidian concretely".**
 │   │   ├── SKILL.md
 │   │   ├── references/properties.md   # properties/dirs/lifecycle design
 │   │   ├── scripts/                  # kb_config / kb_env / html_export
-│   │   ├── assets/user-manual.md     # user manual template
-│   │   └── agents/openai.yaml
-│   └── knowledge-manager-obsidian/  # Skill B: Obsidian operation rules & red lines
+│   │   └── assets/user-manual.md     # user manual template
+│   └── kb-obsidian/                  # Skill B: Obsidian operation rules & red lines
 │       ├── SKILL.md
 │       └── references/              # redlines / cli / markdown / bases / canvas
 ├── legacy/

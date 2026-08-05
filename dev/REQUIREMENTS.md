@@ -19,6 +19,12 @@
 > `knowledge-workflow.config.json`（schema v5，旧名 find 兼容并迁移）。
 > 能力边界与本章节其余内容不变；下文历史名称均为对应时期的原称。
 
+> **v0.8.0 定名（2026-08-05）**：Skill B 最终定名 **`kb-obsidian`**（原
+> knowledge-manager-obsidian）；Skill A 移除 agents/（openai.yaml，通用 skill
+> 规范不需要）。dist 发布产物按版本分目录（`dist/<version>/`）。
+> 测试约定：**「Obsidian测试知识库」为测试专用库，每次更新后发布前必须在该库
+> 执行全量真实场景测试（forward-test）**。
+
 ### 0.1 双 skill 拆分模型（能力边界，用户拍板）
 
 | | knowledge-base（Skill A） | obsidian-kb（Skill B） |

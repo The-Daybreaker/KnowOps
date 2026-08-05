@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""update_skill.py - knowledge-workflow / knowledge-manager-obsidian 双 skill 发布辅助
+"""update_skill.py - knowledge-workflow / kb-obsidian 双 skill 发布辅助
 工具（标准库，跨平台）。开发期工具，存放于 dev/scripts/。
 
 单仓库双 skill（skills/ 下两个目录）一起发布、一起升级（统一版本号）。
  1. check   — 发布前检查：CHANGELOG 已同步版本、两个 skill 的 SKILL.md 存在、
                quick_validate 逐个校验
- 2. package — 为每个 skill 打包 zip 到 dist/，命名 <skill>-v<version>-<timestamp>.zip
-               （仅含各自运行时文件；legacy/ 与 dev/ 开发期资产不进包）
+ 2. package — 为每个 skill 打包 zip 到 dist/<version>/，命名
+               <skill>-v<version>-<timestamp>.zip（仅含各自运行时文件；
+               legacy/ 与 dev/ 开发期资产不进包）
  3. commit  — git add -A + git commit（feat:/fix:/docs: v<version> - 描述）；永不 git init
  4. release — 顺序执行 check → package → commit
 """
@@ -30,7 +31,7 @@ SKILL_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 # 两个 skill：目录相对仓库根，zip 内 arcname 根用 skill 名
 SKILLS = [
     {"name": "knowledge-workflow", "dir": "skills/knowledge-workflow"},
-    {"name": "knowledge-manager-obsidian", "dir": "skills/knowledge-manager-obsidian"},
+    {"name": "kb-obsidian", "dir": "skills/kb-obsidian"},
 ]
 LEGACY_DIR = "legacy"  # 旧版存档，只进 git 不进包
 
@@ -144,10 +145,11 @@ def _package_one(skill: dict, version: str, dist: str) -> dict:
 
 
 def cmd_package(args) -> dict:
-    dist = os.path.join(SKILL_ROOT, "dist")
+    # 每个版本独立子目录：dist/<version>/
+    dist = os.path.join(SKILL_ROOT, "dist", args.version)
     os.makedirs(dist, exist_ok=True)
     packages = [_package_one(skill, args.version, dist) for skill in SKILLS]
-    return {"packages": packages, "total": len(packages)}
+    return {"dist": dist, "packages": packages, "total": len(packages)}
 
 
 # ---------------------------------------------------------------------------
