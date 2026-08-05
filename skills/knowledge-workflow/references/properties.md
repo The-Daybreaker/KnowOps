@@ -1,7 +1,7 @@
 # 属性、标签与目录结构约定（knowledge-workflow 领域设计，均为可配置默认值）
 
 > 本文档描述知识库的**领域设计**：属性含义、目录模板、模块生命周期。
-> 属性的**写法**（frontmatter 语法）与具体写入方式由操作规范层提供，本文不涉及。
+> 属性的**写法**（frontmatter 语法）等具体形式不在本规范范围，本文不涉及。
 
 ## 默认核心属性集（frontmatter）
 
@@ -36,7 +36,7 @@
 
 ```
 <vault>/.config/                     ← vault 内隐藏目录（知识库无关文件默认存放处）
-├── knowledge-workflow.config.json      # skill 配置（v4 起默认位置）
+├── knowledge-workflow.config.json      # skill 配置（默认位置）
 ├── 用户手册.md                      # 用户手册（初始化时复制）
 ├── log/                            # 操作日志（preferences.logDir）
 │   └── YYYY-MM/YYYY-MM-DD.md       # 按年月/日切分，每次操作追加记录
@@ -71,9 +71,9 @@
 >   导出、不参与看板聚合。
 > - 剪藏 / 模板 / 附件 / Bases / Canvas 为**文件类型分类**，不预设目录，
 >   存放位置**以用户指令为准**；
-> - **无收件箱**：判断不出类型时询问用户归属，不静默写入；
+> - **无收件箱**：判断不出类型时自行判断归属（可新增模块），不静默写入；
 > - **无归档目录**；问题内部按「未解决 / 已解决」切分；
-> - 知识类型初始 7 类，未来可动态扩展（向用户确认后新增）。
+> - 知识类型初始 7 类，未来可动态扩展（新增需经确认）。
 
 ## 模块生命周期
 
@@ -82,7 +82,8 @@
   `resolved`（解决日期），TODO 勾选；沉淀时创建 `知识/<类型>/` 笔记并双向链接回原问题
   （原问题保留在已解决文件夹，不删除）。
 - **知识**：`知识/<类型>/YYYY-MM-DD 标题.md`；属性 `type: knowledge` +
-  `knowledge_type` + `created` + `resolved`（沉淀日期）；类型由 agent 判定并交用户审核。
+  `knowledge_type` + `created` + `resolved`（沉淀日期）；类型在沉淀时判定
+  （新增类型需经确认）。
 - **日程**：`日程/YYYY-MM-DD 标题.md`；属性 `type: event` + `date`（开始时间 ISO）+
   `end` / `location`（可选）+ `status`（scheduled / done / cancelled）+ `日程` 标签；
   完成/取消只改 status 与 updated（不移动）。
