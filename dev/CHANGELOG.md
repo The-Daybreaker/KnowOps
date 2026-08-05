@@ -2,11 +2,31 @@
 
 本文件记录本仓库的版本历史。格式遵循语义化版本；
 每次发布的兼容性说明见对应条目。
-（v1.0.0~v2.3.3 为单 skill `obsidian-kb` 时期；v0.6.0 起为双 skill：
-`knowledge-workflow` / `kb-obsidian`，共用同一版本号、一起发布。）
+（v1.0.0~v2.3.3 为单 skill `obsidian-kb` 时期；v0.6.0 起为 skill 组合：
+`knowledge-workflow` / `kb-obsidian`，v0.9.2 起加入调度入口 `obsidian-suite`，
+共用同一版本号、一起发布。）
 
 > 说明：CHANGELOG 为开发期文档，随仓库（git）维护，**不随 skill 包分发**
 > （v1.4.0 起打包排除）。
+
+## [0.9.2] - 2026-08-05
+
+### 新增（obsidian-suite 入仓 + README 来源说明 + 通用化）
+
+- **加入调度入口 `obsidian-suite`**（Skill C，第三个 skill）：从用户级 skill 升格
+  为项目 `skills/obsidian-suite/`；**通用化**——路径表述不写死（用户级 skill 目录
+  `<skills-dir>`）、不提及任何具体 agent / 产品路径；调度逻辑：
+  knowledge-workflow（业务流程）→ kb-obsidian（操作规范）→ 工具型 skill 按需；
+  明确依赖方向（kb-obsidian 依赖 knowledge-workflow，反之不提及）；发布工具
+  update_skill.py 改三 skill 打包；
+- **README 双语更新**：三 skill 结构表、目录结构、快速开始（含 obsidian-suite
+  调度）；新增「相关项目」——工具型 skill（obsidian-cli / obsidian-markdown /
+  obsidian-bases / json-canvas / defuddle）为 **kepano/obsidian-skills** 官方仓库
+  安装副本（https://github.com/kepano/obsidian-skills，defuddle 本体
+  https://github.com/kepano/defuddle）；
+- **版本规则（用户拍板）**：每次更新默认只升最低位（patch 推进），本次 0.9.1 →
+  **0.9.2**；
+- **测试**：quick_validate 三 skill；脚本级 20/20；测试库全量 forward-test 6/6。
 
 ## [0.9.1] - 2026-08-05
 

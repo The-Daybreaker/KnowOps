@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""update_skill.py - knowledge-workflow / kb-obsidian 双 skill 发布辅助
-工具（标准库，跨平台）。开发期工具，存放于 dev/scripts/。
+"""update_skill.py - knowledge-workflow / kb-obsidian / obsidian-suite 三 skill
+发布辅助工具（标准库，跨平台）。开发期工具，存放于 dev/scripts/。
 
-单仓库双 skill（skills/ 下两个目录）一起发布、一起升级（统一版本号）。
- 1. check   — 发布前检查：CHANGELOG 已同步版本、两个 skill 的 SKILL.md 存在、
+单仓库三 skill（skills/ 下三个目录）一起发布、一起升级（统一版本号）。
+ 1. check   — 发布前检查：CHANGELOG 已同步版本、各 skill 的 SKILL.md 存在、
                quick_validate 逐个校验
  2. package — 为每个 skill 打包 zip 到 dist/<version>/，命名
                <skill>-v<version>-<timestamp>.zip（仅含各自运行时文件；
@@ -28,10 +28,11 @@ import zipfile
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SKILL_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 
-# 两个 skill：目录相对仓库根，zip 内 arcname 根用 skill 名
+# 三个 skill：目录相对仓库根，zip 内 arcname 根用 skill 名
 SKILLS = [
     {"name": "knowledge-workflow", "dir": "skills/knowledge-workflow"},
     {"name": "kb-obsidian", "dir": "skills/kb-obsidian"},
+    {"name": "obsidian-suite", "dir": "skills/obsidian-suite"},
 ]
 LEGACY_DIR = "legacy"  # 旧版存档，只进 git 不进包
 
