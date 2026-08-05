@@ -1,22 +1,56 @@
-# DESIGN — knowledge-base / obsidian-kb 设计文档（v0.6.0）
+# DESIGN — knowledge-workflow / knowledge-manager-obsidian 设计文档（v0.7.0）
 
-## 0. v0.6.0 拆分架构（2026-08-05，覆盖后续章节的旧单 skill 描述）
+## 0. 双 skill 拆分架构（2026-08-05 v0.6.0 起，v0.7.0 改名，覆盖后续章节的旧单 skill 描述）
 
-- **双 skill 拆分**：`knowledge-base`（Skill A）= 工作流程规范（workflow），
-  只描述知识库流程"应该怎么走"，**不提及任何工具名/命令/委托链**；`obsidian-kb`
-  （Skill B）= 工具操作规范，含 Part 1 对所有工具的统一红线（改删前征求同意、
-  永不 git init、删除进回收站、直写例外清单）与 Part 2 Obsidian 专有操作
-  （CLI 使用与怪癖、笔记操作、日记设置、Markdown/Bases/Canvas 要点、剪藏、
-  两步写入、回读校验）。工具层连接由用户另行编排。
+- **双 skill 拆分**：`knowledge-workflow`（Skill A，原 knowledge-base）= 工作流程
+  规范（workflow），只描述知识库流程"应该怎么走"，**不提及任何工具名/命令/
+  委托链**；`knowledge-manager-obsidian`（Skill B，原 obsidian-kb）= 工具操作
+  规范，含 Part 1 对所有工具的统一红线（改删前征求同意、永不 git init、删除进
+  回收站、直写例外清单）与 Part 2 Obsidian 专有操作（CLI 使用与怪癖、笔记操作、
+  日记设置、Markdown/Bases/Canvas 要点、剪藏、两步写入、回读校验）。
+  工具层连接由用户另行编排。
 - **后续章节定位**：§1.1–§1.6 的架构决策（Vault 唯一数据源、CLI 唯一写入口、
   配置驱动等）在拆分后归属 Skill B（工具操作层）或双 skill 共用原则；
   §2 模块职责归属 Skill A 的流程规范。凡与本 §0 冲突之处以 §0 为准。
-- **知识库无关文件位置**（v4 配置）：默认 vault 内隐藏目录 `.config/`
+- **知识库无关文件位置**（v5 配置）：默认 vault 内隐藏目录 `.config/`
   （配置/log/手册/HTML 导出）；红线修订为"允许隐藏目录，不写入用户笔记区"。
-- **配置文件名**：`obsidian-kb.config.json` → `knowledge-base.config.json`
-  （schema v3→v4，迁移函数见 kb_config.py MIGRATIONS[3]）。
-- **发布形态**：单仓库双 skill 统一版本 0.6.0，双 zip；旧版归档
-  `legacy/obsidian-kb/`（内容不改）。
+- **配置文件名**：`obsidian-kb.config.json`（v≤3）/ `knowledge-base.config.json`
+  （v4）→ `knowledge-workflow.config.json`（v5，迁移函数见 kb_config.py
+  MIGRATIONS[3]/[4]，旧名 find 兼容并引导迁移）。
+- **发布形态**：单仓库双 skill 统一版本，双 zip；旧版归档 `legacy/obsidian-kb/`
+  （内容不改），旧发布包归档 `legacy/dist-archive/`。
+
+## 0.5 拆分重构决策记录（原 refactor-v3.0-plan.md 并入，2026-08-05）
+
+> 原独立方案文档 `refactor-v3.0-plan.md` 已完成使命，要点并入本节后删除。
+
+**背景与动机**：原 obsidian-kb 单 skill 混了两类知识（知识库管理逻辑 + Obsidian
+操作知识），职责边界模糊；references 大量本机实测表述，通用性差，不便发布。
+
+**已确认决策**（2026-08-05 多轮用户确认）：
+1. 拆两个 skill，能力边界：A 管"流程怎么走"（纯 workflow 规范，不放 agent 行为
+   纪律、不写任何工具名/命令/委托链，仅保留"创建前相似检查"流程环节）；
+   B 管"工具怎么用/行为红线"（所有对工具的要求都放 B，分统一红线 + Obsidian
+   专有两部分）。
+2. 单仓库双 skill，一起发布一起升级（统一版本号）。
+3. 知识库无关文件默认 vault 内隐藏目录 `.config/`（配置/log/手册/HTML 导出），
+   红线修订为"允许隐藏目录、不写入用户笔记区"；HTML 镜像导出改初始化可选。
+4. 配置文件名随 skill 名：obsidian-kb → knowledge-base → knowledge-workflow
+   （schema v3→v4→v5，缺省补齐不覆盖自定义值）。
+5. 发布范围：仅本地（双 zip + git 提交），GitHub 仓库结构（双语 README + MIT
+   LICENSE + .gitignore）就位备用；统一版本号 0.6.0 起。
+6. 旧版文件原样归档 `legacy/obsidian-kb/`（内容一字不改，git 历史保留）；
+   新两个 skill 从零构建，不复用旧文件。
+
+**通用化处理清单**：references 去除设备经验（1.13.4/Windows/bash/回收站路径/
+受管运行时）；Python 解释器发现改通用探测链（python → py -3 → 提示安装 3.10+）；
+测试库路径只存开发文档与记忆，不进包。
+
+**实施九步**（v0.6.0 已全部完成）：归档 legacy → 从零建 A → 从零建 B → 配置
+迁移 → 发布工具双打包 → 仓库根件 → 开发文档 → 测试（quick_validate + 脚本级
+18/18 + 真实 forward-test 6/6）→ 发布 0.6.0（双 zip + commit）。
+**v0.7.0 整理**：双 skill 改名（knowledge-workflow / knowledge-manager-obsidian）、
+配置 v5、根目录开发文档归类 dev/、方案并入本节、dist 旧包归档 legacy/dist-archive/。
 
 ## 1. 架构决策
 

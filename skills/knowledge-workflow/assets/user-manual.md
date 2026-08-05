@@ -1,6 +1,6 @@
 # 知识库 · 用户手册
 
-> 本手册由 knowledge-base skill 在首次初始化时生成，面向知识库的使用者。
+> 本手册由 knowledge-workflow skill 在首次初始化时生成，面向知识库的使用者。
 > 手册可以随手修改或删除，不影响 skill 运行（重复初始化不会覆盖你的手册）。
 
 ## 这个知识库怎么用？
@@ -34,7 +34,7 @@
    agent 不会瞎猜）；
 2. agent 与你确认后，在 vault 内**隐藏目录 `.config/`**（默认，可改选其他位置）
    生成：
-   - `knowledge-base.config.json` —— 配置文件（vault 位置、偏好、可选的导出目录）；
+   - `knowledge-workflow.config.json` —— 配置文件（vault 位置、偏好、可选的导出目录）；
    - `用户手册.md` —— 就是本文件；
    - `log/` —— 操作日志（agent 每次操作都会记一笔，按年月/日切分）；
    - `HTML-Export/` —— 网页版镜像目录（**可选**，初始化时问你是否需要）；
@@ -45,7 +45,7 @@
 ```
 <你的 Vault>/
 ├── .config/                  # 隐藏目录：配置 / 日志 / 手册 / 网页版镜像（默认）
-│   ├── knowledge-base.config.json   # 配置（agent 用）
+│   ├── knowledge-workflow.config.json   # 配置（agent 用）
 │   ├── 用户手册.md                   # 本文件
 │   ├── log/                          # 操作日志（按年月/日切分）
 │   └── HTML-Export/                  # 网页版镜像（可选，手机浏览器打开 index.html）
@@ -83,7 +83,7 @@ agent 把它移入 `问题/已解决/`，补上记录日期、解决日期，并
 - **Obsidian 原生**：日记、模板、Bases、Canvas 全是 Obsidian 自己的能力，
   agent 通过官方接口调用，不重复造轮子；
 - **Vault 是唯一数据源**：没有第二份数据库、没有同步映射，文件即真相；
-- **配置驱动**：路径、目录、习惯全在 `knowledge-base.config.json` 里，换电脑、
+- **配置驱动**：路径、目录、习惯全在 `knowledge-workflow.config.json` 里，换电脑、
   换库都能迁移；
 - **知识库无关文件不打扰笔记**：配置/日志/手册/网页版镜像默认收在隐藏目录
   `.config/` 里，不写入笔记区；

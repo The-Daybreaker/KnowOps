@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""update_skill.py - knowledge-base / obsidian-kb 双 skill 发布辅助工具（标准库，跨平台）
+"""update_skill.py - knowledge-workflow / knowledge-manager-obsidian 双 skill 发布辅助
+工具（标准库，跨平台）。开发期工具，存放于 dev/scripts/。
 
 单仓库双 skill（skills/ 下两个目录）一起发布、一起升级（统一版本号）。
  1. check   — 发布前检查：CHANGELOG 已同步版本、两个 skill 的 SKILL.md 存在、
                quick_validate 逐个校验
  2. package — 为每个 skill 打包 zip 到 dist/，命名 <skill>-v<version>-<timestamp>.zip
-               （仅含各自运行时文件；legacy/ 与开发期文档不进包）
+               （仅含各自运行时文件；legacy/ 与 dev/ 开发期资产不进包）
  3. commit  — git add -A + git commit（feat:/fix:/docs: v<version> - 描述）；永不 git init
  4. release — 顺序执行 check → package → commit
 """
@@ -22,13 +23,14 @@ import sys
 import time
 import zipfile
 
+# dev/scripts/ → dev/ → 仓库根
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-SKILL_ROOT = os.path.dirname(SCRIPT_DIR)
+SKILL_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 
 # 两个 skill：目录相对仓库根，zip 内 arcname 根用 skill 名
 SKILLS = [
-    {"name": "knowledge-base", "dir": "skills/knowledge-base"},
-    {"name": "obsidian-kb", "dir": "skills/obsidian-kb"},
+    {"name": "knowledge-workflow", "dir": "skills/knowledge-workflow"},
+    {"name": "knowledge-manager-obsidian", "dir": "skills/knowledge-manager-obsidian"},
 ]
 LEGACY_DIR = "legacy"  # 旧版存档，只进 git 不进包
 
@@ -43,15 +45,22 @@ class ReleaseError(Exception):
 
 
 def find_validator() -> str | None:
-    """定位 skill-creator 的 quick_validate.py。可用 --validator 覆盖。"""
-    candidates = [
-        os.path.join(os.path.dirname(SKILL_ROOT), "skill-creator", "scripts", "quick_validate.py"),
-    ]
-    appdata = os.environ.get("LOCALAPPDATA", "")
-    for root in filter(None, [os.environ.get("WORKBUDDY_HOME"), appdata]):
+    """定位 skill-creator 的 quick_validate.py。可用 --validator 覆盖。
+
+    探测顺序：WORKBUDDY_HOME 环境变量 → 兄弟目录 skill-creator
+    （skill-creator 与当前仓库同级的开发目录）→ 本机常见安装位置
+    （D:\\AppGallery\\Develop\\WorkBuddy 内置 skill）。找不到返回 None（check 仅警告）。
+    """
+    candidates = []
+    wb_home = os.environ.get("WORKBUDDY_HOME", "")
+    if wb_home:
         candidates.append(os.path.join(
-            root, "..", "Develop", "WorkBuddy", "resources", "app.asar.unpacked",
-            "resources", "builtin-skills", "skill-creator", "scripts", "quick_validate.py"))
+            wb_home, "resources", "app.asar.unpacked", "resources",
+            "builtin-skills", "skill-creator", "scripts", "quick_validate.py"))
+    candidates.append(os.path.join(
+        os.path.dirname(SKILL_ROOT), "skill-creator", "scripts", "quick_validate.py"))
+    candidates.append(r"D:\AppGallery\Develop\WorkBuddy\resources\app.asar.unpacked"
+                      r"\resources\builtin-skills\skill-creator\scripts\quick_validate.py")
     for c in candidates:
         c = os.path.normpath(c)
         if os.path.isfile(c):
@@ -70,8 +79,8 @@ def skill_path(skill: dict) -> str:
 def cmd_check(args) -> dict:
     problems, warnings, passed = [], [], []
 
-    # CHANGELOG 版本条目（仓库根，两个 skill 共用）
-    changelog = os.path.join(SKILL_ROOT, "CHANGELOG.md")
+    # CHANGELOG 版本条目（dev/ 下，两个 skill 共用）
+    changelog = os.path.join(SKILL_ROOT, "dev", "CHANGELOG.md")
     if not os.path.isfile(changelog):
         problems.append("缺少 CHANGELOG.md")
     else:

@@ -1,10 +1,10 @@
 ---
-name: obsidian-kb
+name: knowledge-manager-obsidian
 description: Obsidian 操作规范与工具红线。当需要执行 Obsidian 相关操作（读写改删笔记、搜索、移动重命名、vault 管理、日记配置、网页剪藏、Bases/Canvas 创建、Markdown 语法、删除进回收站）时使用。包含两大部分：对所有工具的统一规范与红线（改删前征求同意、永不 git init、删除进回收站等跨工具纪律），以及 Obsidian 专有操作规范（CLI 使用与怪癖、笔记操作、语法要点、剪藏与附件）。本 skill 不包含知识库业务规则（模块路由、问题生命周期等由知识库管理规范负责）。
 agent_created: true
 ---
 
-# obsidian-kb Obsidian 操作规范
+# knowledge-manager-obsidian Obsidian 操作规范
 
 ## 定位
 

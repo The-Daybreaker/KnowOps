@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""kb_config.py - knowledge-base 配置与多 vault 管理（Python 标准库，跨平台）
+"""kb_config.py - knowledge-workflow 配置与多 vault 管理（Python 标准库，跨平台）
 
 职责：
-  - 配置发现：显式 --config → 从当前目录向上查找 knowledge-base.config.json
-    → 兼容旧文件名 obsidian-kb.config.json（需迁移）→ 提示首次初始化
+  - 配置发现：显式 --config → 从当前目录向上查找 knowledge-workflow.config.json
+    → 兼容旧文件名 knowledge-base.config.json / obsidian-kb.config.json（需迁移）
+    → 提示首次初始化
   - 首次初始化写入：默认写入 vault 内隐藏目录 .config/（可改选其他位置）；
     写入规则：允许 vault 内隐藏目录（点开头），不写入用户笔记内容区
   - 多 vault：注册 / 列出 / 移除 / 默认切换 / 按名解析路径 / 路径校验
   - 偏好读写：get / set（点号键，如 preferences.gitCommit）
-  - schema version 检查与迁移（migrate；v1→v2→v3→v4 链式迁移）
+  - schema version 检查与迁移（migrate；v1→v2→v3→v4→v5 链式迁移）
 
 设计原则：零硬编码个人路径；配置文件是保存"位置与习惯"的唯一地方。
 所有子命令支持 --json 输出机器可读结果，供 agent 消费。
@@ -23,9 +24,10 @@ import os
 import sys
 import tempfile
 
-CONFIG_FILENAME = "knowledge-base.config.json"
-LEGACY_FILENAME = "obsidian-kb.config.json"   # 旧文件名（v4 起改名，find 时兼容）
-SCHEMA_VERSION = 4
+CONFIG_FILENAME = "knowledge-workflow.config.json"
+# 历史文件名（find 时兼容、migrate 时迁移到新名）：v4（knowledge-base）与 v≤3（obsidian-kb）
+LEGACY_FILENAMES = ("knowledge-base.config.json", "obsidian-kb.config.json")
+SCHEMA_VERSION = 5
 
 # 默认偏好（写入新配置；均为可配置默认值，非个人习惯硬编码）
 # v2.0 起：剪藏/模板/附件/Bases/Canvas 为文件类型分类，位置不预设，
@@ -112,8 +114,9 @@ def default_config_dir(vault_path: str) -> str:
 def find_config(explicit: str | None = None, start: str | None = None) -> str | None:
     """按发现顺序定位配置文件，找不到返回 None。
 
-    顺序：显式路径 → 新文件名（knowledge-base.config.json）向上查找 →
-    旧文件名（obsidian-kb.config.json）向上查找（兼容，返回旧路径，需迁移）。
+    顺序：显式路径 → 新文件名（knowledge-workflow.config.json）向上查找 →
+    旧文件名（knowledge-base.config.json / obsidian-kb.config.json）向上查找
+    （兼容，返回旧路径，需迁移）。
     不查系统环境变量 / 全局用户目录（按项目隔离）。
     """
     if explicit:
@@ -125,7 +128,7 @@ def find_config(explicit: str | None = None, start: str | None = None) -> str | 
     current = _norm_path(start or os.getcwd())
     while True:
         # 候选位置：目录本身 + 目录内隐藏目录（.config/，v4 默认配置位置）
-        for fname in (CONFIG_FILENAME, LEGACY_FILENAME):
+        for fname in (CONFIG_FILENAME, *LEGACY_FILENAMES):
             for cand in (os.path.join(current, fname),
                          os.path.join(current, hidden_dir_name(), fname)):
                 if os.path.isfile(cand):
@@ -137,7 +140,7 @@ def find_config(explicit: str | None = None, start: str | None = None) -> str | 
 
 
 def is_legacy_path(path: str) -> bool:
-    return os.path.basename(path) == LEGACY_FILENAME
+    return os.path.basename(path) in LEGACY_FILENAMES
 
 
 def load_config(explicit: str | None = None, start: str | None = None) -> tuple[dict, str]:
@@ -163,7 +166,7 @@ def check_schema(data: dict, path: str = "") -> None:
     if version > SCHEMA_VERSION:
         raise ConfigError(
             f"配置 schema 版本（{version}）高于本工具支持的版本（{SCHEMA_VERSION}）。\n"
-            f"请升级 knowledge-base skill 后再操作。"
+            f"请升级 knowledge-workflow skill 后再操作。"
         )
     if version < SCHEMA_VERSION:
         # 有迁移路径时由 migrate 处理；这里提示
@@ -362,8 +365,8 @@ def _migrate_v3_to_v4(data: dict) -> dict:
     - 补齐 preferences.configDir（默认 config → 实际目录 .config/），缺省补齐；
     - exportRoot：若等于旧默认（vault 上级目录/HTML-Export）则迁移到
       <vault>/.config/HTML-Export/；用户自定义值保留（仍受「不写入笔记区」规则约束）；
-    - 配置文件改名（obsidian-kb.config.json → knowledge-base.config.json）
-      在 migrate 命令的文件层完成，本函数只处理数据。
+    - 配置文件改名（obsidian-kb.config.json / knowledge-base.config.json →
+      knowledge-workflow.config.json）在 migrate 命令的文件层完成，本函数只处理数据。
     """
     prefs = data.setdefault("preferences", {})
     if "configDir" not in prefs:
@@ -385,9 +388,18 @@ def _migrate_v3_to_v4(data: dict) -> dict:
     return data
 
 
+def _migrate_v4_to_v5(data: dict) -> dict:
+    """v4 → v5（0.7.0）：skill 改名 knowledge-workflow，配置文件改名
+    （knowledge-base.config.json → knowledge-workflow.config.json）。
+    数据无结构变化；文件名迁移在 migrate 命令的文件层完成。
+    """
+    return data
+
+
 MIGRATIONS[1] = _migrate_v1_to_v2
 MIGRATIONS[2] = _migrate_v2_to_v3
 MIGRATIONS[3] = _migrate_v3_to_v4
+MIGRATIONS[4] = _migrate_v4_to_v5
 
 
 def migrate(data: dict, path: str) -> tuple[dict, list[str]]:
@@ -539,8 +551,8 @@ def cmd_validate(args) -> dict:
 
 
 def cmd_migrate(args) -> dict:
-    """迁移旧配置到当前 schema；旧文件名（obsidian-kb.config.json）迁移时
-    同时写入新文件名（knowledge-base.config.json），旧文件保留不删除。"""
+    """迁移旧配置到当前 schema；旧文件名（knowledge-base / obsidian-kb）迁移时
+    同时写入新文件名（knowledge-workflow.config.json），旧文件保留不删除。"""
     path = find_config(args.config)
     if path is None:
         raise ConfigError("未找到配置文件，无法迁移")
@@ -569,7 +581,7 @@ def cmd_migrate(args) -> dict:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="kb_config.py",
-        description="knowledge-base 配置与多 vault 管理（配置默认写入 vault 内隐藏目录 .config/）",
+        description="knowledge-workflow 配置与多 vault 管理（配置默认写入 vault 内隐藏目录 .config/）",
     )
     p.add_argument("--json", action="store_true", help="以 JSON 输出结果（供 agent 消费）")
     sub = p.add_subparsers(dest="command", required=True)

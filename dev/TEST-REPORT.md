@@ -1,7 +1,24 @@
-# obsidian-kb 测试记录与 forward-test 结果（v1.0.0，2026-08-03）
+# 测试记录与 forward-test 结果（v1.0.0 起）
 
 > 开发期交付物，不随 skill 打包。环境：Windows 11、Obsidian 1.13.4（CLI 随应用，
 > `Obsidian.com`）、受管 Python 3.13.12、受管 Node 22.22.2（defuddle 隔离安装）。
+
+## v0.7.0 改名整理审计测试（2026-08-05）
+
+- **quick_validate**：`skills/knowledge-workflow/` 与
+  `skills/knowledge-manager-obsidian/` 双 skill 均通过（改名后）✅
+- **脚本级测试 20/20**（.test-env/v0_6_test.py 更新为 v5）：
+  - kb_config v5 init：默认 `<vault>/.config/knowledge-workflow.config.json`；
+    find（含 .config/ 子目录）/ list / validate / 位置规则（拒绝用户笔记区）✅
+  - migrate v3→v5（obsidian-kb.config.json 旧名 → 新名）✅
+  - migrate v4→v5（knowledge-base.config.json 旧名 → 新名，新增用例）✅
+  - exportRoot 旧默认迁移 .config/HTML-Export/；configDir 补齐；旧文件保留 ✅
+  - set/get；html_export export（--full）与 export-one ✅
+- **真实 forward-test 6/6**（.test-env/forward_v06.py，测试库，v5 配置）：
+  CLI 创建/回读 → html_export export-one → CLI delete 进回收站 → 删除验证 →
+  操作日志写入 `.config/log/` ✅
+- **测试库配置**：v4 → v5 真实迁移成功（Obsidian测试知识库/.config/
+  knowledge-workflow.config.json），validate 通过 ✅
 
 ## v0.6.0 拆分重构测试（2026-08-05）
 

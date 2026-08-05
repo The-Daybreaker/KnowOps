@@ -1,4 +1,4 @@
-# 属性、标签与目录结构约定（knowledge-base 领域设计，均为可配置默认值）
+# 属性、标签与目录结构约定（knowledge-workflow 领域设计，均为可配置默认值）
 
 > 本文档描述知识库的**领域设计**：属性含义、目录模板、模块生命周期。
 > 属性的**写法**（frontmatter 语法）与具体写入方式由操作规范层提供，本文不涉及。
@@ -36,7 +36,7 @@
 
 ```
 <vault>/.config/                     ← vault 内隐藏目录（知识库无关文件默认存放处）
-├── knowledge-base.config.json      # skill 配置（v4 起默认位置）
+├── knowledge-workflow.config.json      # skill 配置（v4 起默认位置）
 ├── 用户手册.md                      # 用户手册（初始化时复制）
 ├── log/                            # 操作日志（preferences.logDir）
 │   └── YYYY-MM/YYYY-MM-DD.md       # 按年月/日切分，每次操作追加记录
@@ -95,4 +95,4 @@
 配置键见 `kb_config.py list` 输出的 `preferences`（kb_config 为 skill 自带脚本）；
 修改用 `kb_config.py set preferences.<键> <值>`（用户知情后进行）。
 旧配置用 `kb_config.py migrate` 迁移（自动补齐新键、移除废弃键；旧文件名
-`obsidian-kb.config.json` 一并迁移到新文件名 `knowledge-base.config.json`）。
+`obsidian-kb.config.json` 一并迁移到新文件名 `knowledge-workflow.config.json`）。
