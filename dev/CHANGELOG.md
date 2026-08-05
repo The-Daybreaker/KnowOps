@@ -3,10 +3,27 @@
 本文件记录本仓库的版本历史。格式遵循语义化版本；
 每次发布的兼容性说明见对应条目。
 （v1.0.0~v2.3.3 为单 skill `obsidian-kb` 时期；v0.6.0 起为双 skill：
-`knowledge-workflow` / `knowledge-manager-obsidian`，共用同一版本号、一起发布。）
+`knowledge-workflow` / `kb-obsidian`，共用同一版本号、一起发布。）
 
 > 说明：CHANGELOG 为开发期文档，随仓库（git）维护，**不随 skill 包分发**
 > （v1.4.0 起打包排除）。
+
+## [0.8.0] - 2026-08-05
+
+### 调整（定名 + 精简 + 发布结构）
+
+- **Skill B 定名 `kb-obsidian`**（用户拍板）：`knowledge-manager-obsidian` →
+  `kb-obsidian`（SKILL.md name、目录、发布工具 SKILLS 列表、README/DESIGN/
+  REQUIREMENTS 同步）；
+- **移除 Skill A 的 agents/**：`openai.yaml` 不属于通用 skill 规范，删除
+  （knowledge-workflow 打包文件 7 → 6）；
+- **dist 按版本分目录**：发布产物输出到 `dist/<version>/`
+  （如 `dist/0.8.0/knowledge-workflow-v0.8.0-<ts>.zip`）；旧包仍归档在
+  `legacy/dist-archive/`；
+- **测试约定（硬性）**：「Obsidian测试知识库」为测试专用库，每次更新后发布前
+  必须在该库执行**全量真实场景测试**（forward-test）；
+- **测试**：脚本级 20/20；真实 forward-test 6/6（测试库 v5 配置，全量场景）；
+  双 skill quick_validate 通过。
 
 ## [0.7.0] - 2026-08-05
 

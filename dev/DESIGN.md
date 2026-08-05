@@ -1,13 +1,13 @@
-# DESIGN — knowledge-workflow / knowledge-manager-obsidian 设计文档（v0.7.0）
+# DESIGN — knowledge-workflow / kb-obsidian 设计文档（v0.8.0）
 
-## 0. 双 skill 拆分架构（2026-08-05 v0.6.0 起，v0.7.0 改名，覆盖后续章节的旧单 skill 描述）
+## 0. 双 skill 拆分架构（2026-08-05 v0.6.0 起，v0.8.0 定名，覆盖后续章节的旧单 skill 描述）
 
 - **双 skill 拆分**：`knowledge-workflow`（Skill A，原 knowledge-base）= 工作流程
   规范（workflow），只描述知识库流程"应该怎么走"，**不提及任何工具名/命令/
-  委托链**；`knowledge-manager-obsidian`（Skill B，原 obsidian-kb）= 工具操作
-  规范，含 Part 1 对所有工具的统一红线（改删前征求同意、永不 git init、删除进
-  回收站、直写例外清单）与 Part 2 Obsidian 专有操作（CLI 使用与怪癖、笔记操作、
-  日记设置、Markdown/Bases/Canvas 要点、剪藏、两步写入、回读校验）。
+  委托链**；`kb-obsidian`（Skill B，原 obsidian-kb → knowledge-manager-obsidian）=
+  工具操作规范，含 Part 1 对所有工具的统一红线（改删前征求同意、永不 git init、
+  删除进回收站、直写例外清单）与 Part 2 Obsidian 专有操作（CLI 使用与怪癖、
+  笔记操作、日记设置、Markdown/Bases/Canvas 要点、剪藏、两步写入、回读校验）。
   工具层连接由用户另行编排。
 - **后续章节定位**：§1.1–§1.6 的架构决策（Vault 唯一数据源、CLI 唯一写入口、
   配置驱动等）在拆分后归属 Skill B（工具操作层）或双 skill 共用原则；

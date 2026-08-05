@@ -1,11 +1,11 @@
-# knowledge-workflow / knowledge-manager-obsidian
+# knowledge-workflow / kb-obsidian
 
 通用知识库管理的**双 skill 组合**：一个管"知识库应该怎么组织"（工作流程规范），
 一个管"怎么操作工具"（Obsidian 操作规范与红线）。二者能力边界清晰、配套使用。
 
 ## 两个 skill
 
-| | knowledge-workflow | knowledge-manager-obsidian |
+| | knowledge-workflow | kb-obsidian |
 |---|---|---|
 | 定位 | **工作流程规范（workflow）** | **工具操作规范** |
 | 面向 | 用户与 agent 共同遵守的流程要求 | 对工具与执行者的统一要求 + Obsidian 专有操作 |
@@ -13,7 +13,7 @@
 | 不含 | 对 agent 的行为要求、对工具的操作要求、任何工具名 | 知识库业务规则（路由/生命周期/沉淀流程等） |
 
 一句话：**knowledge-workflow 回答"知识库该长什么样、流程怎么走"，
-knowledge-manager-obsidian 回答"执行时对工具和操作者的约束、Obsidian 具体
+kb-obsidian 回答"执行时对工具和操作者的约束、Obsidian 具体
 怎么操作"。**
 
 ## 快速开始
@@ -22,7 +22,7 @@ knowledge-manager-obsidian 回答"执行时对工具和操作者的约束、Obsi
    - 确认 vault 实际路径与名称；
    - 配置默认写入 vault 内隐藏目录 `.config/`（可改选其他位置）；
    - 按需启用 HTML 镜像导出、创建看板。
-2. 操作知识库时，Obsidian 侧的具体执行遵循 `knowledge-manager-obsidian` 的
+2. 操作知识库时，Obsidian 侧的具体执行遵循 `kb-obsidian` 的
    操作规范与红线。
 
 > 工具层连接方式由使用者自行编排（例如让 agent 同时加载两个 skill，或配置
@@ -36,9 +36,8 @@ knowledge-manager-obsidian 回答"执行时对工具和操作者的约束、Obsi
 │   │   ├── SKILL.md
 │   │   ├── references/properties.md   # 属性/目录/生命周期领域设计
 │   │   ├── scripts/                  # kb_config / kb_env / html_export
-│   │   ├── assets/user-manual.md     # 用户手册模板
-│   │   └── agents/openai.yaml
-│   └── knowledge-manager-obsidian/  # Skill B：Obsidian 操作规范与红线
+│   │   └── assets/user-manual.md     # 用户手册模板
+│   └── kb-obsidian/                  # Skill B：Obsidian 操作规范与红线
 │       ├── SKILL.md
 │       └── references/              # redlines / cli / markdown / bases / canvas
 ├── legacy/
