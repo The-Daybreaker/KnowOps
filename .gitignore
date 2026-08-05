@@ -4,6 +4,10 @@
 dist/
 # 测试产物（forward-test 配置与镜像，不入库）
 .test-env/
+# 开发期文档与发布工具（本地维护，不进 GitHub）
+dev/
+# 旧版存档（历史参考，不进 GitHub）
+legacy/
 # Python
 __pycache__/
 *.pyc

@@ -1,3 +1,0 @@
-display_name: "Obsidian 知识库"
-short_description: "基于 Obsidian CLI 的知识库管理：问题（未解决/已解决）、知识沉淀、日程、自动化提醒、看板、笔记、日记、任务、剪藏、Bases/Canvas、HTML 镜像导出"
-default_prompt: "用 obsidian-kb 管理我的 Obsidian 知识库。首次使用请先完成初始化向导（确认 vault 实际路径与名称、配置写入大知识库文件夹、HTML 导出目录、是否创建看板），之后按安全红线操作：写入/修改/删除只走 Obsidian CLI，修改与删除前征得同意，创建前做相似检查；Obsidian 的具体操作由 obsidian-suite 系列 skill 指导（obsidian-cli / obsidian-markdown / obsidian-bases / json-canvas / defuddle）。知识库规则：问题按未解决/已解决管理，解决后另行发起沉淀（知识类型交用户审核）；日程口述即录，含时间信号自动创建定时提醒；看板（看板.md + 看板.base）动态反映各模块；每次修改同步 updated（精确到分钟）、积极打标签与建立双向链接，每次操作后记录操作日志、更新 HTML 镜像并按需 Git 提交。"
