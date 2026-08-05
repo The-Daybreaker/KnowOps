@@ -39,24 +39,22 @@ load them".**
 ## Layout
 
 ```
-├── skills/
-│   ├── knowledge-workflow/          # Skill A: knowledge workflow specification
-│   │   ├── SKILL.md
-│   │   ├── references/properties.md   # properties/dirs/lifecycle design
-│   │   ├── scripts/                  # kb_config / kb_env / html_export
-│   │   └── assets/user-manual.md     # user manual template
-│   ├── kb-obsidian/                  # Skill B: Obsidian operation rules & red lines
-│   │   ├── SKILL.md
-│   │   └── references/              # redlines / cli / markdown / bases / canvas
-│   └── obsidian-suite/               # Skill C: dispatch entry (loading-order guide)
-│       └── SKILL.md
-├── legacy/
-│   ├── obsidian-kb/                 # archived old obsidian-kb (historical reference only)
-│   └── dist-archive/                # archived old release zips (v1.0.0~v2.3.3)
-├── dev/                             # dev-time assets (not shipped)
-│   ├── CHANGELOG.md / DESIGN.md / REQUIREMENTS.md / TEST-REPORT.md
-│   └── scripts/update_skill.py      # dev-time release tool (packages all three skills)
-└── dist/                            # releases: zips for all three skills (per-version dirs)
+knowledge-base/
+├── README.md                 # Chinese docs
+├── README.en.md              # English
+├── LICENSE                   # MIT
+├── .gitignore
+└── skills/
+    ├── knowledge-workflow/          # Skill A: knowledge workflow specification
+    │   ├── SKILL.md
+    │   ├── references/properties.md   # properties/dirs/lifecycle design
+    │   ├── scripts/                  # kb_config / kb_env / html_export
+    │   └── assets/user-manual.md     # user manual template
+    ├── kb-obsidian/                  # Skill B: Obsidian operation rules & red lines
+    │   ├── SKILL.md
+    │   └── references/              # redlines / cli / markdown / bases / canvas
+    └── obsidian-suite/               # Skill C: dispatch entry (loading-order guide)
+        └── SKILL.md
 ```
 
 ## Core conventions

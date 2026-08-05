@@ -36,24 +36,22 @@ obsidian-suite 回答"该按什么顺序加载它们"。**
 ## 目录结构
 
 ```
-├── skills/
-│   ├── knowledge-workflow/          # Skill A：知识库管理工作流程规范
-│   │   ├── SKILL.md
-│   │   ├── references/properties.md   # 属性/目录/生命周期领域设计
-│   │   ├── scripts/                  # kb_config / kb_env / html_export
-│   │   └── assets/user-manual.md     # 用户手册模板
-│   ├── kb-obsidian/                  # Skill B：Obsidian 操作规范与红线
-│   │   ├── SKILL.md
-│   │   └── references/              # redlines / cli / markdown / bases / canvas
-│   └── obsidian-suite/               # Skill C：调度入口（加载顺序指引）
-│       └── SKILL.md
-├── legacy/
-│   ├── obsidian-kb/                 # 旧版 obsidian-kb 存档（仅历史参考，不含新功能）
-│   └── dist-archive/                # 旧版本发布包归档（v1.0.0~v2.3.3）
-├── dev/                             # 开发期资产（不进包）
-│   ├── CHANGELOG.md / DESIGN.md / REQUIREMENTS.md / TEST-REPORT.md
-│   └── scripts/update_skill.py      # 开发期发布工具（三 skill 打包）
-└── dist/                            # 发布产物：三个 skill 的 zip（按版本分目录）
+knowledge-base/
+├── README.md                 # 中文说明
+├── README.en.md              # English
+├── LICENSE                   # MIT
+├── .gitignore
+└── skills/
+    ├── knowledge-workflow/          # Skill A：知识库管理工作流程规范
+    │   ├── SKILL.md
+    │   ├── references/properties.md   # 属性/目录/生命周期领域设计
+    │   ├── scripts/                  # kb_config / kb_env / html_export
+    │   └── assets/user-manual.md     # 用户手册模板
+    ├── kb-obsidian/                  # Skill B：Obsidian 操作规范与红线
+    │   ├── SKILL.md
+    │   └── references/              # redlines / cli / markdown / bases / canvas
+    └── obsidian-suite/               # Skill C：调度入口（加载顺序指引）
+        └── SKILL.md
 ```
 
 ## 核心约定
