@@ -3,6 +3,17 @@
 > 开发期交付物，不随 skill 打包。环境：Windows 11、Obsidian 1.13.4（CLI 随应用，
 > `Obsidian.com`）、受管 Python 3.13.12、受管 Node 22.22.2（defuddle 隔离安装）。
 
+## v0.10.0 obsidian-suite 入仓测试（2026-08-05）
+
+- **quick_validate 三 skill**：knowledge-workflow / kb-obsidian / obsidian-suite
+  均通过 ✅
+- **脚本级测试 20/20**（.test-env/kb_test.py）：无回归 ✅
+- **真实 forward-test 6/6**（.test-env/forward_test.py，测试库全量）：
+  CLI 创建/回读 → html_export export-one → CLI delete 进回收站 → 删除验证 →
+  操作日志写入 `.config/log/` ✅
+- **改动范围**：新增 Skill C obsidian-suite（调度入口，纯文档）+ README 双语
+  更新 + update_skill.py 三 skill 打包；不涉及脚本逻辑。
+
 ## v0.9.1 真实场景 skill 测试（2026-08-05，不依赖开发记忆，仅按两 skill 规范执行）
 
 **方式**：模拟全新 agent，不读开发记忆/测试脚本，只按 knowledge-workflow +

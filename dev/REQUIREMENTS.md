@@ -25,7 +25,12 @@
 > 测试约定：**「Obsidian测试知识库」为测试专用库，每次更新后发布前必须在该库
 > 执行全量真实场景测试（forward-test）**。
 
-### 0.1 双 skill 拆分模型（能力边界，用户拍板）
+> **v0.10.0 加入调度入口（2026-08-05）**：新增 **Skill C `obsidian-suite`**
+> （调度入口，指引加载顺序：knowledge-workflow → kb-obsidian → 工具型按需），
+> 随项目一起发布（三 zip）；README 双语更新并注明工具型 skill 来源
+> kepano/obsidian-skills。发布工具 update_skill.py 改三 skill 打包。
+
+### 0.1 skill 组合模型（能力边界，用户拍板）
 
 | | knowledge-base（Skill A） | obsidian-kb（Skill B） |
 |---|---|---|
