@@ -8,6 +8,49 @@
 
 ---
 
+## 0. v0.6.0 拆分重构变更（2026-08-05，覆盖本节之后的旧描述）
+
+> 本文件后续章节为 v1.0.0 起的**单 skill（obsidian-kb）**需求基线；v0.6.0
+> 起拆分为**两个 skill**，凡与本变更章节冲突之处以本章节为准。
+
+### 0.1 双 skill 拆分模型（能力边界，用户拍板）
+
+| | knowledge-base（Skill A） | obsidian-kb（Skill B） |
+|---|---|---|
+| 定位 | **工作流程规范（workflow）**，给用户与 agent 共同遵守 | **工具操作规范**：所有对工具的要求 |
+| 包含 | 模块路由（问题/项目/日程/知识/剪藏/日记/任务）、问题生命周期（未解决→已解决→沉淀分离）、知识分类沉淀、看板、日程、自动化提醒、操作日志、初始化向导、配置与 HTML 导出策略、创建前相似检查（流程环节） | Part 1 统一红线（改删前征求同意、永不 git init、不假设路径、删除进回收站、禁永久删除、直写例外清单）；Part 2 Obsidian 专有（CLI 使用与怪癖、笔记读写改删、日记设置、Markdown/Bases/Canvas 语法要点、剪藏、两步写入、回读校验） |
+| 不含 | 对 agent 的行为要求（改删前征求同意等）、对工具的要求、任何工具名/命令/委托链 | 知识库业务规则（路由/生命周期/沉淀流程等） |
+
+- 工具层连接由用户另行编排，knowledge-base 不绑定任何工具；
+- 仓库形态：单仓库双 skill（`skills/knowledge-base/` + `skills/obsidian-kb/`），
+  一起发布、一起升级（统一版本 0.6.0）；旧版 obsidian-kb 原样存档
+  `legacy/obsidian-kb/`（内容不改，仅历史参考）。
+
+### 0.2 新增需求（用户 2026-08-05 补充）
+
+1. **知识库无关文件位置可配置**：配置 / log / 用户手册 / HTML 导出产物默认写入
+   **vault 内隐藏目录 `.config/`**（`config` 为通用配置目录名，点前缀实现文件树
+   隐藏；可改选其他位置如 vault 上级目录）。
+   - **红线修订（原：配置/手册/HTML 导出绝不写入 vault 内）**：允许写入 vault 内
+     隐藏目录 `.config/`，但**不得写入用户笔记内容区、不得影响笔记浏览**；
+     `.config/` 整体不进 HTML 导出、不参与看板聚合。
+2. **HTML 镜像导出改为初始化可选**：不需要则不配置 exportRoot、整体跳过；
+   需要时默认 `<vault>/.config/HTML-Export/`（可改）。
+3. **配置文件名改名**：`obsidian-kb.config.json` → `knowledge-base.config.json`
+   （schema v3→v4，提供迁移；旧文件名 find 时兼容并引导迁移）。
+4. **Python 解释器发现通用化**：按 python → py -3 → 提示安装 3.10+ 探测，
+   不写任何平台受管路径。
+5. **设备经验不写入 skill**：references 全部通用化表述（去 1.13.4 / Windows /
+   bash / 回收站路径 / 受管运行时限定）；测试库路径等只存开发文档与记忆。
+
+### 0.3 命名（已定稿）
+
+- Skill A = `knowledge-base`（display_name：KB Manager）；Skill B = `obsidian-kb`
+  （display_name：Obsidian Guide，沿用原 skill 名）；
+- 发布版本统一 **0.6.0**；发布范围=仅本地（双 zip + git 提交，不推 GitHub）。
+
+---
+
 ## 1. 背景与目标
 
 ### 1.1 设计背景

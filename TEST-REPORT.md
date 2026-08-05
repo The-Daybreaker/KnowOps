@@ -3,6 +3,27 @@
 > 开发期交付物，不随 skill 打包。环境：Windows 11、Obsidian 1.13.4（CLI 随应用，
 > `Obsidian.com`）、受管 Python 3.13.12、受管 Node 22.22.2（defuddle 隔离安装）。
 
+## v0.6.0 拆分重构测试（2026-08-05）
+
+- **quick_validate**：`skills/knowledge-base/` 与 `skills/obsidian-kb/` 双 skill
+  均通过结构校验 ✅
+- **脚本级测试 18/18**（.test-env/v0_6_test.py，临时目录）：
+  - kb_config v4 init：默认写入 `<vault>/.config/knowledge-base.config.json`；
+    find（含 .config/ 子目录查找）/ list / validate ✅
+  - 位置规则：`--config` 指向 vault 用户笔记区 → 拒绝（提示"不能写入 vault 用户
+    笔记区"）✅
+  - migrate v3→v4：旧文件名 `obsidian-kb.config.json` 迁移到新文件名；旧默认
+    exportRoot（vault 上级 HTML-Export）自动改为 `<vault>/.config/HTML-Export/`；
+    补齐 configDir；旧文件保留 ✅
+  - set/get 点号键；html_export export（--full）与 export-one ✅
+- **真实 forward-test 6/6**（.test-env/forward_v06.py，测试库「Obsidian测试知识库」）：
+  CLI 创建问题笔记（Python subprocess 传参，多行中文）→ 回读校验 → html_export
+  export-one（v4 配置）→ CLI delete 进系统回收站（"Moved to trash"）→ 删除后
+  读取失败 → 操作日志写入 `.config/log/` ✅
+- 测试配置：`.test-env/obsidian-kb.config.json`（v3）已迁移到测试库
+  `.config/knowledge-base.config.json`（v4），exportRoot 修正为
+  `knowledge-base/.test-env/HTML-Export`（旧目录名路径已失效，一并修正）✅
+
 ## 〇〇、v1.3.0 变更 forward-test（2026-08-03，vault「知识库skill测试」）
 
 - **HTML 只留 vault 级索引**：fake vault 导出验证——根级 `index.html` 不再生成，

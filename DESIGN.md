@@ -1,4 +1,22 @@
-# DESIGN — obsidian-kb 设计文档（v2.3.3）
+# DESIGN — knowledge-base / obsidian-kb 设计文档（v0.6.0）
+
+## 0. v0.6.0 拆分架构（2026-08-05，覆盖后续章节的旧单 skill 描述）
+
+- **双 skill 拆分**：`knowledge-base`（Skill A）= 工作流程规范（workflow），
+  只描述知识库流程"应该怎么走"，**不提及任何工具名/命令/委托链**；`obsidian-kb`
+  （Skill B）= 工具操作规范，含 Part 1 对所有工具的统一红线（改删前征求同意、
+  永不 git init、删除进回收站、直写例外清单）与 Part 2 Obsidian 专有操作
+  （CLI 使用与怪癖、笔记操作、日记设置、Markdown/Bases/Canvas 要点、剪藏、
+  两步写入、回读校验）。工具层连接由用户另行编排。
+- **后续章节定位**：§1.1–§1.6 的架构决策（Vault 唯一数据源、CLI 唯一写入口、
+  配置驱动等）在拆分后归属 Skill B（工具操作层）或双 skill 共用原则；
+  §2 模块职责归属 Skill A 的流程规范。凡与本 §0 冲突之处以 §0 为准。
+- **知识库无关文件位置**（v4 配置）：默认 vault 内隐藏目录 `.config/`
+  （配置/log/手册/HTML 导出）；红线修订为"允许隐藏目录，不写入用户笔记区"。
+- **配置文件名**：`obsidian-kb.config.json` → `knowledge-base.config.json`
+  （schema v3→v4，迁移函数见 kb_config.py MIGRATIONS[3]）。
+- **发布形态**：单仓库双 skill 统一版本 0.6.0，双 zip；旧版归档
+  `legacy/obsidian-kb/`（内容不改）。
 
 ## 1. 架构决策
 

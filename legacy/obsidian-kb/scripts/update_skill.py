@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""update_skill.py - knowledge-base / obsidian-kb 双 skill 发布辅助工具（标准库，跨平台）
+"""update_skill.py - obsidian-kb 发布辅助工具（Python 标准库，跨平台）
 
-单仓库双 skill（skills/ 下两个目录）一起发布、一起升级（统一版本号）。
- 1. check   — 发布前检查：CHANGELOG 已同步版本、两个 skill 的 SKILL.md 存在、
-               quick_validate 逐个校验
- 2. package — 为每个 skill 打包 zip 到 dist/，命名 <skill>-v<version>-<timestamp>.zip
-               （仅含各自运行时文件；legacy/ 与开发期文档不进包）
- 3. commit  — git add -A + git commit（feat:/fix:/docs: v<version> - 描述）；永不 git init
- 4. release — 顺序执行 check → package → commit
+实现 §12 发布约定的工具化（仅在用户明确要求发布时由 agent 调用，绝不自动运行）：
+  1. check   — 发布前检查：CHANGELOG/DESIGN 已同步版本、兼容性（配置可迁移、
+               用户手册模板存在）、quick_validate 校验
+  2. package — 打包 zip 到 dist/，命名 obsidian-kb-vX.Y.Z-<timestamp>.zip
+               （仅含运行时文件，开发期文档 CHANGELOG/DESIGN/REQUIREMENTS/
+               TEST-REPORT 不随包分发）
+  3. commit  — git add -A + git commit（feat:/fix:/docs: vX.Y.Z - 描述）；永不 git init
+  4. release — 顺序执行 check → package → commit
 """
 
 from __future__ import annotations
@@ -24,17 +25,16 @@ import zipfile
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SKILL_ROOT = os.path.dirname(SCRIPT_DIR)
+sys.path.insert(0, SCRIPT_DIR)
 
-# 两个 skill：目录相对仓库根，zip 内 arcname 根用 skill 名
-SKILLS = [
-    {"name": "knowledge-base", "dir": "skills/knowledge-base"},
-    {"name": "obsidian-kb", "dir": "skills/obsidian-kb"},
-]
-LEGACY_DIR = "legacy"  # 旧版存档，只进 git 不进包
+import kb_config  # noqa: E402
 
-# 打包排除项（相对各 skill 目录）
-EXCLUDE_DIRS = {".git", "__pycache__"}
-EXCLUDE_FILES = set()
+SKILL_NAME = "obsidian-kb"
+# 打包排除项（相对 skill 根目录）：分发包仅含运行时文件，
+# 开发期文档由 git 管理，不随包分发（v1.4.0 起）
+EXCLUDE_DIRS = {".git", ".test-env", "dist", "__pycache__", ".workbuddy"}
+EXCLUDE_FILES = {"REQUIREMENTS.md", "PROMPT.md", "TEST-REPORT.md",
+                 "CHANGELOG.md", "DESIGN.md"}
 EXCLUDE_SUFFIXES = {".pyc"}
 
 
@@ -48,6 +48,7 @@ def find_validator() -> str | None:
         os.path.join(os.path.dirname(SKILL_ROOT), "skill-creator", "scripts", "quick_validate.py"),
     ]
     appdata = os.environ.get("LOCALAPPDATA", "")
+    # WorkBuddy 内置 skill-creator 常见位置（仅作候选，存在才使用）
     for root in filter(None, [os.environ.get("WORKBUDDY_HOME"), appdata]):
         candidates.append(os.path.join(
             root, "..", "Develop", "WorkBuddy", "resources", "app.asar.unpacked",
@@ -59,10 +60,6 @@ def find_validator() -> str | None:
     return None
 
 
-def skill_path(skill: dict) -> str:
-    return os.path.join(SKILL_ROOT, skill["dir"])
-
-
 # ---------------------------------------------------------------------------
 # check
 # ---------------------------------------------------------------------------
@@ -70,7 +67,6 @@ def skill_path(skill: dict) -> str:
 def cmd_check(args) -> dict:
     problems, warnings, passed = [], [], []
 
-    # CHANGELOG 版本条目（仓库根，两个 skill 共用）
     changelog = os.path.join(SKILL_ROOT, "CHANGELOG.md")
     if not os.path.isfile(changelog):
         problems.append("缺少 CHANGELOG.md")
@@ -80,27 +76,47 @@ def cmd_check(args) -> dict:
             passed.append(f"CHANGELOG.md 已包含 v{args.version} 条目")
         else:
             problems.append(f"CHANGELOG.md 缺少 v{args.version} 条目")
+        if "兼容" in text:
+            passed.append("CHANGELOG.md 含兼容性说明")
 
-    # 每个 skill：SKILL.md 存在 + quick_validate
-    for skill in SKILLS:
-        sp = skill_path(skill)
-        if not os.path.isfile(os.path.join(sp, "SKILL.md")):
-            problems.append(f"{skill['name']} 缺少 SKILL.md")
-            continue
-        passed.append(f"{skill['name']}/SKILL.md 存在")
-        validator = args.validator or find_validator()
-        if not validator:
-            warnings.append("未找到 quick_validate.py（可用 --validator 指定），跳过结构校验")
-            break
+    design = os.path.join(SKILL_ROOT, "DESIGN.md")
+    if not os.path.isfile(design):
+        problems.append("缺少 DESIGN.md")
+    elif args.version in _read(design):
+        passed.append(f"DESIGN.md 已提及 v{args.version}")
+    else:
+        warnings.append(f"DESIGN.md 未提及 v{args.version}（如架构有变化请同步更新）")
+
+    # 兼容性：配置可加载 / 迁移路径存在
+    try:
+        if kb_config.SCHEMA_VERSION > 1 and 0 not in kb_config.MIGRATIONS and \
+                len(kb_config.MIGRATIONS) < kb_config.SCHEMA_VERSION - 1:
+            problems.append("配置 schema 升级但缺少完整迁移路径（MIGRATIONS）")
+        else:
+            passed.append(f"配置 schema v{kb_config.SCHEMA_VERSION} 迁移路径检查通过")
+    except Exception as e:  # noqa: BLE001
+        problems.append(f"配置模块自检异常：{e}")
+
+    # 用户手册模板存在（保护已生成手册的逻辑在初始化流程中，不覆盖）
+    if os.path.isfile(os.path.join(SKILL_ROOT, "assets", "user-manual.md")):
+        passed.append("assets/user-manual.md 存在")
+    else:
+        problems.append("缺少 assets/user-manual.md")
+
+    # quick_validate
+    validator = args.validator or find_validator()
+    if not validator:
+        warnings.append("未找到 quick_validate.py（可用 --validator 指定），跳过结构校验")
+    else:
         r = subprocess.run(
-            [sys.executable, validator, sp],
+            [sys.executable, validator, SKILL_ROOT],
             capture_output=True, text=True, encoding="utf-8", errors="replace",
         )
         out = ((r.stdout or "") + (r.stderr or "")).strip()
         if r.returncode == 0:
-            passed.append(f"{skill['name']} quick_validate 通过")
+            passed.append("quick_validate 通过")
         else:
-            problems.append(f"{skill['name']} quick_validate 未通过：{out[:500]}")
+            problems.append(f"quick_validate 未通过：{out[:500]}")
 
     return {"version": args.version, "ok": not problems,
             "passed": passed, "warnings": warnings, "problems": problems}
@@ -110,35 +126,33 @@ def cmd_check(args) -> dict:
 # package
 # ---------------------------------------------------------------------------
 
-def _package_one(skill: dict, version: str, dist: str) -> dict:
-    root = skill_path(skill)
+def cmd_package(args) -> dict:
+    dist = os.path.join(SKILL_ROOT, "dist")
+    os.makedirs(dist, exist_ok=True)
     timestamp = time.strftime("%Y%m%d-%H%M")
-    zip_name = f"{skill['name']}-v{version}-{timestamp}.zip"
+    zip_name = f"{SKILL_NAME}-v{args.version}-{timestamp}.zip"
     zip_path = os.path.join(dist, zip_name)
 
     included = []
-    for dirpath, dirnames, filenames in os.walk(root):
-        rel_dir = os.path.relpath(dirpath, root)
+    for dirpath, dirnames, filenames in os.walk(SKILL_ROOT):
+        rel_dir = os.path.relpath(dirpath, SKILL_ROOT)
+        parts = set(rel_dir.split(os.sep))
         dirnames[:] = [d for d in dirnames if d not in EXCLUDE_DIRS]
+        if parts & EXCLUDE_DIRS:
+            continue
         for fn in filenames:
             if fn in EXCLUDE_FILES or os.path.splitext(fn)[1] in EXCLUDE_SUFFIXES:
                 continue
             full = os.path.join(dirpath, fn)
-            rel = os.path.relpath(full, root)
+            rel = os.path.relpath(full, SKILL_ROOT)
             included.append(rel)
 
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         for rel in sorted(included):
-            zf.write(os.path.join(root, rel),
-                     arcname=os.path.join(skill["name"], rel))
+            zf.write(os.path.join(SKILL_ROOT, rel),
+                     arcname=os.path.join(SKILL_NAME, rel))
+
     return {"zip": zip_path, "files": len(included)}
-
-
-def cmd_package(args) -> dict:
-    dist = os.path.join(SKILL_ROOT, "dist")
-    os.makedirs(dist, exist_ok=True)
-    packages = [_package_one(skill, args.version, dist) for skill in SKILLS]
-    return {"packages": packages, "total": len(packages)}
 
 
 # ---------------------------------------------------------------------------
@@ -154,14 +168,14 @@ def cmd_commit(args) -> dict:
     r = _git("rev-parse", "--is-inside-work-tree")
     if r.returncode != 0 or "true" not in (r.stdout or ""):
         raise ReleaseError(
-            "仓库根不是 Git 仓库。本工具永不执行 git init；"
+            "skill 目录不是 Git 仓库。本工具永不执行 git init；"
             "如需版本管理请手动初始化仓库后再运行"
         )
     top = _git("rev-parse", "--show-toplevel").stdout.strip()
     if os.path.normpath(top) != os.path.normpath(SKILL_ROOT):
         raise ReleaseError(
-            f"仓库根位于上层仓库（{top}）内，而非独立仓库根。\n"
-            f"为避免污染上层仓库历史，发布提交被拒绝。请将仓库根作为独立仓库后再运行。"
+            f"skill 目录位于上层仓库（{top}）内，而非独立仓库根。\n"
+            f"为避免污染上层仓库历史，发布提交被拒绝。请将 skill 目录作为独立仓库（手动 git init）后再运行。"
         )
     msg = f"{args.type}: v{args.version} - {args.msg}"
     _git("add", "-A", "--", ".")
@@ -197,19 +211,19 @@ def _read(path: str) -> str:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="update_skill.py",
-                                description="knowledge-base / obsidian-kb 发布辅助（仅显式调用，不自动发布）")
+                                description="obsidian-kb 发布辅助（仅显式调用，不自动发布）")
     p.add_argument("--json", action="store_true")
     sub = p.add_subparsers(dest="command", required=True)
 
     def common(sp):
-        sp.add_argument("--version", required=True, help="目标版本号，如 0.6.0")
+        sp.add_argument("--version", required=True, help="目标版本号，如 1.0.0")
         sp.add_argument("--validator", help="quick_validate.py 路径（可选）")
 
-    sp = sub.add_parser("check", help="发布前检查（CHANGELOG/双 skill quick_validate）")
+    sp = sub.add_parser("check", help="发布前检查（CHANGELOG/DESIGN/兼容性/quick_validate）")
     common(sp)
     sp.set_defaults(func=cmd_check)
 
-    sp = sub.add_parser("package", help="双 skill 打包到 dist/")
+    sp = sub.add_parser("package", help="打包到 dist/")
     common(sp)
     sp.set_defaults(func=cmd_package)
 

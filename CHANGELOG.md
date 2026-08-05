@@ -4,7 +4,35 @@
 每次发布的兼容性说明见对应条目。
 
 > 说明：CHANGELOG 为开发期文档，随仓库（git）维护，**不随 skill 包分发**
-> （v1.4.0 起打包排除）。
+> （v1.4.0 起打包排除）。v0.6.0 起仓库承载两个 skill（knowledge-base /
+> obsidian-kb），共用同一版本号、一起发布。
+
+## [0.6.0] - 2026-08-05
+
+### 重大变更（拆分重构，替换原规划 v3.0.0）
+
+- **拆分为两个 skill**（单仓库双 skill，一起发布一起升级）：
+  - `knowledge-base`（Skill A）：知识库管理**工作流程规范**（workflow），给
+    用户与 agent 共同遵守；只描述流程，**不提及任何工具名/命令/委托链**
+    （工具层连接由用户另行编排）；
+  - `obsidian-kb`（Skill B，沿用原名）：**工具操作规范**——Part 1 对所有工具
+    的统一规范与红线（改删前征求同意、永不 git init、删除进回收站、直写例外
+    清单）；Part 2 Obsidian 专有规范（CLI 使用与怪癖、笔记读写改删、日记设置、
+    Markdown/Bases/Canvas 语法要点、剪藏、两步写入、回读校验）；
+  - 能力边界：A 管"流程怎么走"，B 管"工具怎么用/行为红线"，互不越界。
+- **旧版存档**：原 obsidian-kb 全部文件原样归档 `legacy/obsidian-kb/`（内容
+  一字不改，git 历史保留）；新两个 skill 从零构建，不复用旧文件。
+- **知识库无关文件位置**：默认改为 **vault 内隐藏目录 `.config/`**（配置/log/
+  手册/HTML 导出）；红线修订为"允许隐藏目录，不写入用户笔记内容区、不影响
+  笔记浏览"；`.config/` 不进 HTML 导出、不参与看板聚合。
+- **HTML 镜像导出改初始化可选**：不需要则跳过；默认 `<vault>/.config/HTML-Export/`。
+- **配置文件名**：`obsidian-kb.config.json` → `knowledge-base.config.json`
+  （schema v3→v4，`kb_config.py migrate` 提供迁移；旧文件名 find 兼容并引导迁移）。
+- **通用化**：references 去除设备经验（1.13.4 / Windows / bash / 受管运行时
+  路径）；Python 解释器发现改通用探测链（python → py -3 → 提示安装 3.10+）。
+- **发布**：update_skill.py 改双 skill 打包；仓库根件 README（中英双语）/
+  LICENSE(MIT) / .gitignore；发布范围=仅本地（双 zip + git 提交，不推 GitHub）。
+- display_name：KB Manager（A）/ Obsidian Guide（B）。
 
 ## [2.3.3] - 2026-08-05
 
