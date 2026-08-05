@@ -1,10 +1,10 @@
 ---
-name: knowledge-base
+name: knowledge-workflow
 description: 通用知识库管理的工作流程规范（workflow）。定义知识库内容如何组织与流转：问题（未解决/已解决管理、解决与沉淀分离）、知识沉淀（按类型归档）、项目、日程、任务（TODO）、原生日记、网页剪藏、看板总览、自动化提醒、操作日志、首次初始化向导、配置与 HTML 镜像导出策略。当用户要求接入/记录/搜索/整理知识库、记录问题、沉淀知识、写日程或任务、搭建看板时使用。本 skill 只描述工作流程规范（给用户与 agent 共同遵守），不包含任何工具操作细节。
 agent_created: true
 ---
 
-# knowledge-base 知识库管理（工作流程规范）
+# knowledge-workflow 知识库管理（工作流程规范）
 
 ## 定位
 
@@ -175,7 +175,7 @@ agent_created: true
 5. 询问是否还有其他 vault（逐个注册，可设默认）。
 6. 展示默认目录结构（见 `references/properties.md` 目录模板）供确认或修改，
    结果写入偏好。
-7. 执行初始化：创建配置文件（`knowledge-base.config.json`，默认写 `.config/`），
+7. 执行初始化：创建配置文件（`knowledge-workflow.config.json`，默认写 `.config/`），
    注册 vault，写入偏好。
 8. 复制用户手册（`assets/user-manual.md` → 知识库文件夹，默认文件名
    `用户手册.md`；**目标已存在则绝不覆盖**，只提示用户）。
@@ -190,7 +190,7 @@ agent_created: true
 
 ## 配置与 HTML 导出
 
-- **配置文件**：`knowledge-base.config.json`（默认 `.config/`，可改位置）。
+- **配置文件**：`knowledge-workflow.config.json`（默认 `.config/`，可改位置）。
   键包括：`version`、`defaultVault`、`vaults`、`exportRoot`（仅启用 HTML 导出
   时）、`cliPath`（操作规范层使用的工具路径，初始化时确认）、`preferences`
   （目录与偏好，见 `references/properties.md` 目录模板）。配置管理通过随附

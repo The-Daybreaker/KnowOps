@@ -8,10 +8,16 @@
 
 ---
 
-## 0. v0.6.0 拆分重构变更（2026-08-05，覆盖本节之后的旧描述）
+## 0. 拆分重构变更（2026-08-05 v0.6.0 起，覆盖本节之后的旧描述）
 
 > 本文件后续章节为 v1.0.0 起的**单 skill（obsidian-kb）**需求基线；v0.6.0
 > 起拆分为**两个 skill**，凡与本变更章节冲突之处以本章节为准。
+
+> **v0.7.0 改名（2026-08-05）**：本章节及历史条目中的 skill 名已更新为当前名——
+> Skill A `knowledge-base` → **`knowledge-workflow`**；Skill B `obsidian-kb` →
+> **`knowledge-manager-obsidian`**。配置文件名随之更新为
+> `knowledge-workflow.config.json`（schema v5，旧名 find 兼容并迁移）。
+> 能力边界与本章节其余内容不变；下文历史名称均为对应时期的原称。
 
 ### 0.1 双 skill 拆分模型（能力边界，用户拍板）
 

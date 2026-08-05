@@ -1,11 +1,34 @@
 # CHANGELOG
 
-本文件记录 obsidian-kb 的版本历史。格式遵循语义化版本；
+本文件记录本仓库的版本历史。格式遵循语义化版本；
 每次发布的兼容性说明见对应条目。
+（v1.0.0~v2.3.3 为单 skill `obsidian-kb` 时期；v0.6.0 起为双 skill：
+`knowledge-workflow` / `knowledge-manager-obsidian`，共用同一版本号、一起发布。）
 
 > 说明：CHANGELOG 为开发期文档，随仓库（git）维护，**不随 skill 包分发**
-> （v1.4.0 起打包排除）。v0.6.0 起仓库承载两个 skill（knowledge-base /
-> obsidian-kb），共用同一版本号、一起发布。
+> （v1.4.0 起打包排除）。
+
+## [0.7.0] - 2026-08-05
+
+### 调整（改名 + 目录整理 + 全面审计）
+
+- **双 skill 改名**（用户拍板）：
+  - `knowledge-base` → **`knowledge-workflow`**（Skill A：知识库管理工作流程规范）；
+  - `obsidian-kb` → **`knowledge-manager-obsidian`**（Skill B：Obsidian 操作规范）；
+  - 配置文件名随之更新：`knowledge-workflow.config.json`（schema **v4→v5**，
+    MIGRATIONS[4]；`kb_config.py migrate` 提供迁移，旧名 find 兼容并引导迁移）。
+- **根目录整理**：开发期文档与发布工具归类到 **`dev/`**（CHANGELOG / DESIGN /
+  REQUIREMENTS / TEST-REPORT / scripts/update_skill.py），仓库根只保留
+  skills/、legacy/、README（中英）、LICENSE、.gitignore、dist/；
+- **合并冗余**：`refactor-v3.0-plan.md` 要点并入 DESIGN §0.5（拆分决策记录）后删除；
+- **归档旧产物**：dist/ 全部旧发布包（v1.0.0~v2.3.3 与 v0.6.0 旧名包）移入
+  `legacy/dist-archive/`；
+- **审计修复**：update_skill.py 的 quick_validate 发现逻辑清理（WORKBUDDY_HOME
+  直查 + 常见安装位置 + --validator 覆盖）；SKILL_ROOT 适配 dev/ 层级；
+  README/CHANGELOG/REQUIREMENTS 表述同步新名；
+- **测试**：脚本级 20/20（含 v3→v5、v4→v5 迁移与旧名→新名文件迁移）；真实
+  forward-test 6/6（v5 配置，CLI 创建/回读/导出/删除进回收站/日志）；双 skill
+  quick_validate 通过。
 
 ## [0.6.0] - 2026-08-05
 
