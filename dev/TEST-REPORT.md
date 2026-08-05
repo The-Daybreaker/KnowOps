@@ -3,6 +3,32 @@
 > 开发期交付物，不随 skill 打包。环境：Windows 11、Obsidian 1.13.4（CLI 随应用，
 > `Obsidian.com`）、受管 Python 3.13.12、受管 Node 22.22.2（defuddle 隔离安装）。
 
+## v0.9.1 真实场景 skill 测试（2026-08-05，不依赖开发记忆，仅按两 skill 规范执行）
+
+**方式**：模拟全新 agent，不读开发记忆/测试脚本，只按 knowledge-workflow +
+kb-obsidian 的 SKILL.md 与 references 在 Obsidian测试知识库 执行完整工作流。
+
+**场景与结果（8/8 通过）**：
+1. 环境自检（kb_env）+ 配置校验（kb_config validate）✅
+2. 创建前相似检查（CLI search）✅
+3. 记录问题（问题/未解决/，frontmatter + 行内数组标签）✅ 回读完整
+4. 联动：TODO 待办追加（create overwrite 重组保结构）+ 操作日志创建 ✅
+5. 记录日程（日程/，type: event + date/end/location/status + 日程标签）✅
+6. 解决问题（status done + resolved + updated 分钟级 → move 已解决 → TODO 勾选
+   移入已完成块）✅
+7. 知识沉淀（知识/原理/，双向链接原问题 + 回写「已沉淀」链接）✅
+8. 删除纪律（delete 进回收站 `Moved to trash` + 删除后回读失败）✅
+9. 看板反映（base:query 5 视图：问题-未解决已清空、问题-已解决/知识/日程新增）✅
+10. HTML 导出 export-one ✅
+
+**审计发现并修复（4 处，均为 kb-obsidian 文档缺口）**：
+- cli.md：search 实际参数 `query=`（文档为位置参数）；move 实际参数 `to=`
+  （文档为 `path=`）；缺 `vault=<name>` 全局选项说明；
+- 点开头**目录**（.config/）CLI 不可达（search/read/create 均失败）→ 例外清单
+  补第 6 条「隐藏目录内文件可直写」；cli.md 实测注意第 4 条扩展；
+- `append` 仅能追加到文件末尾 → cli.md 补"read → 重组 → create overwrite"方法
+  （实测 TODO 待办追加需此方式保持结构）。
+
 ## v0.9.0 规范视角中立化测试（2026-08-05）
 
 - **quick_validate**：`skills/knowledge-workflow/` 与 `skills/kb-obsidian/` 双 skill
