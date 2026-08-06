@@ -38,6 +38,11 @@
 <vault>/.config/                     ← vault 内隐藏目录（知识库无关文件默认存放处）
 ├── knowledge-workflow.config.json      # skill 配置（默认位置）
 ├── 用户手册.md                      # 用户手册（初始化时复制）
+├── knowledge-rules.md              # 知识库专属规则（初始化建模板，每次操作前读取）
+├── scripts/                        # 库内脚本副本（初始化从 skill 复制，可改造）
+│   ├── html_export.py              # HTML 导出脚本（日常导出运行库内副本）
+│   ├── kb_config.py                # 配置脚本（复制供 html_export 依赖）
+│   └── html-export.json            # 导出范围配置（include/exclude，与脚本同目录）
 ├── log/                            # 操作日志（preferences.logDir）
 │   └── YYYY-MM/YYYY-MM-DD.md       # 按年月/日切分，每次操作追加记录
 └── HTML-Export/                    # HTML 镜像导出（可选组件，preferences.exportDirName）

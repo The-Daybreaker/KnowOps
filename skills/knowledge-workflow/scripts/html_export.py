@@ -26,6 +26,7 @@
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import html
 import json
 import os
@@ -44,6 +45,70 @@ SKIP_DIR_PREFIX = "."          # 跳过 .obsidian / .git / .trash 等隐藏目�
 NOTE_EXT = ".md"
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp", ".avif"}
 MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs"
+RANGE_CONFIG_NAME = "html-export.json"   # 导出范围配置（库内脚本同目录，可改造）
+
+
+# ---------------------------------------------------------------------------
+# 导出范围配置（html-export.json，脚本同目录）
+# ---------------------------------------------------------------------------
+
+def load_range_config(script_dir: str) -> dict:
+    """读取脚本同目录的 html-export.json；文件不存在或非法时返回空配置（导出全部）。
+
+    配置结构（JSON）：
+      {
+        "include": ["**"],              # 导出哪些（glob 相对路径，默认 ["**"] 全部）
+        "exclude": ["剪藏草稿/**", "附件/*.tmp"]   # 排除哪些（glob）；目录用 d/** 形式
+      }
+    其他键（如 _comment 说明文字）被忽略，可随意添加。
+    """
+    path = os.path.join(script_dir, RANGE_CONFIG_NAME)
+    if not os.path.isfile(path):
+        return {}
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+    include = data.get("include") or []
+    exclude = data.get("exclude") or []
+    return {
+        "include": [str(x) for x in include],
+        "exclude": [str(x) for x in exclude],
+    }
+
+
+def _dir_excluded(rel_dir: str, exclude: list[str]) -> bool:
+    """目录级排除（os.walk 剪枝）。rel_dir 为 posix 相对目录（vault 根为 ""）。
+
+    目录排除模式支持三种等价写法：`d`、`d/`、`d/**`——均排除该目录及其下全部内容。
+    """
+    if not rel_dir:
+        return False
+    d = rel_dir.rstrip("/") + "/"
+    for pat in exclude:
+        p = pat.rstrip("/")
+        if p.endswith("/**"):
+            base = p[:-3].rstrip("/") + "/"
+        elif p.endswith("/*"):
+            base = p[:-2].rstrip("/") + "/"
+        else:
+            base = p + "/"
+        if d == base or d.startswith(base):
+            return True
+    return False
+
+
+def _file_excluded(rel: str, include: list[str], exclude: list[str]) -> bool:
+    """文件级过滤：include 未命中则跳过；命中 exclude 则跳过。"""
+    if include and not any(fnmatch.fnmatch(rel, p) for p in include):
+        return True
+    return any(fnmatch.fnmatch(rel, p) for p in exclude)
+
+
+def _range_cfg() -> dict:
+    """当前脚本（含库内副本）同目录的导出范围配置。"""
+    return load_range_config(SCRIPT_DIR)
 
 
 # ---------------------------------------------------------------------------
@@ -559,14 +624,30 @@ def render_index(vault_name: str, entries: list[tuple[str, float]]) -> str:
 # 导出逻辑
 # ---------------------------------------------------------------------------
 
-def scan_vault(vault_path: str) -> tuple[list[str], list[str]]:
-    """返回 (笔记相对路径列表, 附件相对路径列表)，均为 posix 相对路径。"""
+def scan_vault(vault_path: str, range_cfg: dict | None = None) -> tuple[list[str], list[str]]:
+    """返回 (笔记相对路径列表, 附件相对路径列表)，均为 posix 相对路径。
+
+    range_cfg 来自 html-export.json（include/exclude glob 规则）；
+    未提供或为空时导出全部非隐藏内容（保持历史行为）。
+    """
+    range_cfg = range_cfg or {}
+    include = range_cfg.get("include") or []
+    exclude = range_cfg.get("exclude") or []
     notes, others = [], []
     for dirpath, dirnames, filenames in os.walk(vault_path):
         dirnames[:] = [d for d in dirnames if not d.startswith(SKIP_DIR_PREFIX)]
+        rel_dir = os.path.relpath(dirpath, vault_path)
+        rel_dir_posix = "" if rel_dir == "." else rel_dir.replace(os.sep, "/")
+        if exclude:
+            dirnames[:] = [
+                d for d in dirnames
+                if not _dir_excluded(f"{rel_dir_posix}/{d}" if rel_dir_posix else d, exclude)
+            ]
         for fn in filenames:
             full = os.path.join(dirpath, fn)
             rel = os.path.relpath(full, vault_path).replace(os.sep, "/")
+            if _file_excluded(rel, include, exclude):
+                continue
             if fn.lower().endswith(NOTE_EXT):
                 notes.append(rel)
             else:
@@ -610,7 +691,11 @@ def copy_attachment(vault_path: str, mirror_root: str, rel: str) -> str:
 
 
 def prune_mirror(mirror_root: str, notes: list[str], attachments: list[str]) -> list[str]:
-    """移除镜像中源已不存在的文件，返回被移除的相对路径列表。"""
+    """移除镜像中源已不存在的文件，返回被移除的相对路径列表。
+
+    容错：单个文件删除失败（环境拦截 / 文件占用等）时跳过并继续，不中断导出
+    ——清理只是优化，不应阻断导出主流程；失败项可后续手动清理。
+    """
     expected = set()
     for rel in notes:
         expected.add((rel[: -len(NOTE_EXT)] + ".html").lower())
@@ -623,12 +708,18 @@ def prune_mirror(mirror_root: str, notes: list[str], attachments: list[str]) -> 
             if rel.lower() == "index.html":
                 continue
             if rel.lower() not in expected:
-                os.unlink(full)
-                removed.append(rel)
-    # 清理空目录
+                try:
+                    os.unlink(full)
+                    removed.append(rel)
+                except OSError:
+                    continue
+    # 清理空目录（失败不影响导出）
     for dirpath, dirnames, filenames in os.walk(mirror_root, topdown=False):
         if dirpath != mirror_root and not os.listdir(dirpath):
-            os.rmdir(dirpath)
+            try:
+                os.rmdir(dirpath)
+            except OSError:
+                continue
     return removed
 
 
@@ -637,7 +728,7 @@ def cmd_export(args) -> dict:
     mirror_root = mirror_root_for(export_root, vault_name)
     os.makedirs(mirror_root, exist_ok=True)
 
-    notes, attachments = scan_vault(vault_path)
+    notes, attachments = scan_vault(vault_path, _range_cfg())
     resolver = LinkResolver(notes)
     MdConverter._all_files = set(notes) | set(attachments)
 
@@ -674,7 +765,7 @@ def cmd_export_one(args) -> dict:
     src = os.path.join(vault_path, rel.replace("/", os.sep))
     if not os.path.isfile(src):
         raise ExportError(f"笔记不存在：{rel}")
-    notes, attachments = scan_vault(vault_path)
+    notes, attachments = scan_vault(vault_path, _range_cfg())
     resolver = LinkResolver(notes)
     MdConverter._all_files = set(notes) | set(attachments)
     status = convert_one(vault_path, mirror_root, rel, resolver, force=True)
