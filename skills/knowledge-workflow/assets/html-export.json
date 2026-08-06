@@ -1,0 +1,5 @@
+{
+  "_comment": "HTML 导出范围配置（本知识库专属，可自由改造）。本文件与 html_export.py 同目录（默认 .config/scripts/），由库内脚本读取；脚本在初始化时从 skill 复制。include：导出哪些文件（glob 相对路径模式，默认 [\"**\"] 导出全部）；exclude：排除哪些文件（glob 模式）。目录整体排除用 \"目录名/**\" 或 \"目录名/\"；文件级排除如 \"附件/*.tmp\"。隐藏目录（.obsidian/.config/.git 等）始终不导出。",
+  "include": ["**"],
+  "exclude": []
+}

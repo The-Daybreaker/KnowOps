@@ -36,6 +36,10 @@
    生成：
    - `knowledge-workflow.config.json` —— 配置文件（vault 位置、偏好、可选的导出目录）；
    - `用户手册.md` —— 就是本文件；
+   - `knowledge-rules.md` —— **本知识库专属规则**（独有模块、额外红线，agent
+     每次操作前都会读取；按需填写）；
+   - `scripts/` —— 导出脚本库内副本（可自行改造导出逻辑）与导出范围配置
+     `html-export.json`（哪些内容导出 / 不导出）；
    - `log/` —— 操作日志（agent 每次操作都会记一笔，按年月/日切分）；
    - `HTML-Export/` —— 网页版镜像目录（**可选**，初始化时问你是否需要）；
 3. 你的 vault 笔记区**始终干净**：知识库无关文件都收在隐藏目录里，不打扰浏览。
@@ -47,6 +51,8 @@
 ├── .config/                  # 隐藏目录：配置 / 日志 / 手册 / 网页版镜像（默认）
 │   ├── knowledge-workflow.config.json   # 配置（agent 用）
 │   ├── 用户手册.md                   # 本文件
+│   ├── knowledge-rules.md           # 本库专属规则（独有模块/额外红线，按需填）
+│   ├── scripts/                     # 导出脚本副本 + html-export.json（导出范围）
 │   ├── log/                          # 操作日志（按年月/日切分）
 │   └── HTML-Export/                  # 网页版镜像（可选，手机浏览器打开 index.html）
 ├── 问题/
