@@ -58,7 +58,7 @@ def load_range_config(script_dir: str) -> dict:
     配置结构（JSON）：
       {
         "include": ["**"],              # 导出哪些（glob 相对路径，默认 ["**"] 全部）
-        "exclude": ["剪藏草稿/**", "附件/*.tmp"]   # 排除哪些（glob）；目录用 d/** 形式
+        "exclude": ["00 收件箱/待整理内容/**", "附件/*.tmp"]   # 排除哪些（glob）；目录用 d/** 形式
       }
     其他键（如 _comment 说明文字）被忽略，可随意添加。
     """
