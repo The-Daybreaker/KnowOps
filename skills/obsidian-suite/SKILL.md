@@ -1,7 +1,6 @@
 ---
 name: obsidian-suite
-description: Obsidian 工具套件调度入口。当任务涉及 Obsidian 笔记/知识库（记录、检索、整理 vault、Canvas、Bases、Markdown、网页抓取）时，先调用本 skill 了解应加载哪些子 skill、加载顺序、存储位置，以及外部工具型 skill 的安装检查方式。调度三部分：knowledge-workflow（知识库工作流程规范，业务流程层）+ kb-obsidian（Obsidian 操作规范与红线，执行层）+ 外部工具型 skill（按需加载，来自 kepano/obsidian-skills）。
-agent_created: true
+description: Obsidian 工具套件调度入口。当任务涉及 Obsidian 笔记/知识库（记录、捕获、检索、整理 vault、Canvas、Bases、Markdown、网页素材提取、插件控制）时，先调用本 skill 了解应加载哪些子 skill、加载顺序、存储位置，以及外部工具型 skill 的安装检查方式。调度三部分：knowledge-workflow（知识库工作流程规范，业务流程层）+ kb-obsidian（Obsidian 操作规范与红线，执行层）+ 外部工具型 skill（按需加载，来自 kepano/obsidian-skills）。
 ---
 
 # Obsidian 工具套件（调度入口）
@@ -18,21 +17,26 @@ skill、它们的职责与调用方式，以及**外部工具型 skill 的安装
 kb-obsidian**）：
 
 1. **knowledge-workflow** —— 知识库**工作流程规范**（业务流程层）。
-   定义知识库内容如何组织与流转：问题（未解决/已解决、解决与沉淀分离）、知识
-   沉淀（按类型归档）、项目、日程、任务（TODO）、原生日记、网页剪藏、看板、
-   自动化提醒、操作日志、初始化向导、配置与 HTML 导出策略。
+   定义知识库内容如何组织与流转：00 收件箱（随手记/灵感/待整理内容，捕获与
+   审阅沉淀）、01 生活系统（日记/日程/任务/问题）、02 知识系统（概念原理/
+   经验方法/方案/案例）、03 资产系统（模板/工作流）、04 规范系统（原则/标准
+   规范/检查清单）、05 项目系统（进行中/已完成/项目复盘）、06 看板（Bases
+   数据库驱动）、07 归档、08 系统管理（架构/分类/命名/Frontmatter/Agent规则/
+   变更记录/用户手册）、插件集成规则、操作日志、初始化向导、配置与 HTML 导出。
    - 调用：`skill: "knowledge-workflow"`；位置：`<skills-dir>/knowledge-workflow/SKILL.md`
    - **规则：任何"记录 / 管理知识库内容"的任务都必须先加载它，严格按其流程规范
      执行。它是给用户与工具共同遵守的中立规范，不包含任何工具操作细节。**
 
 2. **kb-obsidian** —— Obsidian **操作规范**（执行层）。
    承载所有对工具的要求：Part 1 对所有工具的统一规范与红线（改删前征求同意、
-   永不 git init、删除进回收站、记录归属询问用户、信息以用户给出为准、直写例外
-   清单等）；Part 2 Obsidian 专有操作（CLI 使用与怪癖、笔记读写改删、日记设置、
-   Markdown/Bases/Canvas 要点、剪藏、两步写入、回读校验）。
+   永不 git init、删除进回收站、记录归属询问用户、信息以用户给出为准、直写
+   例外清单等）；Part 2 Obsidian 专有操作（CLI 使用与怪癖、笔记读写改删、日记
+   设置、Markdown/Bases/Canvas 要点、网页素材提取、插件控制、两步写入、回读
+   校验）。
    - 调用：`skill: "kb-obsidian"`；位置：`<skills-dir>/kb-obsidian/SKILL.md`
-   - **规则：执行具体 Obsidian 操作（读写改删、搜索、移动、删除）前必须加载它，
-     严格遵循其红线与操作规范；业务流程以 knowledge-workflow 规范为准。**
+   - **规则：执行具体 Obsidian 操作（读写改删、搜索、移动、删除、插件控制）前
+     必须加载它，严格遵循其红线与操作规范；业务流程以 knowledge-workflow 规范
+     为准。**
 
 ## 二、外部工具型 skill（按需加载）
 
@@ -58,23 +62,23 @@ defuddle 五个），**不随本项目打包**，需要用户自行安装后才�
 
 | skill | 功能 | 何时用（触发） | 关键要点 |
 |---|---|---|---|
-| **obsidian-cli** | 用 `obsidian` CLI 与**运行中的 Obsidian** 交互：读写/创建/搜索笔记、任务、属性；插件主题开发调试（重载插件、执行 JS、截图、检查 DOM） | 需要对 vault 做底层命令式操作；需要确保 Obsidian 已打开 | 参数用 `name=`/`file=`/`path=`/`vault=`（`vault=<名称>` 放首位）；完整命令以 `obsidian help` 为准；文档 https://help.obsidian.md/cli |
+| **obsidian-cli** | 用 `obsidian` CLI 与**运行中的 Obsidian** 交互：读写/创建/搜索笔记、任务、属性；插件控制（查询/启用/重载/执行插件动作）；主题开发调试 | 需要对 vault 做底层命令式操作；需要控制插件；需要确保 Obsidian 已打开 | 参数用 `name=`/`file=`/`path=`/`vault=`（`vault=<名称>` 放首位）；完整命令以 `obsidian help` 为准；文档 https://help.obsidian.md/cli |
 | **obsidian-markdown** | Obsidian Flavored Markdown 语法：wikilinks、embeds、callouts、properties、comments 等扩展 | 编写/编辑 Obsidian 笔记时涉及这些专用语法（标准 Markdown 是常识，无需加载） | 只覆盖 Obsidian 特有扩展；内链用 wikilink、外链用标准链接；细节见其 references/ |
-| **obsidian-bases** | 创建/编辑 `.base` 文件：views / filters / formulas / summaries，聚合笔记为 table / cards / list / map 视图 | 任务提到 Bases、数据库式视图、按属性/标签/目录聚合过滤 | `.base` 是 YAML；filters 作用于全部视图，可组合 and/or/not；properties 里配置显示名 |
+| **obsidian-bases** | 创建/编辑 `.base` 文件：views / filters / formulas / summaries，聚合笔记为 table / cards / list / map 视图 | 任务提到 Bases、数据库式视图、按属性/标签/目录聚合过滤（含看板） | `.base` 是 YAML；filters 作用于全部视图，可组合 and/or/not；properties 里配置显示名 |
 | **json-canvas** | 创建/编辑 `.canvas` 画布：nodes / edges / groups，思维导图、流程图 | 任务提到 Canvas 画布、可视化连接图 | JSON Canvas Spec 1.0；节点需唯一 16 位 hex id；edges 引用有效节点 id；写后校验 JSON |
-| **defuddle** | 从网页提取干净 Markdown（去导航/广告，省 token），替代通用网页抓取 | 剪藏/分析网页文章、博客、文档页面（URL 不以 .md 结尾） | `defuddle parse <url> --md`；**.md 结尾的 URL 不要用它**，直接抓原文 |
+| **defuddle** | 从网页提取干净 Markdown（去导航/广告，省 token），替代通用网页抓取 | 捕获/分析网页文章、博客、文档页面（URL 不以 .md 结尾），素材进收件箱待整理 | `defuddle parse <url> --md`；**.md 结尾的 URL 不要用它**，直接抓原文 |
 
 ### 按需调用指引（Obsidian 知识库相关操作，优先查看对应 skill）
 
 接到知识库任务后，按以下链条决定加载哪个：
 
-1. **记录 / 管理内容**（问题、知识、日程、TODO、剪藏入库、看板）→ 加载
-   **knowledge-workflow**（流程规范，必读）。
-2. **执行 vault 操作**（创建/读写/搜索/移动/删除笔记、日记、剪藏落库）→ 加载
-   **kb-obsidian**（操作规范与红线，必读）——其中涉及的**具体语法与命令形态**，
-   **优先查看对应工具型 skill**：CLI 命令看 `obsidian-cli`、Markdown 语法看
-   `obsidian-markdown`、聚合视图看 `obsidian-bases`、画布看 `json-canvas`、
-   网页提取看 `defuddle`。
+1. **记录 / 管理内容**（收件箱捕获与审阅、问题、知识、日程、任务、看板、归档）
+   → 加载 **knowledge-workflow**（流程规范，必读）。
+2. **执行 vault 操作**（创建/读写/搜索/移动/删除笔记、日记、素材落库、插件控制）
+   → 加载 **kb-obsidian**（操作规范与红线，必读）——其中涉及的**具体语法与命令
+   形态**，**优先查看对应工具型 skill**：CLI 命令看 `obsidian-cli`、Markdown
+   语法看 `obsidian-markdown`、聚合视图看 `obsidian-bases`、画布看
+   `json-canvas`、网页提取看 `defuddle`。
 3. 工具型 skill 仅在实际用到对应能力时加载，**不要一次性全部加载**（避免占用
    上下文）；未安装的先按「安装检查」流程处理。
 4. 兜底：工具型 skill 不可用且用户不安装时，按 Obsidian 官方文档
@@ -88,3 +92,5 @@ defuddle 五个），**不随本项目打包**，需要用户自行安装后才�
    是否已安装；未装则询问用户，附 kepano/obsidian-skills 仓库地址；用户不装则
    用 Obsidian 官方文档兜底）。
 4. 工具型 skill 按需加载，不一次全载。
+5. 插件集成：插件规则以 `08 系统管理/Agent规则.md` 为准，操作前读取、操作后
+   按规则执行；插件一般由 agent 经 CLI 控制。

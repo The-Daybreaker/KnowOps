@@ -4,13 +4,11 @@
 
 职责：
   - 配置发现：显式 --config → 从当前目录向上查找 knowledge-workflow.config.json
-    → 兼容旧文件名 knowledge-base.config.json / obsidian-kb.config.json（需迁移）
-    → 提示首次初始化
   - 首次初始化写入：默认写入 vault 内隐藏目录 .config/（可改选其他位置）；
     写入规则：允许 vault 内隐藏目录（点开头），不写入用户笔记内容区
   - 多 vault：注册 / 列出 / 移除 / 默认切换 / 按名解析路径 / 路径校验
-  - 偏好读写：get / set（点号键，如 preferences.gitCommit）
-  - schema version 检查与迁移（migrate；v1→v2→v3→v4→v5 链式迁移）
+  - 偏好读写：get / set（点号键，如 preferences.knowledgeDir）
+  - schema 版本跟随 skill 版本（v1.0.0 起为字符串版本号）；不做旧配置迁移
 
 设计原则：零硬编码个人路径；配置文件是保存"位置与习惯"的唯一地方。
 所有子命令支持 --json 输出机器可读结果，供 agent 消费。
@@ -25,29 +23,31 @@ import sys
 import tempfile
 
 CONFIG_FILENAME = "knowledge-workflow.config.json"
-# 历史文件名（find 时兼容、migrate 时迁移到新名）：v4（knowledge-base）与 v≤3（obsidian-kb）
-LEGACY_FILENAMES = ("knowledge-base.config.json", "obsidian-kb.config.json")
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = "1.0.0"  # 跟随 skill 版本号；v1.0.0 起不再使用整数 schema 递增
 
 # 默认偏好（写入新配置；均为可配置默认值，非个人习惯硬编码）
-# v2.0 起：剪藏/模板/附件/Bases/Canvas 为文件类型分类，位置不预设，
-# 使用时以用户指令为准（配置中不设目录键）；收件箱已移除。
-# v2.2.0 起：新增 scheduleDir（日程内容模块目录）与 dashboardFile（看板可选组件）。
-# v4.0（0.6.0）起：新增 configDir（vault 内隐藏目录名，默认 config → 实际 .config/）。
+# v1.0.0：全新模块体系：00 收件箱 / 01 生活系统 / 02 知识系统 / 03 资产系统 /
+# 04 规范系统 / 05 项目系统 / 06 看板 / 07 归档 / 08 系统管理。
 DEFAULT_PREFERENCES = {
+    "inboxDir": "00 收件箱",
+    "lifeDir": "01 生活系统",
+    "knowledgeDir": "02 知识系统",
+    "assetsDir": "03 资产系统",
+    "standardsDir": "04 规范系统",
+    "projectsDir": "05 项目系统",
+    "dashboardDir": "06 看板",
+    "archiveDir": "07 归档",
+    "systemDir": "08 系统管理",
+    "dailyFolder": "01 生活系统/日记",
     "dailyFormat": "YYYY-MM/YYYY-MM-DD",
-    "dailyFolder": "日志",
-    "structure": "default",
-    "questionDir": "问题",
-    "projectsDir": "项目",
-    "knowledgeDir": "知识",
-    "scheduleDir": "日程",
-    "dashboardFile": "看板.md",
-    "todoFile": "TODO.md",
-    "logDir": "log",
+    "scheduleDir": "01 生活系统/日程",
+    "questionDir": "01 生活系统/问题",
+    "todoDir": "01 生活系统/任务",
+    "todoFile": "01 生活系统/任务/TODO.md",
+    "logDir": ".config/log",
     "exportDirName": "HTML-Export",
+    "dashboardFile": "看板.md",
     "configDir": "config",
-    "gitCommit": True,
 }
 
 
@@ -103,7 +103,7 @@ def hidden_dir_name(data: dict | None = None) -> str:
 
 
 def default_config_dir(vault_path: str) -> str:
-    """配置文件默认目录：<vault>/.config/（vault 内隐藏目录，v4 起默认）。"""
+    """配置文件默认目录：<vault>/.config/（vault 内隐藏目录）。"""
     return os.path.join(vault_path, hidden_dir_name())
 
 
@@ -114,10 +114,8 @@ def default_config_dir(vault_path: str) -> str:
 def find_config(explicit: str | None = None, start: str | None = None) -> str | None:
     """按发现顺序定位配置文件，找不到返回 None。
 
-    顺序：显式路径 → 新文件名（knowledge-workflow.config.json）向上查找 →
-    旧文件名（knowledge-base.config.json / obsidian-kb.config.json）向上查找
-    （兼容，返回旧路径，需迁移）。
-    不查系统环境变量 / 全局用户目录（按项目隔离）。
+    顺序：显式路径 → 新文件名（knowledge-workflow.config.json）向上查找。
+    不查系统环境变量 / 全局用户目录（按项目隔离）；v1.0.0 起不兼容旧文件名。
     """
     if explicit:
         p = _norm_path(explicit)
@@ -127,20 +125,15 @@ def find_config(explicit: str | None = None, start: str | None = None) -> str | 
 
     current = _norm_path(start or os.getcwd())
     while True:
-        # 候选位置：目录本身 + 目录内隐藏目录（.config/，v4 默认配置位置）
-        for fname in (CONFIG_FILENAME, *LEGACY_FILENAMES):
-            for cand in (os.path.join(current, fname),
-                         os.path.join(current, hidden_dir_name(), fname)):
-                if os.path.isfile(cand):
-                    return cand
+        # 候选位置：目录本身 + 目录内隐藏目录（.config/，默认配置位置）
+        for cand in (os.path.join(current, CONFIG_FILENAME),
+                     os.path.join(current, hidden_dir_name(), CONFIG_FILENAME)):
+            if os.path.isfile(cand):
+                return cand
         parent = os.path.dirname(current)
         if parent == current:
             return None
         current = parent
-
-
-def is_legacy_path(path: str) -> bool:
-    return os.path.basename(path) in LEGACY_FILENAMES
 
 
 def load_config(explicit: str | None = None, start: str | None = None) -> tuple[dict, str]:
@@ -159,27 +152,17 @@ def load_config(explicit: str | None = None, start: str | None = None) -> tuple[
 
 def check_schema(data: dict, path: str = "") -> None:
     version = data.get("version")
-    if version is None:
-        raise ConfigError(f"配置缺少 version 字段：{path}")
-    if not isinstance(version, int) or version < 1:
-        raise ConfigError(f"配置 version 非法：{version!r}（{path}）")
-    if version > SCHEMA_VERSION:
+    if version != SCHEMA_VERSION:
         raise ConfigError(
-            f"配置 schema 版本（{version}）高于本工具支持的版本（{SCHEMA_VERSION}）。\n"
-            f"请升级 knowledge-workflow skill 后再操作。"
-        )
-    if version < SCHEMA_VERSION:
-        # 有迁移路径时由 migrate 处理；这里提示
-        raise ConfigError(
-            f"配置 schema 版本（{version}）过旧，当前为 {SCHEMA_VERSION}。\n"
-            f"请先执行：kb_config.py migrate --config \"{path}\""
+            f"配置 schema 版本（{version!r}）与当前 skill 版本（{SCHEMA_VERSION}）不一致：{path}\n"
+            f"v1.0.0 起不做旧配置迁移；旧库接入请现场询问用户后重新初始化或调整。"
         )
     if "vaults" not in data or not isinstance(data["vaults"], dict):
         raise ConfigError(f"配置缺少 vaults 对象：{path}")
 
 
 # ---------------------------------------------------------------------------
-# 位置规则（v4：vault 内仅允许隐藏目录，不写入用户笔记区）
+# 位置规则（vault 内仅允许隐藏目录，不写入用户笔记区）
 # ---------------------------------------------------------------------------
 
 def _is_inside(path: str, base: str) -> bool:
@@ -323,110 +306,6 @@ def _coerce_value(raw: str, old):
 
 
 # ---------------------------------------------------------------------------
-# 迁移
-# ---------------------------------------------------------------------------
-
-MIGRATIONS = {}  # version -> callable(data) -> data；未来 schema 变更在此注册
-
-
-def _migrate_v1_to_v2(data: dict) -> dict:
-    """v1 → v2（v2.0.0）：移除文件类型目录键与收件箱；knowledgeDir 改名。
-
-    - 删除 inboxDir / clipDir / templateDir / attachmentDir
-      （v2.0 起文件类型位置以用户指令为准，不预设目录）；
-    - knowledgeDir 默认值由「知识与经验」改为「知识」：
-      仅当旧值等于旧默认时改名，用户自定义值保持不变。
-    """
-    prefs = data.setdefault("preferences", {})
-    for key in ("inboxDir", "clipDir", "templateDir", "attachmentDir"):
-        prefs.pop(key, None)
-    if prefs.get("knowledgeDir") == "知识与经验":
-        prefs["knowledgeDir"] = "知识"
-    return data
-
-
-def _migrate_v2_to_v3(data: dict) -> dict:
-    """v2 → v3（v2.2.0）：新增日程目录与看板可选组件配置键。
-
-    - 补齐 scheduleDir（默认「日程」）与 dashboardFile（默认「看板.md」），
-      缺省补齐、不覆盖用户自定义值。
-    """
-    prefs = data.setdefault("preferences", {})
-    defaults = DEFAULT_PREFERENCES
-    for key in ("scheduleDir", "dashboardFile"):
-        if key not in prefs:
-            prefs[key] = defaults[key]
-    return data
-
-
-def _migrate_v3_to_v4(data: dict) -> dict:
-    """v3 → v4（0.6.0）：知识库无关文件位置改为 vault 内隐藏目录。
-
-    - 补齐 preferences.configDir（默认 config → 实际目录 .config/），缺省补齐；
-    - exportRoot：若等于旧默认（vault 上级目录/HTML-Export）则迁移到
-      <vault>/.config/HTML-Export/；用户自定义值保留（仍受「不写入笔记区」规则约束）；
-    - 配置文件改名（obsidian-kb.config.json / knowledge-base.config.json →
-      knowledge-workflow.config.json）在 migrate 命令的文件层完成，本函数只处理数据。
-    """
-    prefs = data.setdefault("preferences", {})
-    if "configDir" not in prefs:
-        prefs["configDir"] = DEFAULT_PREFERENCES["configDir"]
-    vaults = data.get("vaults", {})
-    default = data.get("defaultVault")
-    vault_path = None
-    if default and default in vaults:
-        vault_path = vaults[default].get("path")
-    elif vaults:
-        vault_path = next(iter(vaults.values())).get("path")
-    if vault_path:
-        er = data.get("exportRoot")
-        if er:
-            old_default = os.path.join(os.path.dirname(vault_path), "HTML-Export")
-            new_default = os.path.join(vault_path, ".config", "HTML-Export")
-            if _norm_path(er) == _norm_path(old_default):
-                data["exportRoot"] = new_default
-    return data
-
-
-def _migrate_v4_to_v5(data: dict) -> dict:
-    """v4 → v5（0.7.0）：skill 改名 knowledge-workflow，配置文件改名
-    （knowledge-base.config.json → knowledge-workflow.config.json）。
-    数据无结构变化；文件名迁移在 migrate 命令的文件层完成。
-    """
-    return data
-
-
-MIGRATIONS[1] = _migrate_v1_to_v2
-MIGRATIONS[2] = _migrate_v2_to_v3
-MIGRATIONS[3] = _migrate_v3_to_v4
-MIGRATIONS[4] = _migrate_v4_to_v5
-
-
-def migrate(data: dict, path: str) -> tuple[dict, list[str]]:
-    """把旧版本配置迁移到当前 SCHEMA_VERSION。返回 (新配置, 迁移说明列表)。"""
-    notes = []
-    version = data.get("version")
-    if not isinstance(version, int):
-        raise ConfigError(f"配置 version 非法：{version!r}")
-    while version < SCHEMA_VERSION:
-        step = MIGRATIONS.get(version)
-        if step is None:
-            raise ConfigError(f"缺少从 schema v{version} 到 v{version + 1} 的迁移路径")
-        data = step(data)
-        version += 1
-        data["version"] = version
-        notes.append(f"已迁移 schema v{version - 1} → v{version}")
-    if version > SCHEMA_VERSION:
-        raise ConfigError(f"配置 schema 版本（{version}）高于支持的版本（{SCHEMA_VERSION}）")
-    # 兜底补全新增偏好键（缺什么补什么，不覆盖用户已有值）
-    prefs = data.setdefault("preferences", {})
-    for k, v in DEFAULT_PREFERENCES.items():
-        prefs.setdefault(k, v)
-    _write_json_atomic(path, data)
-    return data, notes
-
-
-# ---------------------------------------------------------------------------
 # 子命令
 # ---------------------------------------------------------------------------
 
@@ -473,11 +352,7 @@ def cmd_init(args) -> dict:
 
 def cmd_find(args) -> dict:
     path = find_config(args.config, args.start)
-    return {
-        "found": path is not None,
-        "path": path,
-        "legacy": is_legacy_path(path) if path else False,
-    }
+    return {"found": path is not None, "path": path}
 
 
 def cmd_add_vault(args) -> dict:
@@ -550,30 +425,6 @@ def cmd_validate(args) -> dict:
     return {"config": path, "ok": not problems, "problems": problems, "warnings": warnings}
 
 
-def cmd_migrate(args) -> dict:
-    """迁移旧配置到当前 schema；旧文件名（knowledge-base / obsidian-kb）迁移时
-    同时写入新文件名（knowledge-workflow.config.json），旧文件保留不删除。"""
-    path = find_config(args.config)
-    if path is None:
-        raise ConfigError("未找到配置文件，无法迁移")
-    data = _read_json(path)
-    data, notes = migrate(data, path)
-
-    new_path = path
-    if is_legacy_path(path):
-        vault_path = None
-        default = data.get("defaultVault")
-        vaults = data.get("vaults", {})
-        if default and default in vaults:
-            vault_path = vaults[default].get("path")
-        if vault_path:
-            new_path = os.path.join(default_config_dir(vault_path), CONFIG_FILENAME)
-            _write_json_atomic(new_path, data)
-            notes.append(f"配置文件名已迁移：{path} → {new_path}（旧文件保留）")
-    return {"config": new_path, "version": data["version"],
-            "notes": notes or ["已是最新 schema，无需迁移"]}
-
-
 # ---------------------------------------------------------------------------
 # 入口
 # ---------------------------------------------------------------------------
@@ -593,7 +444,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--vault-name", required=True, help="vault 名称（用户确认的实际名称）")
     sp.add_argument("--vault-path", required=True, help="vault 实际路径")
     sp.add_argument("--config", help="配置文件写入位置（默认：<vault>/.config/）")
-    sp.add_argument("--export-root", help="HTML 导出根目录（可选；默认 <vault>/.config/HTML-Export/，不提供则不启用导出）")
+    sp.add_argument("--export-root", help="HTML 导出根目录（可选；提供则启用导出，未提供则不写入 exportRoot）")
     sp.add_argument("--cli-path", help="Obsidian CLI 路径（可选，发现后写入）")
     sp.add_argument("--force", action="store_true", help="覆盖已存在的配置文件")
     sp.set_defaults(func=cmd_init)
@@ -629,7 +480,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--name")
     sp.set_defaults(func=cmd_path)
 
-    sp = sub.add_parser("get", help="读取配置项（点号键，如 preferences.gitCommit）")
+    sp = sub.add_parser("get", help="读取配置项（点号键，如 preferences.knowledgeDir）")
     add_config_arg(sp)
     sp.add_argument("key")
     sp.set_defaults(func=cmd_get)
@@ -643,10 +494,6 @@ def build_parser() -> argparse.ArgumentParser:
     sp = sub.add_parser("validate", help="校验配置与 vault 路径有效性")
     add_config_arg(sp)
     sp.set_defaults(func=cmd_validate)
-
-    sp = sub.add_parser("migrate", help="迁移旧 schema 配置到当前版本（旧文件名一并迁移）")
-    add_config_arg(sp)
-    sp.set_defaults(func=cmd_migrate)
 
     return p
 
@@ -672,8 +519,6 @@ def main(argv=None) -> int:
 def _print_human(command: str, result: dict) -> None:
     if command == "find":
         print(result["path"] if result["found"] else "（未找到配置文件）")
-        if result.get("legacy"):
-            print("（旧文件名，请执行 kb_config.py migrate 迁移到新文件名）")
     elif command == "list":
         print(f"配置文件：{result['config']}")
         print(f"默认 vault：{result['defaultVault']}")
