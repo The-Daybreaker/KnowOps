@@ -1,6 +1,6 @@
 ---
 name: obsidian-suite
-description: Obsidian 工具套件调度入口。当任务涉及 Obsidian 笔记/知识库（记录、捕获、检索、整理 vault、Canvas、Bases、Markdown、网页素材提取、插件控制）时，先调用本 skill 了解应加载哪些子 skill、加载顺序、存储位置，以及外部工具型 skill 的安装检查方式。调度三部分：knowledge-workflow（知识库工作流程规范，业务流程层）+ kb-obsidian（Obsidian 操作规范与红线，执行层）+ 外部工具型 skill（按需加载，来自 kepano/obsidian-skills）。
+description: Obsidian 工具套件调度入口。当任务涉及 Obsidian 笔记/知识库（记录、捕获、检索、整理 vault、Canvas、Bases、Markdown、网页素材提取、插件控制、随身端暂存内容入库）时，先调用本 skill 了解应加载哪些子 skill、加载顺序、存储位置，以及外部工具型 skill 的安装检查方式。调度三部分：knowledge-workflow（知识库工作流程规范，业务流程层）+ kb-obsidian（Obsidian 操作规范与红线，执行层）+ 外部工具型 skill（按需加载，来自 kepano/obsidian-skills）；随身端捕获与暂存入库由 everywhere-note 配套 skill 负责。
 ---
 
 # Obsidian 工具套件（调度入口）
@@ -84,7 +84,22 @@ defuddle 五个），**不随本项目打包**，需要用户自行安装后才�
 4. 兜底：工具型 skill 不可用且用户不安装时，按 Obsidian 官方文档
    （https://help.obsidian.md ）完成等价操作，并在回复中说明所用文档来源。
 
-## 三、调用约定（汇总）
+## 三、随身端捕获配套 skill（everywhere-note）
+
+本仓库第四个 skill **everywhere-note**（随身记录与统一入库）与套件配套，分两个
+能力部分、渐进式按需加载：
+
+1. **随身端捕获**（手机/平板等）：手机端只安装 everywhere-note 即可，用户
+   @ 本 skill 后直接口述内容，生成符合知识库格式的 markdown 条目并设置当晚
+   22:00 提醒；其 `references/mobile-capture.md` **独立自洽，不依赖本套件**。
+2. **桌面端入库**（电脑）：本套件收到“入库今天手机记的 / 把暂存内容存进知识库”
+   等请求时，加载 everywhere-note 的 `references/desktop-ingest.md`，并按
+   knowledge-workflow → kb-obsidian → 工具型按需的既有顺序执行落库。
+
+依赖方向：**obsidian-suite → everywhere-note（桌面部分）**；everywhere-note
+不反向路由回本套件。桌面端直接说“记一下……”仍由 knowledge-workflow 处理。
+
+## 四、调用约定（汇总）
 
 1. 接到知识库管理任务 → 先加载 **knowledge-workflow**（业务流程规范）。
 2. 需要执行 Obsidian 操作 → 再加载 **kb-obsidian**（操作规范与红线）。
@@ -94,3 +109,6 @@ defuddle 五个），**不随本项目打包**，需要用户自行安装后才�
 4. 工具型 skill 按需加载，不一次全载。
 5. 插件集成：插件规则以 `08 系统管理/Agent规则.md` 为准，操作前读取、操作后
    按规则执行；插件一般由 agent 经 CLI 控制。
+6. 随身端捕获 / 暂存内容入库：手机/随身设备上直接使用 everywhere-note
+   （`references/mobile-capture.md`）；电脑端接收暂存内容/文件要求入库时，加载
+   everywhere-note 的 `references/desktop-ingest.md`，并遵循本约定第 1–5 条执行。

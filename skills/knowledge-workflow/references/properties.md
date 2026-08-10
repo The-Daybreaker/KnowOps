@@ -156,4 +156,4 @@
 
 配置键见 `kb_config.py list` 输出的 `preferences`；修改用
 `kb_config.py set preferences.<键> <值>`（用户知情后进行）。配置 schema 版本
-跟随 skill 版本，v1.0.0 起不做旧配置迁移（旧库接入时现场询问用户）。
+跟随 skill 版本；v1.0.1 起兼容 v1.0.0 配置（结构未变，无需迁移），其他旧库接入时现场询问用户。
