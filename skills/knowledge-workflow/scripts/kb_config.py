@@ -8,7 +8,7 @@
     写入规则：允许 vault 内隐藏目录（点开头），不写入用户笔记内容区
   - 多 vault：注册 / 列出 / 移除 / 默认切换 / 按名解析路径 / 路径校验
   - 偏好读写：get / set（点号键，如 preferences.knowledgeDir）
-  - schema 版本跟随 skill 版本（v1.0.0 起为字符串版本号）；不做旧配置迁移
+  - schema 版本跟随 skill 版本（v1.0.0 起为字符串版本号）；v1.0.1 起兼容 v1.0.0 配置（结构未变，无需迁移）
 
 设计原则：零硬编码个人路径；配置文件是保存"位置与习惯"的唯一地方。
 所有子命令支持 --json 输出机器可读结果，供 agent 消费。
@@ -23,7 +23,7 @@ import sys
 import tempfile
 
 CONFIG_FILENAME = "knowledge-workflow.config.json"
-SCHEMA_VERSION = "1.0.0"  # 跟随 skill 版本号；v1.0.0 起不再使用整数 schema 递增
+SCHEMA_VERSION = "1.0.1"  # 跟随 skill 版本号；v1.0.1 起兼容 v1.0.0 配置（结构未变，无需迁移）
 
 # 默认偏好（写入新配置；均为可配置默认值，非个人习惯硬编码）
 # v1.0.0：全新模块体系：00 收件箱 / 01 生活系统 / 02 知识系统 / 03 资产系统 /
@@ -152,10 +152,10 @@ def load_config(explicit: str | None = None, start: str | None = None) -> tuple[
 
 def check_schema(data: dict, path: str = "") -> None:
     version = data.get("version")
-    if version != SCHEMA_VERSION:
+    if version not in (SCHEMA_VERSION, "1.0.0"):
         raise ConfigError(
             f"配置 schema 版本（{version!r}）与当前 skill 版本（{SCHEMA_VERSION}）不一致：{path}\n"
-            f"v1.0.0 起不做旧配置迁移；旧库接入请现场询问用户后重新初始化或调整。"
+            f"v1.0.1 起兼容 v1.0.0 配置（结构未变，无需迁移）；其他旧库接入请现场询问用户后重新初始化或调整。"
         )
     if "vaults" not in data or not isinstance(data["vaults"], dict):
         raise ConfigError(f"配置缺少 vaults 对象：{path}")

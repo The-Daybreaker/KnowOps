@@ -1,9 +1,9 @@
 # Obsidian Knowledge Base Management Skills
 
-A set of **Obsidian knowledge-base management skills** for AI agents: three skills
+A set of **Obsidian knowledge-base management skills** for AI agents: four skills
 that keep your knowledge base well organized — **workflow specification + tool
-operation specification + dispatch entry**, with clear boundaries, designed to be
-used together.
+operation specification + dispatch entry + portable capture**, with clear boundaries,
+designed to be used together.
 
 ## What is this
 
@@ -14,19 +14,22 @@ knowledge base has, how an inbox item is reviewed and distilled, how a question
 moves from "unresolved" to "distilled", how knowledge differs from projects), and
 *how to operate Obsidian* (read/write notes via the official CLI, respect delete
 red lines, handle quirks). This repo splits those into two complementary skills,
-plus a dispatch entry that tells the agent in which order to load them:
+plus a dispatch entry that tells the agent in which order to load them, and a companion
+skill for portable-device capture:
 
 | Skill | Role | One-liner |
 |---|---|---|
 | **knowledge-workflow** | Workflow specification | "How the knowledge base should look and flow" — a neutral spec shared by user & agent |
 | **kb-obsidian** | Tool operation specification | "How to operate Obsidian" — CLI usage, red lines, syntax essentials |
 | **obsidian-suite** | Dispatch entry | "In what order to load them" — flow first, operations next, tools on demand |
+| **everywhere-note** | Portable capture & unified ingest | Capture with @ on the phone, get standard md + a 22:00 reminder; the desktop ingests in the evening |
 
 ## Features
 
 - **Inbox capture & review**: short, fragmented thoughts, inspirations and unclear
   items go to `00 收件箱` (随手记 / 灵感 / 待整理内容) by default; during review,
   each item is distilled, deleted or archived based on how it will be used;
+- **Portable capture & unified ingest**: @ everywhere-note on a phone/portable device and dictate directly; it generates KB-compliant markdown (a file when supported) and sets a 22:00 reminder; back at the desktop, obsidian-suite routes the batch ingest into `00 收件箱`; the phone only needs this one skill and no transfer channel;
 - **Full question lifecycle**: unresolved → in progress → resolved → distilled;
   the original question moves to `已沉淀` and keeps **bidirectional links** to the
   knowledge note;
@@ -58,15 +61,17 @@ plus a dispatch entry that tells the agent in which order to load them:
 
 ## Installation
 
-Copy the three skills under `skills/` (`knowledge-workflow`, `kb-obsidian`,
-`obsidian-suite`) into your agent's **user-level skill directory** (location
+Copy the four skills under `skills/` (`knowledge-workflow`, `kb-obsidian`,
+`obsidian-suite`, `everywhere-note`) into your agent's **user-level skill directory** (location
 varies by platform; see your platform's skill installation docs; typically
 `~/.<platform>/skills/`), or clone this repo:
 
 ```sh
 git clone https://github.com/The-Daybreaker/knowledge-base.git
-# then copy the three directories under skills/ into the user-level skill directory
+# then copy the four directories under skills/ into the user-level skill directory
 ```
+
+> **Portable devices**: only `everywhere-note` needs to be installed on phones/portable devices (its mobile part is self-contained and does not depend on this suite).
 
 > **Dependencies**: the tool skills referenced by `kb-obsidian` (obsidian-cli /
 > obsidian-markdown / obsidian-bases / json-canvas / defuddle) come from the
@@ -95,6 +100,8 @@ Usage examples:
 
 | You say | The agent does |
 |---|---|
+| Phone: "log: XXX" | Generates a KB-compliant md entry and sets a 22:00 reminder |
+| "Ingest today's phone captures" | obsidian-suite routes to everywhere-note's desktop part, parses and writes into `00 收件箱` |
 | "Log an idea: ..." | Writes it to `00 收件箱/灵感/` with properties & tags |
 | "Log a question: how to handle FPGA clock domain crossing" | Creates a question note (`01 生活系统/问题/未解决/`), links task and log |
 | "Project review at 3pm Friday" | Creates a schedule note + auto-creates a reminder |
@@ -119,9 +126,20 @@ knowledge-base/
     ├── kb-obsidian/                  # Skill B: Obsidian operation rules & red lines
     │   ├── SKILL.md
     │   └── references/              # redlines / cli / markdown / bases / canvas
-    └── obsidian-suite/               # Skill C: dispatch entry (loading-order guide)
-        └── SKILL.md
+    ├── obsidian-suite/               # Skill C: dispatch entry (loading-order guide)
+    │   └── SKILL.md
+    └── everywhere-note/              # Skill D: portable capture & desktop ingest
+        ├── SKILL.md
+        ├── references/              # mobile-capture / desktop-ingest
+        └── assets/capture-template.md
 ```
+
+## Roadmap (future directions)
+
+- Once mobile agents gain GitHub / Nutstore-style file sync: the portable side auto-syncs captures to the platform, and the desktop runs a scheduled task to pull and ingest them;
+- The phone sends a reminder to the desktop to trigger an automated ingest.
+
+Not implemented yet; recorded for future work.
 
 ## Related projects
 
