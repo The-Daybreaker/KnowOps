@@ -18,9 +18,10 @@ obsidian-bases / json-canvas / defuddle）为准；未安装时询问用户是�
 
 | 任务 | 必读 | 按需 |
 |---|---|---|
-| 记录/管理/整理/搜索内容、初始化、配置、HTML 导出 | `references/workflow.md` | `references/properties.md` |
+| 记录/管理/整理/搜索内容 | `references/workflow.md` | `references/properties.md` |
+| 初始化、配置、HTML 导出 | `references/init-config.md` | `references/properties.md` |
 | 执行 Obsidian 操作（读写改删、移动、日记、插件、Bases/Canvas/Markdown） | `references/redlines.md` | 官方工具 skill |
-| 暂存内容/文件入库 | `references/desktop-ingest.md` | `references/workflow.md` + `references/redlines.md` |
+| 暂存内容/文件入库 | `references/desktop-ingest.md`、`references/workflow.md`、`references/redlines.md` | 官方工具 skill |
 
 > 任何写入/修改/移动/删除/归档操作前，必须读完对应引用后再执行。
 
