@@ -5,8 +5,8 @@
 职责：
   - 将 vault 内 Markdown 笔记按相对路径镜像导出为独立 HTML 到导出根目录：
         <exportRoot>/<vault名>/<相对路径>.html
-    默认导出位置为 <vault>/.config/HTML-Export/（vault 内隐藏目录），可改选；
-    配置了 exportRoot 才启用本功能（初始化可选组件）。
+    默认导出位置为 <vault>/.config/HTML-Export/（vault 内隐藏目录，初始化默认
+    写入 exportRoot）；未配置时自动回退该默认位置，可后续改选。
   - 增量导出（按 mtime）与全量导出（--full）；删除的笔记同步移除对应 HTML；
     附件按相对路径一并复制；生成 vault 级详细索引 index.html
     （v1.3.0 起不再生成导出根级索引，历史残留自动清理）。
@@ -799,18 +799,19 @@ def _resolve_paths(args) -> tuple[str, str, str]:
     vault_path = getattr(args, "vault_path", None)
     export_root = getattr(args, "export_root", None)
     vault_name = getattr(args, "vault", None)
-    if vault_path and export_root:
+    if vault_path:
+        vault_path = kb_config.validate_vault_path(vault_path)
+        export_root = export_root or os.path.join(
+            kb_config.default_config_dir(vault_path), "HTML-Export"
+        )
         return vault_name or os.path.basename(os.path.normpath(vault_path)), \
-            kb_config.validate_vault_path(vault_path), kb_config._norm_path(export_root)
+            vault_path, kb_config._norm_path(export_root)
     config, _ = kb_config.load_config(getattr(args, "config", None))
     v = kb_config.resolve_vault(config, vault_name)
     vault_path = kb_config.validate_vault_path(v["path"])
-    export_root = export_root or config.get("exportRoot")
-    if not export_root:
-        raise ExportError(
-            "配置未启用 HTML 镜像导出（缺少 exportRoot）。"
-            "如需启用：kb_config.py set exportRoot <路径>，默认 <vault>/.config/HTML-Export/"
-        )
+    export_root = export_root or config.get("exportRoot") or os.path.join(
+        kb_config.default_config_dir(vault_path), "HTML-Export"
+    )
     return v["name"], vault_path, kb_config._norm_path(export_root)
 
 

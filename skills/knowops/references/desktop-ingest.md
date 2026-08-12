@@ -4,6 +4,9 @@
 > （流程规范）与 `references/redlines.md`（操作规范与红线），并按其中约定读取
 > `Agent规则.md`（路径以配置为准，默认 `08 系统管理/Agent规则.md`）。本文件只
 > 定义"暂存内容 → 00 收件箱"这一步。
+>
+> 随身端条目由 everywhere-note 生成；字段契约（`type`/`capture_kind`/`created`/
+> `tags`/文件名）需与其 `references/mobile-capture.md` 保持一致，任何修改须两端同步。
 
 ## 适用场景
 
