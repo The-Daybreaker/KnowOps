@@ -14,8 +14,8 @@ KnowOps 是一套面向 **AI agent** 的 **Obsidian 知识管理技能包**：�
 
 | Skill | 定位 | 一句话 |
 |---|---|---|
-| **knowops-workflow** | 工作流程规范 | 知识库应该长什么样、流程怎么走——用户与 agent 共同遵守的中立规范 |
-| **knowops-obsidian** | 工具操作规范 | "怎么操作 Obsidian"——CLI 用法、操作红线、语法要点 |
+| **knowops-workflow** | 工作流程规范（独立可用） | 知识库应该长什么样、流程怎么走——用户与 agent 共同遵守的中立规范；单装即可使用，执行由 agent 通用能力完成 |
+| **knowops-obsidian** | Obsidian 执行层 | "怎么操作 Obsidian"——CLI 用法、操作红线、语法要点；经 knowops-navigator 路由加载 |
 | **knowops-navigator** | 调度入口 | "按什么顺序加载"——先定流程、再定操作、工具按需 |
 | **everywhere-note** | 随身端捕获与统一入库 | 手机 @ 即记，生成规范 md 并设 22:00 提醒；电脑端统一入库 |
 
@@ -23,6 +23,7 @@ KnowOps 是一套面向 **AI agent** 的 **Obsidian 知识管理技能包**：�
 
 - **收件箱捕获与审阅**：顿悟、灵感、想法等简短零碎内容默认进 `00 收件箱`
   （随手记 / 灵感 / 待整理内容）；审阅时按"未来怎么用"沉淀、删除或归档；
+- **独立可用**：knowops-workflow 单装即可管理知识库，流程规范与红线工具无关，执行由 agent 的通用能力完成；
 - **随身端捕获与统一入库**：手机/随身设备上 @ everywhere-note 直接口述记录，生成符合知识库格式的 md（支持生成文件）并设 22:00 提醒；回到电脑后由 knowops-navigator 路由批量写入 `00 收件箱`；手机端只装这一个 skill 即可独立使用，不依赖传输通道；
 - **问题全生命周期**：未解决 → 研究中 → 已解决 → 已沉淀；沉淀后原问题移入
   已沉淀并**双向链接**回知识笔记；
@@ -39,8 +40,9 @@ KnowOps 是一套面向 **AI agent** 的 **Obsidian 知识管理技能包**：�
 - **插件集成规则**：初始化扫描插件、由用户确认规则写入 `08 系统管理/Agent规则.md`，
   每次操作前必读、操作后按规则执行（如先版本提交、再云同步）；
 - **配置驱动、版本跟随**：目录与偏好全在配置中，schema 版本跟随 skill 版本；
-- **数据安全红线**：改删前征求同意、删除永远进系统回收站、**永不做彻底删除**、
-  永不代用户初始化仓库。
+- **数据安全红线（工具无关）**：删除永远进系统回收站且可恢复、新建并初始化知识库时
+  优先使用 git 管理、创建前相似检查、尽量使用已有模块；执行层红线（改删前征求同意、
+  信息以用户为准等）由 knowops-obsidian 承载。
 
 ## 安装
 
@@ -63,14 +65,15 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
 
 ## 快速开始
 
-1. 加载 `knowops-navigator`（调度入口），再加载 `knowops-workflow`，运行**初始化向导**：
+1. 大部分知识库任务以 `knowops-navigator`（调度入口）进入，再加载 `knowops-workflow` 运行**初始化向导**；直接 @ `knowops-workflow` 也可正常使用。
    - 确认 vault 实际路径与名称；
    - 确认 8+1 模块默认目录结构与配置位置（默认 vault 内隐藏目录 `.config/`）；
    - 扫描已安装插件，逐个确认集成规则（是否纳入、时机与顺序），写入
      `08 系统管理/Agent规则.md`；
    - 复制 `08 系统管理` 全套模板；默认创建 `06 看板`；可选启用 HTML 镜像导出。
-2. 操作 Obsidian 时，遵循 `knowops-obsidian` 的红线与操作规范（CLI 用法、删除纪律、
-   回读校验等）。
+2. 默认由 `knowops-workflow` 独立完成（执行由 agent 通用能力负责）；需要操作 Obsidian
+   时，由 `knowops-navigator` 路由加载 `knowops-obsidian` 的红线与操作规范（CLI 用法、
+   删除纪律、回读校验等）。
 3. 用到具体能力（CLI / Markdown / Bases / Canvas / 网页提取）时，按需加载对应
    工具型 skill。
 

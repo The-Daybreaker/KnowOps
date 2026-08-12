@@ -1,7 +1,7 @@
 # Obsidian Flavored Markdown 语法要点
 
 > Obsidian 扩展了 CommonMark/GFM：wikilink、嵌入、Callout、属性、注释、高亮等。
-> 标准 Markdown（标题/粗斜体/列表/引用/代码块/表格）为已知知识，不重复。
+> 本文覆盖 Obsidian 特有扩展；标准 Markdown 不在此列。
 > 完整语法以 Obsidian 官方文档（help.obsidian.md）为准。
 
 ## 属性（frontmatter / properties）

@@ -13,8 +13,8 @@ description: Obsidian 操作规范与工具红线。当需要执行 Obsidian 相
 规范负责）——执行知识库相关操作时，流程与规则以 knowops-workflow 规范为准，
 本 skill 只规定执行层面（怎么操作、操作红线、何时征求决策）。
 
-通用性说明：本文与 references 中的行为描述为**跨平台通用表述**，具体版本行为
-可能存在差异，**使用时需自行验证**；完整语法以 Obsidian 官方文档为准。
+通用性说明：Obsidian 及 CLI 的具体版本行为可能存在差异，**使用时需自行验证**；
+完整语法以 Obsidian 官方文档为准。
 
 ## Part 1 对所有工具的统一规范与红线（跨工具通用）
 
@@ -79,7 +79,7 @@ description: Obsidian 操作规范与工具红线。当需要执行 Obsidian 相
 - **属性更新**：修改笔记时同步更新 `updated` 属性（精确到分钟），状态类信息
   用 `status` 属性（便于聚合过滤）。
 
-### CLI 怪癖与注意（实测经验，通用化表述，需自行验证）
+### CLI 怪癖与注意（需自行验证）
 
 - **换行处理**：content 多行优先用真实换行；转义序列（`\n`）可能被转成真实
   换行——因此 **JSON 类内容（.canvas）无法经 CLI 正确写入**（字符串内的字面
@@ -136,5 +136,4 @@ description: Obsidian 操作规范与工具红线。当需要执行 Obsidian 相
 | Canvas（.canvas 画布：nodes/edges/groups） | `references/canvas.md` | JSON Canvas 结构与写入注意 |
 | 统一红线与例外清单（详细） | `references/redlines.md` | Part 1 的完整展开 |
 
-> 完整语法以 Obsidian 官方文档（help.obsidian.md）与相关规范为准，本 skill 只
-> 收录要点与实测注意，不追求穷举。
+> 完整语法以 Obsidian 官方文档（help.obsidian.md）与相关规范为准。

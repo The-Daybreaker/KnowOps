@@ -156,7 +156,7 @@
 
 配置键见 `kb_config.py list` 输出的 `preferences`；修改用
 `kb_config.py set preferences.<键> <值>`（用户知情后进行）。配置 schema 版本
-跟随 skill 版本；v1.0.1 起兼容 v1.0.0 配置（结构未变，无需迁移），其他旧库接入时现场询问用户。
+跟随 skill 版本；v1.0.2 起兼容 v1.0.1 / v1.0.0 配置（结构未变，无需迁移），其他旧库接入时现场询问用户。
 
 > 配置文件名：新初始化写入 `knowops-workflow.config.json`；旧文件名
 > `knowledge-workflow.config.json` 仅兼容发现读取，不会自动改写。
