@@ -1,7 +1,7 @@
 # Obsidian Canvas（.canvas）语法要点
 
 > Canvas 基于 JSON Canvas 规范（jsoncanvas.org/spec/1.0/）。完整语法以官方规范
-> 与 Obsidian 官方文档为准，本文只收要点与写入注意。
+> 与 Obsidian 官方文档为准，本文覆盖常用要点与写入注意。
 
 ## 文件结构（JSON Canvas 1.0）
 

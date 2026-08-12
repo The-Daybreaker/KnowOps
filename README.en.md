@@ -19,8 +19,8 @@ skill for portable-device capture:
 
 | Skill | Role | One-liner |
 |---|---|---|
-| **knowops-workflow** | Workflow specification | "How the knowledge base should look and flow" — a neutral spec shared by user & agent |
-| **knowops-obsidian** | Tool operation specification | "How to operate Obsidian" — CLI usage, red lines, syntax essentials |
+| **knowops-workflow** | Workflow specification (standalone) | "How the knowledge base should look and flow" — a neutral spec shared by user & agent; works alone, execution via the agent's general capabilities |
+| **knowops-obsidian** | Obsidian execution layer | "How to operate Obsidian" — CLI usage, red lines, syntax essentials; loaded via knowops-navigator routing |
 | **knowops-navigator** | Dispatch entry | "In what order to load them" — flow first, operations next, tools on demand |
 | **everywhere-note** | Portable capture & unified ingest | Capture with @ on the phone, get standard md + a 22:00 reminder; the desktop ingests in the evening |
 
@@ -29,6 +29,7 @@ skill for portable-device capture:
 - **Inbox capture & review**: short, fragmented thoughts, inspirations and unclear
   items go to `00 收件箱` (随手记 / 灵感 / 待整理内容) by default; during review,
   each item is distilled, deleted or archived based on how it will be used;
+- **Standalone**: knowops-workflow alone can manage the knowledge base; the spec and red lines are tool-agnostic, and execution relies on the agent's general capabilities;
 - **Portable capture & unified ingest**: @ everywhere-note on a phone/portable device and dictate directly; it generates KB-compliant markdown (a file when supported) and sets a 22:00 reminder; back at the desktop, knowops-navigator routes the batch ingest into `00 收件箱`; the phone only needs this one skill and no transfer channel;
 - **Full question lifecycle**: unresolved → in progress → resolved → distilled;
   the original question moves to `已沉淀` and keeps **bidirectional links** to the
@@ -55,9 +56,11 @@ skill for portable-device capture:
   then cloud sync);
 - **Config-driven, version-following**: directories and preferences live in config;
   schema version follows the skill version;
-- **Data-safety red lines**: ask consent before modify/delete, delete always goes
-  to the system trash, **never permanent delete**, never initialize a repo on
-  behalf of the user.
+- **Data-safety red lines (tool-agnostic)**: delete always goes to the system trash and
+  stays recoverable; prefer git when creating/initializing a knowledge base; run a
+  similarity check before creating anything; prefer existing modules. Execution-layer
+  red lines (consent before modify/delete, user-provided info is authoritative, etc.)
+  live in knowops-obsidian.
 
 ## Installation
 
@@ -81,8 +84,9 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
 
 ## Quick start
 
-1. Load `knowops-navigator` (dispatch entry), then load `knowops-workflow` and run
-   the **onboarding wizard**:
+1. For most knowledge-base tasks, start with `knowops-navigator` (dispatch entry), then
+   load `knowops-workflow` and run the **onboarding wizard**; directly @-ing
+   `knowops-workflow` also works.
    - Confirm the vault's actual path & name;
    - Confirm the 8+1 module structure and config location (defaults to the hidden
      `.config/` directory inside the vault);
@@ -91,8 +95,10 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
      `08 系统管理/Agent规则.md`;
    - Copy the full `08 系统管理` template set; create `06 看板` by default;
      optionally enable HTML mirror export.
-2. When operating Obsidian, follow `knowops-obsidian` for the red lines and operation
-   rules (CLI usage, delete discipline, read-back verification, etc.).
+2. By default `knowops-workflow` works standalone (execution via the agent's general
+   capabilities); when Obsidian operations are needed, `knowops-navigator` routes to
+   `knowops-obsidian` for red lines and operation rules (CLI usage, delete discipline,
+   read-back verification, etc.).
 3. Load the tool skills (CLI / Markdown / Bases / Canvas / web extraction) on
    demand when their capability is needed.
 

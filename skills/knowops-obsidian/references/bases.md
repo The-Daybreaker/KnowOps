@@ -2,7 +2,7 @@
 
 > Bases 是 Obsidian 原生的数据库式实时聚合视图（.base 文件 = 数据源）。
 > 完整语法（filters / formulas / views / functions）以官方文档
-> （help.obsidian.md/bases）为准，本文只收要点与常见坑。
+> （help.obsidian.md/bases）为准，本文覆盖常用要点与常见坑。
 
 ## 文件结构
 
