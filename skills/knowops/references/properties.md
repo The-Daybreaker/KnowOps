@@ -1,4 +1,4 @@
-# 属性、标签、命名与目录结构约定（knowops-workflow 领域设计，均为可配置默认值）
+# 属性、标签、命名与目录结构约定（knowops 领域设计，均为可配置默认值）
 
 > 本文档描述知识库的**领域设计**：属性含义、命名规范、目录模板、模块生命周期
 > 与增长触发规则。属性的**写法**（frontmatter 语法）等具体形式不在本规范范围。
@@ -22,9 +22,11 @@
 | `tags` | 标签（也可用行内 `#tag`） | `[领域/ai, 知识/概念原理]` |
 | `aliases` | 别名 | `[异步复位问题记录]` |
 
-用户可自由增删；不强制任何属性存在（`updated` 更新为例外）。
+**必填与自由**：除各模块明确要求的必填属性（capture 至少 `type`/`capture_kind`/
+`created`/标签；knowledge 至少 `type`/`knowledge_type`/`domain`/`created`/`source`）
+外，其余属性用户可自由增删；`updated` 在修改时必须更新。
 
-## 标签与双向链接约定（硬性要求）
+## 标签与双向链接约定
 
 - **积极打标签**：创建笔记时根据内容主动打层级标签，如 `#领域/ai`、
   `#知识/概念原理`、`#项目/xxx`、`#日程`；
@@ -50,7 +52,7 @@
 
 ```
 <vault>/.config/                     ← 隐藏目录：机器配置/日志/脚本/HTML 导出
-├── knowops-workflow.config.json      # 配置（schema 版本 = skill 版本）
+├── knowops.config.json            # 配置（schema 版本 = skill 版本）
 ├── log/                                # 操作日志（YYYY-MM/YYYY-MM-DD.md）
 ├── scripts/                            # 库内脚本副本 + html-export.json
 └── HTML-Export/                        # HTML 镜像导出（可选组件）
@@ -127,8 +129,8 @@
 - 50~150 篇：建立领域二级目录（如 `概念原理/AI/`），并创建 `<领域>索引.md`
   （如 `AI索引.md`）；
 - >150 篇：评估是否建立三级目录（谨慎，不提前设计）；
-- Agent 发现 20 篇以上笔记具有相同 `domain`/`topic` 时可**建议**创建二级目录，
-  由用户确认后执行。
+- 接近 50 篇且同 `domain` 集中时，可向用户**建议**创建二级目录，由用户确认后
+  执行。
 
 ## 配置键说明（preferences 默认值）
 
@@ -150,13 +152,13 @@
 | `todoDir` | `01 生活系统/任务` | 任务目录 |
 | `todoFile` | `01 生活系统/任务/TODO.md` | 人工快捷清单文件 |
 | `logDir` | `.config/log` | 操作日志目录 |
-| `configDir` | `config` | 知识库无关文件隐藏目录名（实际目录加 `.` 前缀，如 `.config`） |
+| `configDir` | `.config` | 知识库无关文件隐藏目录名（点开头） |
 | `exportDirName` | `HTML-Export` | HTML 导出子目录名 |
 | `dashboardFile` | `看板.md` | 看板嵌入容器文件名 |
 
 配置键见 `kb_config.py list` 输出的 `preferences`；修改用
 `kb_config.py set preferences.<键> <值>`（用户知情后进行）。配置 schema 版本
-跟随 skill 版本；v1.0.2 起兼容 v1.0.1 / v1.0.0 配置（结构未变，无需迁移），其他旧库接入时现场询问用户。
+跟随 skill 版本；不兼容旧版本配置，其他旧库接入
+时现场询问用户。
 
-> 配置文件名：新初始化写入 `knowops-workflow.config.json`；旧文件名
-> `knowledge-workflow.config.json` 仅兼容发现读取，不会自动改写。
+> 配置文件名：`knowops.config.json`（默认 `.config/`）。

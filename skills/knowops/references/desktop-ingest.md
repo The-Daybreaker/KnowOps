@@ -1,18 +1,19 @@
-# everywhere-note 桌面端入库（desktop-ingest）
+# knowops 桌面端入库（desktop-ingest）
 
-> 运行在桌面设备上、由 knowops-navigator 路由进入本文件。执行前按 knowops-navigator
-> 约定先加载 `knowops-workflow`（流程规范）与 `knowops-obsidian`（操作规范与红线），
-> 并读取 `08 系统管理/Agent规则.md`。本文件只定义“暂存内容 → 00 收件箱”这一步。
+> 本文件是 knowops 的桌面端入库流程。执行前先加载 `references/workflow.md`
+> （流程规范）与 `references/redlines.md`（操作规范与红线），并按其中约定读取
+> `Agent规则.md`（路径以配置为准，默认 `08 系统管理/Agent规则.md`）。本文件只
+> 定义"暂存内容 → 00 收件箱"这一步。
 
 ## 适用场景
 
 用户提供手机/随身端生成的暂存内容并要求入库，例如：
 
-- “入库今天手机记的”
-- “把这段暂存文字存进知识库”（并粘贴文本或 md 块）
-- “把这份 md 文件入库”（并提供文件）
+- "入库今天手机记的"
+- "把这段暂存文字存进知识库"（并粘贴文本或 md 块）
+- "把这份 md 文件入库"（并提供文件）
 
-桌面端直接说“记一下……”不属于本部分职责，由 knowops-workflow 直接处理。
+桌面端直接说"记一下……"不属于本部分职责，按 `references/workflow.md` 处理。
 
 ## 输入形态
 
@@ -21,7 +22,8 @@
 
 ## 解析与校验
 
-1. **切分条目**：以 `---` frontmatter 或 `# 日期 标题` 识别条目边界，每条独立处理。
+1. **切分条目**：以 `---` 起始的 frontmatter 或 `# YYYY-MM-DD 标题` 标题行识别
+   新条目边界，每条独立处理。
 2. **规范条目**：校验 `type: capture`、`capture_kind`、`created`、`tags`、标题；
    - 缺字段时补全：`created` 用收到时刻，`capture_kind` 按内容判断（拿不准默认
      `随手记`），`tags` 缺省 `[]`；
@@ -37,17 +39,18 @@
 1. 按 `capture_kind` 写入对应子目录：`00 收件箱/随手记|灵感|待整理内容/`；
 2. 文件名沿用 `YYYY-MM-DD 标题.md`；
 3. 用 Obsidian CLI 创建（路径/名称以配置与 `Agent规则.md` 为准）；长内容或特殊
-   字符按 `knowops-obsidian` 的“两步写入 / 直写例外”规范处理；
+   字符按 `references/redlines.md` 的直写例外规范处理；
 4. 写入后**回读校验**，确认内容与结构正确；
 5. 在当日操作日志追加一行（`<时间> [入库] 路径与条目`）。
 
 ## 汇总反馈
 
 完成后向用户汇总：共入库 N 条、每条路径、补全/修正了什么（如有）。
-可提示下一步：“审阅收件箱”进行沉淀/删除/归档由 knowops-workflow 负责。
+可提示下一步："审阅收件箱"进行沉淀/删除/归档按 `references/workflow.md` 处理。
 
 ## 边界
 
 - 本部分只负责**收集入库 + 操作日志 + 汇总反馈**；
-- 收件箱审阅、沉淀、删除、归档由用户在电脑端发起时按 knowops-workflow 处理；
+- 收件箱审阅、沉淀、删除、归档由用户在电脑端发起时按 `references/workflow.md`
+  处理；
 - 不设置任何提醒（电脑端不设提醒）。
