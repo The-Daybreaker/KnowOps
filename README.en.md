@@ -125,7 +125,8 @@ KnowOps/
     ├── knowops/                     # Desktop entry point
     │   ├── SKILL.md                 # trigger + loading rules + common red lines
     │   ├── references/
-    │   │   ├── workflow.md          # workflow spec (modules/processes/onboarding/config)
+    │   │   ├── workflow.md          # workflow spec (model/classification/module flows/log/post-op)
+    │   │   ├── init-config.md       # onboarding/plugin integration/config & HTML export/scripts
     │   │   ├── properties.md        # properties/naming/layout/lifecycle design
     │   │   ├── redlines.md          # execution red lines + direct-write exceptions
     │   │   └── desktop-ingest.md    # captured content → 00 收件箱

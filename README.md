@@ -102,7 +102,8 @@ KnowOps/
     ├── knowops/                     # 桌面端统一入口
     │   ├── SKILL.md                 # 触发 + 加载规则 + 通用红线
     │   ├── references/
-    │   │   ├── workflow.md          # 业务流程规范（模块/流程/初始化/配置）
+    │   │   ├── workflow.md          # 业务流程规范（模型/分类/模块流程/日志/操作后流程）
+    │   │   ├── init-config.md       # 初始化向导/插件集成/配置与HTML导出/脚本
     │   │   ├── properties.md        # 属性/命名/目录/生命周期设计
     │   │   ├── redlines.md          # 执行层红线 + 直写例外
     │   │   └── desktop-ingest.md    # 暂存内容 → 00 收件箱
