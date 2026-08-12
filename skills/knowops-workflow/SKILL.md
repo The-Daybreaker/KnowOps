@@ -1,9 +1,9 @@
 ---
-name: knowledge-workflow
+name: knowops-workflow
 description: 通用知识库管理的工作流程规范（workflow）。定义知识库内容如何组织与流转：00 收件箱（随手记/灵感/待整理内容，捕获与审阅沉淀）、01 生活系统（日记/日程/任务/问题）、02 知识系统（概念原理/经验方法/方案/案例）、03 资产系统（模板/工作流）、04 规范系统（原则/标准规范/检查清单）、05 项目系统（进行中/已完成/项目复盘）、06 看板（Bases 数据库驱动）、07 归档、08 系统管理（知识库架构/分类规则/命名规范/Frontmatter规范/Agent规则/变更记录/用户手册）、插件集成规则、操作日志、首次初始化向导、配置与 HTML 导出策略。当用户要求接入/记录/搜索/整理知识库、捕获顿悟灵感想法、审阅收件箱、记录问题、沉淀知识、写日程或任务、搭建看板、归档内容时使用。本 skill 只描述工作流程规范（给用户与 agent 共同遵守），不包含任何工具操作细节。
 ---
 
-# knowledge-workflow 知识库管理（工作流程规范）
+# knowops-workflow 知识库管理（工作流程规范）
 
 ## 定位
 
@@ -228,7 +228,8 @@ description: 通用知识库管理的工作流程规范（workflow）。定义�
 
 ## 配置与 HTML 导出
 
-- **配置文件**：`knowledge-workflow.config.json`（默认 `.config/`，可改位置）。
+- **配置文件**：`knowops-workflow.config.json`（默认 `.config/`，可改位置；旧文件名
+  `knowledge-workflow.config.json` 仅兼容发现，初始化只写新文件名）。
   键包括：`version`（跟随 skill 版本）、`defaultVault`、`vaults`、`exportRoot`
   （仅启用 HTML 导出时）、`cliPath`（工具路径，初始化时确认）、`preferences`
   （各模块目录与偏好，见 `references/properties.md`）。

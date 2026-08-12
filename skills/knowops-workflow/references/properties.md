@@ -1,4 +1,4 @@
-# 属性、标签、命名与目录结构约定（knowledge-workflow 领域设计，均为可配置默认值）
+# 属性、标签、命名与目录结构约定（knowops-workflow 领域设计，均为可配置默认值）
 
 > 本文档描述知识库的**领域设计**：属性含义、命名规范、目录模板、模块生命周期
 > 与增长触发规则。属性的**写法**（frontmatter 语法）等具体形式不在本规范范围。
@@ -50,7 +50,7 @@
 
 ```
 <vault>/.config/                     ← 隐藏目录：机器配置/日志/脚本/HTML 导出
-├── knowledge-workflow.config.json      # 配置（schema 版本 = skill 版本）
+├── knowops-workflow.config.json      # 配置（schema 版本 = skill 版本）
 ├── log/                                # 操作日志（YYYY-MM/YYYY-MM-DD.md）
 ├── scripts/                            # 库内脚本副本 + html-export.json
 └── HTML-Export/                        # HTML 镜像导出（可选组件）
@@ -157,3 +157,6 @@
 配置键见 `kb_config.py list` 输出的 `preferences`；修改用
 `kb_config.py set preferences.<键> <值>`（用户知情后进行）。配置 schema 版本
 跟随 skill 版本；v1.0.1 起兼容 v1.0.0 配置（结构未变，无需迁移），其他旧库接入时现场询问用户。
+
+> 配置文件名：新初始化写入 `knowops-workflow.config.json`；旧文件名
+> `knowledge-workflow.config.json` 仅兼容发现读取，不会自动改写。

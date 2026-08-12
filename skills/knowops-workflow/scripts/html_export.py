@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""html_export.py - knowledge-workflow HTML 镜像导出（Python 标准库，跨平台）
+"""html_export.py - knowops-workflow HTML 镜像导出（Python 标准库，跨平台）
 
 职责：
   - 将 vault 内 Markdown 笔记按相对路径镜像导出为独立 HTML 到导出根目录：
@@ -579,7 +579,7 @@ def render_page(title: str, body_html: str, frontmatter: dict[str, str],
             parts.append(f"<tr><th>{html.escape(k)}</th><td>{html.escape(v)}</td></tr>")
         parts.append("</tbody></table>")
     parts.append(body_html or "<p>（空笔记）</p>")
-    parts.append("<footer>由 knowledge-workflow html_export 生成</footer>")
+    parts.append("<footer>由 knowops-workflow html_export 生成</footer>")
     parts.append("</main>")
     if has_mermaid:
         parts.append(MERMAID_SCRIPT)
@@ -614,7 +614,7 @@ def render_index(vault_name: str, entries: list[tuple[str, float]]) -> str:
                      f'<span class="idx-time">{t}</span></li>')
     if current is not None:
         parts.append("</ul>")
-    parts.append(f"<footer>共 {len(items)} 篇 · 由 knowledge-workflow html_export 生成 · "
+    parts.append(f"<footer>共 {len(items)} 篇 · 由 knowops-workflow html_export 生成 · "
                  f"{time.strftime('%Y-%m-%d %H:%M')}</footer>")
     parts.append("</main></body></html>")
     return "\n".join(parts)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""kb_env.py - knowledge-workflow 环境自检（Python 标准库，跨平台）
+"""kb_env.py - knowops-workflow 环境自检（Python 标准库，跨平台）
 
 检查项：
   1. obsidian CLI 是否可用（配置 cliPath → PATH → 平台常见位置）
@@ -277,7 +277,7 @@ def _require_cli(config: dict | None) -> str:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="kb_env.py", description="knowledge-workflow 环境自检")
+    p = argparse.ArgumentParser(prog="kb_env.py", description="knowops-workflow 环境自检")
     p.add_argument("--json", action="store_true", help="以 JSON 输出结果")
     sub = p.add_subparsers(dest="command", required=True)
 

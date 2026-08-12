@@ -1,9 +1,9 @@
 ---
-name: obsidian-suite
-description: Obsidian 工具套件调度入口。当任务涉及 Obsidian 笔记/知识库（记录、捕获、检索、整理 vault、Canvas、Bases、Markdown、网页素材提取、插件控制、随身端暂存内容入库）时，先调用本 skill 了解应加载哪些子 skill、加载顺序、存储位置，以及外部工具型 skill 的安装检查方式。调度三部分：knowledge-workflow（知识库工作流程规范，业务流程层）+ kb-obsidian（Obsidian 操作规范与红线，执行层）+ 外部工具型 skill（按需加载，来自 kepano/obsidian-skills）；随身端捕获与暂存入库由 everywhere-note 配套 skill 负责。
+name: knowops-navigator
+description: KnowOps 导航（调度入口）。当任务涉及 Obsidian 笔记/知识库（记录、捕获、检索、整理 vault、Canvas、Bases、Markdown、网页素材提取、插件控制、随身端暂存内容入库）时，先调用本 skill 了解应加载哪些子 skill、加载顺序、存储位置，以及外部工具型 skill 的安装检查方式。调度三部分：knowops-workflow（知识库工作流程规范，业务流程层）+ knowops-obsidian（Obsidian 操作规范与红线，执行层）+ 外部工具型 skill（按需加载，来自 kepano/obsidian-skills）；随身端捕获与暂存入库由 everywhere-note 配套 skill 负责。
 ---
 
-# Obsidian 工具套件（调度入口）
+# KnowOps 导航（调度入口）
 
 本 skill 是一个**调度入口**，本身不直接干活，只负责告诉你要用哪些 Obsidian 相关
 skill、它们的职责与调用方式，以及**外部工具型 skill 的安装检查流程**。各 skill
@@ -13,29 +13,29 @@ skill、它们的职责与调用方式，以及**外部工具型 skill 的安装
 ## 一、双 skill 体系（核心，按顺序加载）
 
 知识库管理拆分为**两个互补的 skill**，职责边界分明、依赖方向单向
-（**kb-obsidian 依赖 knowledge-workflow；knowledge-workflow 不依赖、不提及
-kb-obsidian**）：
+（**knowops-obsidian 依赖 knowops-workflow；knowops-workflow 不依赖、不提及
+knowops-obsidian**）：
 
-1. **knowledge-workflow** —— 知识库**工作流程规范**（业务流程层）。
+1. **knowops-workflow** —— 知识库**工作流程规范**（业务流程层）。
    定义知识库内容如何组织与流转：00 收件箱（随手记/灵感/待整理内容，捕获与
    审阅沉淀）、01 生活系统（日记/日程/任务/问题）、02 知识系统（概念原理/
    经验方法/方案/案例）、03 资产系统（模板/工作流）、04 规范系统（原则/标准
    规范/检查清单）、05 项目系统（进行中/已完成/项目复盘）、06 看板（Bases
    数据库驱动）、07 归档、08 系统管理（架构/分类/命名/Frontmatter/Agent规则/
    变更记录/用户手册）、插件集成规则、操作日志、初始化向导、配置与 HTML 导出。
-   - 调用：`skill: "knowledge-workflow"`；位置：`<skills-dir>/knowledge-workflow/SKILL.md`
+   - 调用：`skill: "knowops-workflow"`；位置：`<skills-dir>/knowops-workflow/SKILL.md`
    - **规则：任何"记录 / 管理知识库内容"的任务都必须先加载它，严格按其流程规范
      执行。它是给用户与工具共同遵守的中立规范，不包含任何工具操作细节。**
 
-2. **kb-obsidian** —— Obsidian **操作规范**（执行层）。
+2. **knowops-obsidian** —— Obsidian **操作规范**（执行层）。
    承载所有对工具的要求：Part 1 对所有工具的统一规范与红线（改删前征求同意、
    永不 git init、删除进回收站、记录归属询问用户、信息以用户给出为准、直写
    例外清单等）；Part 2 Obsidian 专有操作（CLI 使用与怪癖、笔记读写改删、日记
    设置、Markdown/Bases/Canvas 要点、网页素材提取、插件控制、两步写入、回读
    校验）。
-   - 调用：`skill: "kb-obsidian"`；位置：`<skills-dir>/kb-obsidian/SKILL.md`
+   - 调用：`skill: "knowops-obsidian"`；位置：`<skills-dir>/knowops-obsidian/SKILL.md`
    - **规则：执行具体 Obsidian 操作（读写改删、搜索、移动、删除、插件控制）前
-     必须加载它，严格遵循其红线与操作规范；业务流程以 knowledge-workflow 规范
+     必须加载它，严格遵循其红线与操作规范；业务流程以 knowops-workflow 规范
      为准。**
 
 ## 二、外部工具型 skill（按需加载）
@@ -73,9 +73,9 @@ defuddle 五个），**不随本项目打包**，需要用户自行安装后才�
 接到知识库任务后，按以下链条决定加载哪个：
 
 1. **记录 / 管理内容**（收件箱捕获与审阅、问题、知识、日程、任务、看板、归档）
-   → 加载 **knowledge-workflow**（流程规范，必读）。
+   → 加载 **knowops-workflow**（流程规范，必读）。
 2. **执行 vault 操作**（创建/读写/搜索/移动/删除笔记、日记、素材落库、插件控制）
-   → 加载 **kb-obsidian**（操作规范与红线，必读）——其中涉及的**具体语法与命令
+   → 加载 **knowops-obsidian**（操作规范与红线，必读）——其中涉及的**具体语法与命令
    形态**，**优先查看对应工具型 skill**：CLI 命令看 `obsidian-cli`、Markdown
    语法看 `obsidian-markdown`、聚合视图看 `obsidian-bases`、画布看
    `json-canvas`、网页提取看 `defuddle`。
@@ -94,15 +94,15 @@ defuddle 五个），**不随本项目打包**，需要用户自行安装后才�
    22:00 提醒；其 `references/mobile-capture.md` **独立自洽，不依赖本套件**。
 2. **桌面端入库**（电脑）：本套件收到“入库今天手机记的 / 把暂存内容存进知识库”
    等请求时，加载 everywhere-note 的 `references/desktop-ingest.md`，并按
-   knowledge-workflow → kb-obsidian → 工具型按需的既有顺序执行落库。
+   knowops-workflow → knowops-obsidian → 工具型按需的既有顺序执行落库。
 
-依赖方向：**obsidian-suite → everywhere-note（桌面部分）**；everywhere-note
-不反向路由回本套件。桌面端直接说“记一下……”仍由 knowledge-workflow 处理。
+依赖方向：**knowops-navigator → everywhere-note（桌面部分）**；everywhere-note
+不反向路由回本套件。桌面端直接说“记一下……”仍由 knowops-workflow 处理。
 
 ## 四、调用约定（汇总）
 
-1. 接到知识库管理任务 → 先加载 **knowledge-workflow**（业务流程规范）。
-2. 需要执行 Obsidian 操作 → 再加载 **kb-obsidian**（操作规范与红线）。
+1. 接到知识库管理任务 → 先加载 **knowops-workflow**（业务流程规范）。
+2. 需要执行 Obsidian 操作 → 再加载 **knowops-obsidian**（操作规范与红线）。
 3. 具体操作涉及语法/命令 → 按「按需调用指引」加载对应**工具型 skill**（先检查
    是否已安装；未装则询问用户，附 kepano/obsidian-skills 仓库地址；用户不装则
    用 Obsidian 官方文档兜底）。
