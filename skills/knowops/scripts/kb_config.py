@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""kb_config.py - knowops-workflow 配置与多 vault 管理（Python 标准库，跨平台）
+"""kb_config.py - knowops 配置与多 vault 管理（Python 标准库，跨平台）
 
 职责：
-  - 配置发现：显式 --config → 从当前目录向上查找 knowops-workflow.config.json
-    （旧文件名 knowledge-workflow.config.json 仅兼容发现，不写入）
+  - 配置发现：显式 --config → 从当前目录向上查找 knowops.config.json
   - 首次初始化写入：默认写入 vault 内隐藏目录 .config/（可改选其他位置）；
     写入规则：允许 vault 内隐藏目录（点开头），不写入用户笔记内容区
   - 多 vault：注册 / 列出 / 移除 / 默认切换 / 按名解析路径 / 路径校验
   - 偏好读写：get / set（点号键，如 preferences.knowledgeDir）
-  - schema 版本跟随 skill 版本（v1.0.0 起为字符串版本号）；v1.0.2 起兼容 v1.0.1 / v1.0.0 配置（结构未变，无需迁移）
+  - schema 版本跟随 skill 版本（v1.0.0 起为字符串版本号）；不兼容旧版本配置
 
 设计原则：零硬编码个人路径；配置文件是保存"位置与习惯"的唯一地方。
 所有子命令支持 --json 输出机器可读结果，供 agent 消费。
@@ -23,9 +22,8 @@ import os
 import sys
 import tempfile
 
-CONFIG_FILENAME = "knowops-workflow.config.json"
-LEGACY_CONFIG_FILENAME = "knowledge-workflow.config.json"  # 兼容旧名：仅发现读取，不写新配置
-SCHEMA_VERSION = "1.0.2"  # 跟随 skill 版本号；v1.0.2 起兼容 v1.0.1 / v1.0.0 配置（结构未变，无需迁移）
+CONFIG_FILENAME = "knowops.config.json"
+SCHEMA_VERSION = "1.1.0"  # 跟随 skill 版本号；不兼容旧版本配置
 
 # 默认偏好（写入新配置；均为可配置默认值，非个人习惯硬编码）
 # v1.0.0：全新模块体系：00 收件箱 / 01 生活系统 / 02 知识系统 / 03 资产系统 /
@@ -116,8 +114,7 @@ def default_config_dir(vault_path: str) -> str:
 def find_config(explicit: str | None = None, start: str | None = None) -> str | None:
     """按发现顺序定位配置文件，找不到返回 None。
 
-    顺序：显式路径 → 新文件名（knowops-workflow.config.json）向上查找，
-    兼容发现旧文件名（knowledge-workflow.config.json）。
+    顺序：显式路径 → knowops.config.json 向上查找（目录本身 + .config/）。
     不查系统环境变量 / 全局用户目录（按项目隔离）。
     """
     if explicit:
@@ -130,9 +127,7 @@ def find_config(explicit: str | None = None, start: str | None = None) -> str | 
     while True:
         # 候选位置：目录本身 + 目录内隐藏目录（.config/，默认配置位置）
         for cand in (os.path.join(current, CONFIG_FILENAME),
-                     os.path.join(current, hidden_dir_name(), CONFIG_FILENAME),
-                     os.path.join(current, LEGACY_CONFIG_FILENAME),
-                     os.path.join(current, hidden_dir_name(), LEGACY_CONFIG_FILENAME)):
+                     os.path.join(current, hidden_dir_name(), CONFIG_FILENAME)):
             if os.path.isfile(cand):
                 return cand
         parent = os.path.dirname(current)
@@ -157,10 +152,10 @@ def load_config(explicit: str | None = None, start: str | None = None) -> tuple[
 
 def check_schema(data: dict, path: str = "") -> None:
     version = data.get("version")
-    if version not in (SCHEMA_VERSION, "1.0.1", "1.0.0"):
+    if version != SCHEMA_VERSION:
         raise ConfigError(
             f"配置 schema 版本（{version!r}）与当前 skill 版本（{SCHEMA_VERSION}）不一致：{path}\n"
-            f"v1.0.2 起兼容 v1.0.1 / v1.0.0 配置（结构未变，无需迁移）；其他旧库接入请现场询问用户后重新初始化或调整。"
+            f"不兼容旧版本配置；其他旧库接入请现场询问用户后重新初始化或调整。"
         )
     if "vaults" not in data or not isinstance(data["vaults"], dict):
         raise ConfigError(f"配置缺少 vaults 对象：{path}")
@@ -437,7 +432,7 @@ def cmd_validate(args) -> dict:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="kb_config.py",
-        description="knowops-workflow 配置与多 vault 管理（配置默认写入 vault 内隐藏目录 .config/）",
+        description="knowops 配置与多 vault 管理（配置默认写入 vault 内隐藏目录 .config/）",
     )
     p.add_argument("--json", action="store_true", help="以 JSON 输出结果（供 agent 消费）")
     sub = p.add_subparsers(dest="command", required=True)
