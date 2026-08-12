@@ -1,6 +1,6 @@
-# Obsidian 知识库管理 Skills
+# KnowOps：Obsidian 知识管理 Skills
 
-一套面向 **AI agent** 的 **Obsidian 知识库管理技能包**：用四个 skill 让 agent 帮你把
+KnowOps 是一套面向 **AI agent** 的 **Obsidian 知识管理技能包**：用四个 skill 让 agent 帮你把
 知识库管得井井有条——**业务流程规范 + 工具操作规范 + 调度入口 + 随身端捕获**，能力边界清晰、
 配套使用。
 
@@ -14,16 +14,16 @@
 
 | Skill | 定位 | 一句话 |
 |---|---|---|
-| **knowledge-workflow** | 工作流程规范 | 知识库应该长什么样、流程怎么走——用户与 agent 共同遵守的中立规范 |
-| **kb-obsidian** | 工具操作规范 | "怎么操作 Obsidian"——CLI 用法、操作红线、语法要点 |
-| **obsidian-suite** | 调度入口 | "按什么顺序加载"——先定流程、再定操作、工具按需 |
+| **knowops-workflow** | 工作流程规范 | 知识库应该长什么样、流程怎么走——用户与 agent 共同遵守的中立规范 |
+| **knowops-obsidian** | 工具操作规范 | "怎么操作 Obsidian"——CLI 用法、操作红线、语法要点 |
+| **knowops-navigator** | 调度入口 | "按什么顺序加载"——先定流程、再定操作、工具按需 |
 | **everywhere-note** | 随身端捕获与统一入库 | 手机 @ 即记，生成规范 md 并设 22:00 提醒；电脑端统一入库 |
 
 ## 特性
 
 - **收件箱捕获与审阅**：顿悟、灵感、想法等简短零碎内容默认进 `00 收件箱`
   （随手记 / 灵感 / 待整理内容）；审阅时按"未来怎么用"沉淀、删除或归档；
-- **随身端捕获与统一入库**：手机/随身设备上 @ everywhere-note 直接口述记录，生成符合知识库格式的 md（支持生成文件）并设 22:00 提醒；回到电脑后由 obsidian-suite 路由批量写入 `00 收件箱`；手机端只装这一个 skill 即可独立使用，不依赖传输通道；
+- **随身端捕获与统一入库**：手机/随身设备上 @ everywhere-note 直接口述记录，生成符合知识库格式的 md（支持生成文件）并设 22:00 提醒；回到电脑后由 knowops-navigator 路由批量写入 `00 收件箱`；手机端只装这一个 skill 即可独立使用，不依赖传输通道；
 - **问题全生命周期**：未解决 → 研究中 → 已解决 → 已沉淀；沉淀后原问题移入
   已沉淀并**双向链接**回知识笔记；
 - **知识沉淀**：按类型归类（概念原理 / 经验方法 / 方案 / 案例），领域二级目录
@@ -44,32 +44,32 @@
 
 ## 安装
 
-把 `skills/` 下的四个 skill（`knowledge-workflow`、`kb-obsidian`、
-`obsidian-suite`、`everywhere-note`）复制到你的 agent 的**用户级 skill 目录**（位置因平台而异，按
+把 `skills/` 下的四个 skill（`knowops-workflow`、`knowops-obsidian`、
+`knowops-navigator`、`everywhere-note`）复制到你的 agent 的**用户级 skill 目录**（位置因平台而异，按
 你所使用平台的 skill 安装说明为准；一般形如 `~/.<平台>/skills/`），或直接克隆
 本仓库：
 
 ```sh
-git clone https://github.com/The-Daybreaker/knowledge-base.git
+git clone https://github.com/The-Daybreaker/KnowOps.git
 # 然后把 skills/ 下四个目录复制到用户级 skill 目录
 ```
 
 > **随身端**：手机/随身设备端可只安装 `everywhere-note`（其随身端部分独立自洽，不依赖本套件）。
 
-> **依赖**：`kb-obsidian` 引用的工具型 skill（obsidian-cli / obsidian-markdown /
+> **依赖**：`knowops-obsidian` 引用的工具型 skill（obsidian-cli / obsidian-markdown /
 > obsidian-bases / json-canvas / defuddle）来自 Obsidian 官方技能仓库
 > [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills)，需另行安装
 > （见「相关项目」）。
 
 ## 快速开始
 
-1. 加载 `obsidian-suite`（调度入口），再加载 `knowledge-workflow`，运行**初始化向导**：
+1. 加载 `knowops-navigator`（调度入口），再加载 `knowops-workflow`，运行**初始化向导**：
    - 确认 vault 实际路径与名称；
    - 确认 8+1 模块默认目录结构与配置位置（默认 vault 内隐藏目录 `.config/`）；
    - 扫描已安装插件，逐个确认集成规则（是否纳入、时机与顺序），写入
      `08 系统管理/Agent规则.md`；
    - 复制 `08 系统管理` 全套模板；默认创建 `06 看板`；可选启用 HTML 镜像导出。
-2. 操作 Obsidian 时，遵循 `kb-obsidian` 的红线与操作规范（CLI 用法、删除纪律、
+2. 操作 Obsidian 时，遵循 `knowops-obsidian` 的红线与操作规范（CLI 用法、删除纪律、
    回读校验等）。
 3. 用到具体能力（CLI / Markdown / Bases / Canvas / 网页提取）时，按需加载对应
    工具型 skill。
@@ -79,7 +79,7 @@ git clone https://github.com/The-Daybreaker/knowledge-base.git
 | 你说 | agent 做 |
 |---|---|
 | 手机：记一下：XXX | 生成规范 md 条目 + 设置当晚 22:00 提醒 |
-| 入库今天手机记的 | obsidian-suite 路由加载 everywhere-note 桌面部分，解析暂存内容写入 `00 收件箱` |
+| 入库今天手机记的 | knowops-navigator 路由加载 everywhere-note 桌面部分，解析暂存内容写入 `00 收件箱` |
 | "记一个灵感：……" | 写入 `00 收件箱/灵感/`，补属性和标签 |
 | "记录一个问题：FPGA 跨时钟域怎么处理" | 建问题笔记（`01 生活系统/问题/未解决/`），联动任务与日志 |
 | "周五下午 3 点项目评审" | 建日程笔记 + 自动创建定时提醒 |
@@ -91,20 +91,20 @@ git clone https://github.com/The-Daybreaker/knowledge-base.git
 ## 目录结构
 
 ```
-knowledge-base/
+KnowOps/
 ├── README.md / README.en.md / LICENSE / .gitignore
 └── skills/
-    ├── knowledge-workflow/          # Skill A：工作流程规范
+    ├── knowops-workflow/          # Skill A：工作流程规范
     │   ├── SKILL.md
     │   ├── references/properties.md   # 属性/命名/目录/生命周期设计
     │   ├── scripts/                  # kb_config / kb_env / html_export
     │   └── assets/
     │       ├── system-manage/        # 08 系统管理初始化模板（7 文件）
     │       └── html-export.json      # HTML 导出范围配置模板
-    ├── kb-obsidian/                  # Skill B：Obsidian 操作规范与红线
+    ├── knowops-obsidian/                  # Skill B：Obsidian 操作规范与红线
     │   ├── SKILL.md
     │   └── references/              # redlines / cli / markdown / bases / canvas
-    ├── obsidian-suite/               # Skill C：调度入口（加载顺序指引）
+    ├── knowops-navigator/               # Skill C：调度入口（加载顺序指引）
     │   └── SKILL.md
     └── everywhere-note/              # Skill D：随身端捕获与电脑端入库
         ├── SKILL.md

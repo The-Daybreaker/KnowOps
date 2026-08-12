@@ -1,16 +1,16 @@
 ---
-name: kb-obsidian
-description: Obsidian 操作规范与工具红线。当需要执行 Obsidian 相关操作（读写改删笔记、搜索、移动重命名、vault 管理、日记配置、网页内容提取、Bases/Canvas 创建、Markdown 语法、插件控制、删除进回收站）时使用。包含两大部分：对所有工具的统一规范与红线（改删前征求同意、永不 git init、删除进回收站、记录归属询问用户等跨工具纪律），以及 Obsidian 专有操作规范（CLI 使用与怪癖、笔记操作、语法要点、网页素材捕获、插件控制）。本 skill 不包含知识库业务规则（模块路由、收件箱审阅、问题生命周期等由 knowledge-workflow 规范负责）。
+name: knowops-obsidian
+description: Obsidian 操作规范与工具红线。当需要执行 Obsidian 相关操作（读写改删笔记、搜索、移动重命名、vault 管理、日记配置、网页内容提取、Bases/Canvas 创建、Markdown 语法、插件控制、删除进回收站）时使用。包含两大部分：对所有工具的统一规范与红线（改删前征求同意、永不 git init、删除进回收站、记录归属询问用户等跨工具纪律），以及 Obsidian 专有操作规范（CLI 使用与怪癖、笔记操作、语法要点、网页素材捕获、插件控制）。本 skill 不包含知识库业务规则（模块路由、收件箱审阅、问题生命周期等由 knowops-workflow 规范负责）。
 ---
 
-# kb-obsidian Obsidian 操作规范
+# knowops-obsidian Obsidian 操作规范
 
 ## 定位
 
 本 skill 承载**所有对工具的要求**：① 对所有工具的统一规范与红线（跨工具通用
 纪律）；② Obsidian 专有操作规范（vault 与 CLI 相关）。**不含知识库业务规则**
-（模块路由、收件箱审阅、问题生命周期、沉淀流程等由 **knowledge-workflow**
-规范负责）——执行知识库相关操作时，流程与规则以 knowledge-workflow 规范为准，
+（模块路由、收件箱审阅、问题生命周期、沉淀流程等由 **knowops-workflow**
+规范负责）——执行知识库相关操作时，流程与规则以 knowops-workflow 规范为准，
 本 skill 只规定执行层面（怎么操作、操作红线、何时征求决策）。
 
 通用性说明：本文与 references 中的行为描述为**跨平台通用表述**，具体版本行为
@@ -40,7 +40,7 @@ description: Obsidian 操作规范与工具红线。当需要执行 Obsidian 相
       （如操作日志、配置文件、库内脚本副本及其 `html-export.json`）。
 7. **重要写入后回读校验**：写入 / 修改 / 移动后读回核对，确认内容与结构正确。
 8. **记录归属决策**：简短/零碎/临时的顿悟、灵感、想法、不明确内容默认写入
-   `00 收件箱`（见 knowledge-workflow 规范）；仍无法判定归属时询问用户，由用户
+   `00 收件箱`（见 knowops-workflow 规范）；仍无法判定归属时询问用户，由用户
    决定写入哪一模块；不自创模块、不静默放置。新增模块 / 知识类型同样先向用户
    确认。
 9. **信息以用户给出为准**：记录内容（如日程的时间地点、问题的描述、素材存放
