@@ -4,7 +4,7 @@
 
 职责：
   - 配置发现：显式 --config → 从当前目录向上查找 knowops.config.json
-  - 首次初始化写入：默认写入 vault 内隐藏目录 .config/（可改选其他位置）；
+  - 首次初始化写入：固定写入 vault 内隐藏目录 .config/（不提供位置选择）；
     写入规则：允许 vault 内隐藏目录（点开头），不写入用户笔记内容区
   - 多 vault：注册 / 列出 / 移除 / 默认切换 / 按名解析路径 / 路径校验
   - 偏好读写：get / set（点号键，如 preferences.knowledgeDir）
@@ -47,7 +47,7 @@ DEFAULT_PREFERENCES = {
     "logDir": ".config/log",
     "exportDirName": "HTML-Export",
     "dashboardFile": "看板.md",
-    "configDir": "config",
+    "configDir": "config",   # 不带点；hidden_dir_name() 自动补前缀（.config）
 }
 
 
@@ -143,7 +143,7 @@ def load_config(explicit: str | None = None, start: str | None = None) -> tuple[
         raise ConfigError(
             "未找到配置文件。请先执行首次初始化：\n"
             f"  kb_config.py init --vault-name <名称> --vault-path <vault路径>\n"
-            f"（配置默认写入 vault 内隐藏目录 .config/）"
+            f"（配置固定写入 vault 内隐藏目录 .config/）"
         )
     data = _read_json(path)
     check_schema(data, path)
@@ -281,6 +281,8 @@ def set_key(data: dict, dotted: str, raw_value: str):
         node = nxt
     leaf = parts[-1]
     old = node.get(leaf)
+    if leaf == "configDir":
+        raw_value = raw_value.strip().lstrip(".")
     node[leaf] = _coerce_value(raw_value, old)
     return old
 
@@ -310,13 +312,9 @@ def _coerce_value(raw: str, old):
 # ---------------------------------------------------------------------------
 
 def cmd_init(args) -> dict:
-    """首次初始化：创建配置文件。默认写入 vault 内隐藏目录 .config/（可改选）。"""
+    """首次初始化：创建配置文件。固定写入 vault 内隐藏目录 .config/。"""
     vault_path = validate_vault_path(args.vault_path)
-    config_path = args.config
-    if config_path:
-        config_path = _norm_path(config_path)
-    else:
-        config_path = os.path.join(default_config_dir(vault_path), CONFIG_FILENAME)
+    config_path = os.path.join(default_config_dir(vault_path), CONFIG_FILENAME)
 
     if os.path.exists(config_path) and not args.force:
         raise ConfigError(f"配置文件已存在：{config_path}（--force 可覆盖，或改用 add-vault）")
@@ -330,10 +328,9 @@ def cmd_init(args) -> dict:
         "vaults": {args.vault_name: {"name": args.vault_name, "path": vault_path}},
         "preferences": dict(DEFAULT_PREFERENCES),
     }
-    if args.export_root:
-        export_root = _norm_path(args.export_root)
-        assert_not_note_area(export_root, vault_path, "HTML 导出目录")
-        data["exportRoot"] = export_root
+    export_root = os.path.join(default_config_dir(vault_path), "HTML-Export")
+    assert_not_note_area(export_root, vault_path, "HTML 导出目录")
+    data["exportRoot"] = export_root
     if args.cli_path:
         cli = _norm_path(args.cli_path)
         if not os.path.isfile(cli):
@@ -432,7 +429,7 @@ def cmd_validate(args) -> dict:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="kb_config.py",
-        description="knowops 配置与多 vault 管理（配置默认写入 vault 内隐藏目录 .config/）",
+        description="knowops 配置与多 vault 管理（配置固定写入 vault 内隐藏目录 .config/）",
     )
     p.add_argument("--json", action="store_true", help="以 JSON 输出结果（供 agent 消费）")
     sub = p.add_subparsers(dest="command", required=True)
@@ -440,11 +437,9 @@ def build_parser() -> argparse.ArgumentParser:
     def add_config_arg(sp):
         sp.add_argument("--config", help="显式指定配置文件路径")
 
-    sp = sub.add_parser("init", help="首次初始化：创建配置文件")
+    sp = sub.add_parser("init", help="首次初始化：创建配置文件（固定 <vault>/.config/，默认启用 HTML 导出）")
     sp.add_argument("--vault-name", required=True, help="vault 名称（用户确认的实际名称）")
     sp.add_argument("--vault-path", required=True, help="vault 实际路径")
-    sp.add_argument("--config", help="配置文件写入位置（默认：<vault>/.config/）")
-    sp.add_argument("--export-root", help="HTML 导出根目录（可选；提供则启用导出，未提供则不写入 exportRoot）")
     sp.add_argument("--cli-path", help="Obsidian CLI 路径（可选，发现后写入）")
     sp.add_argument("--force", action="store_true", help="覆盖已存在的配置文件")
     sp.set_defaults(func=cmd_init)

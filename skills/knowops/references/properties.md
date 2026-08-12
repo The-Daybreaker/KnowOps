@@ -55,7 +55,7 @@
 ├── knowops.config.json            # 配置（schema 版本 = skill 版本）
 ├── log/                                # 操作日志（YYYY-MM/YYYY-MM-DD.md）
 ├── scripts/                            # 库内脚本副本 + html-export.json
-└── HTML-Export/                        # HTML 镜像导出（可选组件）
+└── HTML-Export/                        # HTML 镜像导出（默认组件）
 
 <Obsidian Vault>/
 ├── 00 收件箱/
@@ -126,11 +126,10 @@
 ## 知识系统增长触发规则
 
 - 同一目录 <50 篇：不拆，保持平铺；
-- 50~150 篇：建立领域二级目录（如 `概念原理/AI/`），并创建 `<领域>索引.md`
-  （如 `AI索引.md`）；
-- >150 篇：评估是否建立三级目录（谨慎，不提前设计）；
-- 接近 50 篇且同 `domain` 集中时，可向用户**建议**创建二级目录，由用户确认后
-  执行。
+- 接近或达到 50 篇且同 `domain` 集中：向用户**建议**创建领域二级目录（如
+  `概念原理/AI/`），**用户确认后**执行，并创建 `<领域>索引.md`（如
+  `AI索引.md`）；
+- >150 篇：评估是否建立三级目录（谨慎，不提前设计）。
 
 ## 配置键说明（preferences 默认值）
 
@@ -152,7 +151,7 @@
 | `todoDir` | `01 生活系统/任务` | 任务目录 |
 | `todoFile` | `01 生活系统/任务/TODO.md` | 人工快捷清单文件 |
 | `logDir` | `.config/log` | 操作日志目录 |
-| `configDir` | `.config` | 知识库无关文件隐藏目录名（点开头） |
+| `configDir` | `config` | 隐藏目录名存储值（不带点；脚本自动补前缀，实际目录 `.config`） |
 | `exportDirName` | `HTML-Export` | HTML 导出子目录名 |
 | `dashboardFile` | `看板.md` | 看板嵌入容器文件名 |
 
