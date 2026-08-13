@@ -97,7 +97,7 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
 
 ```
 KnowOps/
-├── README.md / README.en.md / LICENSE / .gitignore
+├── AGENTS.md / README.md / README.en.md / LICENSE / .gitignore
 └── skills/
     ├── knowops/                     # 桌面端统一入口
     │   ├── SKILL.md                 # 触发 + 加载规则 + 通用红线
@@ -109,7 +109,7 @@ KnowOps/
     │   │   └── desktop-ingest.md    # 暂存内容 → 00 收件箱
     │   ├── scripts/                 # html_export
     │   └── assets/
-    │       ├── system-manage/       # 08 系统管理初始化模板（6 文件）
+    │       ├── system-manage/       # 08 系统管理初始化模板（5 文件）
     │       ├── agent-rules.md       # .config/agent-rules.md 模板
     │       └── html-export.json     # HTML 导出范围配置模板
     └── everywhere-note/             # 随身端捕获
