@@ -9,7 +9,7 @@
     写入 exportRoot）；未配置时自动回退该默认位置，可后续改选。
   - 增量导出（按 mtime）与全量导出（--full）；删除的笔记同步移除对应 HTML；
     附件按相对路径一并复制；生成 vault 级详细索引 index.html
-    （v1.3.0 起不再生成导出根级索引，历史残留自动清理）。
+    （只生成 vault 级索引，历史残留的导出根级索引自动清理）。
   - 不依赖 Obsidian 处于打开状态；转换目标为"跨设备可读"，不追求与 Obsidian 完全一致。
 
 自写轻量 Markdown 转换器覆盖（Obsidian Flavored Markdown 子集）：
@@ -37,6 +37,11 @@ import sys
 import time
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 注意：本脚本在 vault 内以库内副本形式运行（初始化时复制到
+# <vault>/.config/scripts/，与 assets/html-export.json 配对），范围配置
+# html-export.json 与脚本副本同目录；skill 内 scripts/ 目录单独运行时
+# 该配置不存在，按「导出全部」处理（属预期行为）。
 
 SKIP_DIR_PREFIX = "."          # 跳过 .obsidian / .git / .trash 等隐藏目录
 NOTE_EXT = ".md"
@@ -777,8 +782,8 @@ def cmd_export_one(args) -> dict:
 
 
 def _clean_root_index(export_root: str) -> None:
-    """v1.3.0 起不再生成导出根级 index.html（只保留 vault 级详细索引）；
-    若历史导出残留了根级 index.html，在此尽力移除（失败不阻断导出）。"""
+    """只保留 vault 级详细索引，不再生成导出根级 index.html；
+    历史残留的根级 index.html 在此尽力移除（失败不阻断导出）。"""
     root_index = os.path.join(export_root, "index.html")
     if os.path.isfile(root_index):
         try:
@@ -833,7 +838,6 @@ def build_parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="command", required=True)
 
     sp = sub.add_parser("export", help="增量导出整个 vault（--full 全量重建），并同步移除已删除笔记的镜像")
-    sp.add_argument("--config", help="显式指定配置文件路径")
     sp.add_argument("--vault", help="vault 名称（缺省用默认 vault）")
     sp.add_argument("--full", action="store_true", help="全量重建")
     sp.add_argument("--vault-path", help="覆盖 vault 路径（免配置模式，需同时给 --export-root）")
@@ -841,7 +845,6 @@ def build_parser() -> argparse.ArgumentParser:
     sp.set_defaults(func=cmd_export)
 
     sp = sub.add_parser("export-one", help="导出单篇笔记（写入/修改后的快速增量）")
-    sp.add_argument("--config", help="显式指定配置文件路径")
     sp.add_argument("--vault", help="vault 名称（缺省用默认 vault）")
     sp.add_argument("--file", required=True, help="vault 相对路径或绝对路径")
     sp.add_argument("--vault-path", help="覆盖 vault 路径")

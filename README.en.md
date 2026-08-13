@@ -120,7 +120,7 @@ Usage examples:
 
 ```
 KnowOps/
-├── README.md / README.en.md / LICENSE / .gitignore
+├── AGENTS.md / README.md / README.en.md / LICENSE / .gitignore
 └── skills/
     ├── knowops/                     # Desktop entry point
     │   ├── SKILL.md                 # trigger + loading rules + common red lines
@@ -132,7 +132,7 @@ KnowOps/
     │   │   └── desktop-ingest.md    # captured content → 00 收件箱
     │   ├── scripts/                 # html_export
     │   └── assets/
-    │       ├── system-manage/       # 08 系统管理 onboarding templates (6 files)
+    │       ├── system-manage/       # 08 系统管理 onboarding templates (5 files)
     │       ├── agent-rules.md       # .config/agent-rules.md template
     │       └── html-export.json     # HTML export range config template
     └── everywhere-note/             # Portable capture
