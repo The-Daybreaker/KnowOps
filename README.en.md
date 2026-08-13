@@ -35,7 +35,7 @@ on phones/tablets.
   knowledge note;
 - **Knowledge distillation**: grouped by type (概念原理 / 经验方法 / 方案 / 案例),
   domain subfolders created **only when used**, growth-triggered splitting
-  (<50 keep flat / 50–150 add domain level / >150 evaluate third level);
+  (<50 keep flat / near 50 add a domain level after confirmation / >150 evaluate third level);
 - **Assets & standards**: templates / workflows for reuse; principles / standards /
   checklists for compliance;
 - **Project system**: active / completed / retrospective, with a six-file project
@@ -56,9 +56,10 @@ on phones/tablets.
 - **Config-driven, version-following**: directories and preferences live in `.config/knowops.config.json` (single vault);
   schema version follows the skill version;
 - **Data-safety red lines**: delete always goes to the system trash and stays
-  recoverable; consent before modify/move/delete; never run `git init` for the user;
-  similarity check before creating; user-provided info is authoritative; read back
-  and verify after important writes.
+  recoverable; high-risk changes (mass file impact, permanent deletes) ask for
+  consent first, while low-risk ones run first and are logged afterwards; never run
+  `git init` for the user; similarity check before creating; user-provided info is
+  authoritative; read back and verify after important writes.
 
 ## Installation
 
@@ -101,7 +102,7 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
    nine-module structure and config location (defaults to the hidden `.config/`
    directory inside the vault), plugin integration rules (written to
     `.config/agent-rules.md`), the `08 系统管理` template set, the `06 看板`
-   dashboard, and optionally HTML mirror export.
+   dashboard, and the HTML mirror export (enabled by default).
 3. Load the tool skills (CLI / Markdown / Bases / Canvas / web extraction) on
    demand when their capability is needed.
 
@@ -123,7 +124,7 @@ Usage examples:
 
 ```
 KnowOps/
-├── README.md / README.en.md / LICENSE / .gitignore
+├── README.md / README.en.md / LICENSE / .gitignore / AGENTS.md
 └── skills/
     ├── knowops/                     # Desktop entry point
     │   ├── SKILL.md                 # trigger + loading rules + common red lines
