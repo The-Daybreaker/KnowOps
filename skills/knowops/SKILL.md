@@ -1,7 +1,7 @@
 ---
 name: knowops
 metadata:
-  version: 1.2.5
+  version: 1.2.6
 description: 知识库管理与 Obsidian 操作。当用户要求记录、整理、搜索、审阅知识库内容，执行 Obsidian 操作（读写改删笔记、移动、日记、插件、Bases/Canvas/Markdown），或将暂存内容/文件写入知识库时使用。工作流规范与执行红线按 references 渐进式加载；具体语法与命令以 obsidian-cli、obsidian-markdown、obsidian-bases、json-canvas、defuddle 及官方文档为准。
 ---
 
