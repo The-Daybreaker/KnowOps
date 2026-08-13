@@ -1,11 +1,12 @@
 # agent 工作区记忆（不入库）
 .workbuddy/
-# 发布产物（由 update_skill.py 生成，可随时重建）
+# 发布产物（可随时重建）
 dist/
 # 测试产物（forward-test 配置与镜像，不入库）
 .test-env/
-# 开发期文档与发布工具（本地维护，不进 GitHub）
+# 开发期文档（本地维护，不进 GitHub）
 dev/
+AGENTS.md
 # 旧版存档（历史参考，不进 GitHub）
 legacy/
 # Python

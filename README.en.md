@@ -120,7 +120,7 @@ Usage examples:
 
 ```
 KnowOps/
-├── AGENTS.md / README.md / README.en.md / LICENSE / .gitignore
+├── README.md / README.en.md / LICENSE / .gitignore
 └── skills/
     ├── knowops/                     # Desktop entry point
     │   ├── SKILL.md                 # trigger + loading rules + common red lines
