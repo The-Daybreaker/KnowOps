@@ -97,7 +97,7 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
 
 ```
 KnowOps/
-├── AGENTS.md / README.md / README.en.md / LICENSE / .gitignore
+├── README.md / README.en.md / LICENSE / .gitignore
 └── skills/
     ├── knowops/                     # 桌面端统一入口
     │   ├── SKILL.md                 # 触发 + 加载规则 + 通用红线
