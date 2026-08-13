@@ -37,10 +37,10 @@ skill（`everywhere-note`）负责手机/平板上的快速记录。
   镜像、双向同步；
 - **看板默认创建**：Bases 数据库驱动，改状态 / 标签即实时更新，可扩展视图；
 - **归档与系统管理**：`07 归档` 按中文补零日期切分；`08 系统管理` 承载架构、
-  分类、命名、Frontmatter、Agent 规则、变更记录与用户手册；
-- **插件集成规则**：初始化扫描插件、由用户确认规则写入 `08 系统管理/Agent规则.md`，
+  分类、命名、Frontmatter、变更记录与用户手册；
+- **插件集成规则**：初始化扫描插件、由用户确认规则写入隐藏配置 `.config/agent-rules.md`，
   每次变更操作前读取、操作后按规则执行（如先版本提交、再云同步）；
-- **配置驱动、版本跟随**：目录与偏好全在配置中，schema 版本跟随 skill 版本；
+- **配置驱动、版本跟随**：目录与偏好全在 `.config/knowops.config.json`（单 vault），schema 版本跟随 skill 版本；
 - **数据安全红线**：删除永远进系统回收站且可恢复、高风险改删移前征求同意、不代为
   git init、创建前相似检查、信息以用户为准、重要写入后回读校验。
 
@@ -73,7 +73,7 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
    - 执行 Obsidian 操作 → 先读 `references/redlines.md`；
    - 暂存内容入库 → 读 `references/desktop-ingest.md`。
 2. 初始化向导会逐步确认：vault 路径与名称、00–08 九个模块默认目录结构、插件
-   集成规则（写入 `08 系统管理/Agent规则.md`）、08 系统管理模板、06 看板；
+   集成规则（写入 `.config/agent-rules.md`）、08 系统管理模板、06 看板；
    配置与日志固定写入 vault 内隐藏目录 `.config/`，HTML 镜像导出默认启用
    （`<vault>/.config/HTML-Export/`）。
 3. 用到具体能力（CLI / Markdown / Bases / Canvas / 网页提取）时，按需加载对应
@@ -107,9 +107,10 @@ KnowOps/
     │   │   ├── properties.md        # 属性/命名/目录/生命周期设计
     │   │   ├── redlines.md          # 执行层红线 + 直写例外
     │   │   └── desktop-ingest.md    # 暂存内容 → 00 收件箱
-    │   ├── scripts/                 # kb_config / kb_env / html_export
+    │   ├── scripts/                 # html_export
     │   └── assets/
-    │       ├── system-manage/       # 08 系统管理初始化模板（7 文件）
+    │       ├── system-manage/       # 08 系统管理初始化模板（6 文件）
+    │       ├── agent-rules.md       # .config/agent-rules.md 模板
     │       └── html-export.json     # HTML 导出范围配置模板
     └── everywhere-note/             # 随身端捕获
         ├── SKILL.md

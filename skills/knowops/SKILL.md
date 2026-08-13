@@ -7,12 +7,21 @@ description: 知识库管理与 Obsidian 操作。当用户要求记录、整理
 
 ## 定位
 
-桌面端知识库管理的统一入口。本 skill 的 SKILL.md 只承载触发、加载规则与通用红线；
-业务流程、执行层红线与桌面入库流程均按需加载自 references/。
+桌面端知识库管理的统一入口。本 skill 的 SKILL.md 只承载触发、前置引导、加载规则与
+通用红线；业务流程、执行层红线与桌面入库流程均按需加载自 references/。
 
 具体语法与命令以已安装的官方工具 skill（obsidian-cli / obsidian-markdown /
 obsidian-bases / json-canvas / defuddle）为准；未安装时询问用户是否安装，拒绝则
 用 Obsidian 官方文档（help.obsidian.md）兜底。
+
+## 每次对话前置（任何任务开始前必做）
+
+1. 确定目标 vault（用户指定 / 通过 Obsidian CLI 查询已注册 vault 供点选 / 当前目录
+   向上查找 `.config/knowops.config.json`；仍不确定就询问用户，不猜测）。
+2. 读取该 vault 的 `.config/knowops.config.json`（目录名、路径、HTML 导出等偏好）。
+3. 读取该 vault 的 `.config/agent-rules.md`（若存在：插件规则、额外红线、额外操作、
+   旧库约定）。
+4. 找不到配置 → 该 vault 尚未初始化 → 按 `references/init-config.md` 走初始化向导。
 
 ## 加载规则（先读引用，再操作）
 
@@ -37,4 +46,5 @@ obsidian-bases / json-canvas / defuddle）为准；未安装时询问用户是�
 5. **创建前相似检查**：创建新内容前先搜索相似内容，高相似时由用户决策
    （合并 / 跳过 / 仍写入）。
 6. **重要写入后回读校验**：写入/修改/移动后读回核对内容与结构。
-7. **变更操作前读取 `Agent规则.md`**：路径以配置为准，默认 `08 系统管理/Agent规则.md`。
+7. **变更操作前读取 `.config/agent-rules.md`**：agent 读的个性化约束（插件规则、
+   额外红线、额外操作、旧库约定）；文件不存在视为无额外约束。

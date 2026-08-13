@@ -2,8 +2,7 @@
 
 > 本文件是 knowops 的桌面端入库流程。执行前先加载 `references/workflow.md`
 > （流程规范）与 `references/redlines.md`（操作规范与红线），并按其中约定读取
-> `Agent规则.md`（路径以配置为准，默认 `08 系统管理/Agent规则.md`）。本文件只
-> 定义"暂存内容 → 00 收件箱"这一步。
+> `.config/agent-rules.md`。本文件只定义"暂存内容 → 00 收件箱"这一步。
 >
 > 随身端条目由 everywhere-note 生成；字段契约（`type`/`capture_kind`/`created`/
 > `tags`/文件名）需与其 `references/mobile-capture.md` 保持一致，任何修改须两端同步。
@@ -41,7 +40,7 @@
 
 1. 按 `capture_kind` 写入对应子目录：`00 收件箱/随手记|灵感|待整理内容/`；
 2. 文件名沿用 `YYYY-MM-DD 标题.md`；
-3. 用 Obsidian CLI 创建（路径/名称以配置与 `Agent规则.md` 为准）；长内容或特殊
+3. 用 Obsidian CLI 创建（路径/名称以配置与 `.config/agent-rules.md` 为准）；长内容或特殊
    字符按 `references/redlines.md` 的直写例外规范处理；
 4. 写入后**回读校验**，确认内容与结构正确；
 5. 在当日操作日志追加一行（`<时间> [入库] 路径与条目`）。

@@ -37,9 +37,6 @@ import sys
 import time
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, SCRIPT_DIR)
-
-import kb_config  # noqa: E402
 
 SKIP_DIR_PREFIX = "."          # 跳过 .obsidian / .git / .trash 等隐藏目录
 NOTE_EXT = ".md"
@@ -794,25 +791,39 @@ class ExportError(Exception):
     pass
 
 
+def _norm_path(p: str) -> str:
+    return os.path.normpath(os.path.abspath(os.path.expanduser(p)))
+
+
+def _load_config() -> dict:
+    """读取脚本上级 knowops.config.json（脚本位于 .config/scripts/）。"""
+    path = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "knowops.config.json"))
+    if os.path.isfile(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                return data
+        except (OSError, json.JSONDecodeError):
+            pass
+    return {}
+
+
 def _resolve_paths(args) -> tuple[str, str, str]:
-    """返回 (vault_name, vault_path, export_root)。优先命令行覆盖，其次配置文件。"""
-    vault_path = getattr(args, "vault_path", None)
-    export_root = getattr(args, "export_root", None)
-    vault_name = getattr(args, "vault", None)
-    if vault_path:
-        vault_path = kb_config.validate_vault_path(vault_path)
-        export_root = export_root or os.path.join(
-            kb_config.default_config_dir(vault_path), "HTML-Export"
-        )
-        return vault_name or os.path.basename(os.path.normpath(vault_path)), \
-            vault_path, kb_config._norm_path(export_root)
-    config, _ = kb_config.load_config(getattr(args, "config", None))
-    v = kb_config.resolve_vault(config, vault_name)
-    vault_path = kb_config.validate_vault_path(v["path"])
-    export_root = export_root or config.get("exportRoot") or os.path.join(
-        kb_config.default_config_dir(vault_path), "HTML-Export"
-    )
-    return v["name"], vault_path, kb_config._norm_path(export_root)
+    """返回 (vault_name, vault_path, export_root)。优先命令行，其次同库配置。"""
+    config = _load_config()
+    vault_path = getattr(args, "vault_path", None) or config.get("vaultPath") or ""
+    if not vault_path:
+        raise ExportError("未指定 vault 路径：请用 --vault-path，或先完成初始化生成 .config/knowops.config.json")
+    vault_path = _norm_path(vault_path)
+    if not os.path.isdir(vault_path):
+        raise ExportError(f"vault 路径不存在：{vault_path}")
+    export_root = getattr(args, "export_root", None) or config.get("exportRoot") or os.path.join(".config", "HTML-Export")
+    if not os.path.isabs(export_root):
+        export_root = os.path.join(vault_path, export_root)
+    export_root = _norm_path(export_root)
+    vault_name = getattr(args, "vault", None) or os.path.basename(os.path.normpath(vault_path))
+    return vault_name, vault_path, export_root
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -845,7 +856,7 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     try:
         result = args.func(args)
-    except (ExportError, kb_config.ConfigError) as e:
+    except ExportError as e:
         if args.json:
             print(json.dumps({"ok": False, "error": str(e)}, ensure_ascii=False))
         else:

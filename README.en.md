@@ -48,12 +48,12 @@ on phones/tablets.
   extensible on request;
 - **Archive & system management**: `07 归档` uses zero-padded Chinese date folders;
   `08 系统管理` holds architecture, classification, naming, frontmatter, agent
-  rules, change log and user manual;
+  change log and user manual;
 - **Plugin integration rules**: at onboarding, plugins are scanned and the user
-  confirms how they integrate; rules are written to `08 系统管理/Agent规则.md`,
+  confirms how they integrate; rules are written to hidden config `.config/agent-rules.md`,
   read before every mutating operation and executed afterwards (e.g., version
   commit first, then cloud sync);
-- **Config-driven, version-following**: directories and preferences live in config;
+- **Config-driven, version-following**: directories and preferences live in `.config/knowops.config.json` (single vault);
   schema version follows the skill version;
 - **Data-safety red lines**: delete always goes to the system trash and stays
   recoverable; consent before modify/move/delete; never run `git init` for the user;
@@ -97,7 +97,7 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
 2. The onboarding wizard confirms step by step: vault path & name, the 00–08
    nine-module structure and config location (defaults to the hidden `.config/`
    directory inside the vault), plugin integration rules (written to
-   `08 系统管理/Agent规则.md`), the `08 系统管理` template set, the `06 看板`
+    `.config/agent-rules.md`), the `08 系统管理` template set, the `06 看板`
    dashboard, and optionally HTML mirror export.
 3. Load the tool skills (CLI / Markdown / Bases / Canvas / web extraction) on
    demand when their capability is needed.
@@ -130,9 +130,10 @@ KnowOps/
     │   │   ├── properties.md        # properties/naming/layout/lifecycle design
     │   │   ├── redlines.md          # execution red lines + direct-write exceptions
     │   │   └── desktop-ingest.md    # captured content → 00 收件箱
-    │   ├── scripts/                 # kb_config / kb_env / html_export
+    │   ├── scripts/                 # html_export
     │   └── assets/
-    │       ├── system-manage/       # 08 系统管理 onboarding templates (7 files)
+    │       ├── system-manage/       # 08 系统管理 onboarding templates (6 files)
+    │       ├── agent-rules.md       # .config/agent-rules.md template
     │       └── html-export.json     # HTML export range config template
     └── everywhere-note/             # Portable capture
         ├── SKILL.md
