@@ -79,6 +79,9 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
 # then copy the matching directory under skills/ into the user-level skill directory
 ```
 
+> You can also download the `<skill>-vX.Y.Z.zip` package from GitHub Releases
+> (generated on every release; the skill directory is the zip root).
+
 > **Dependencies**: knowops delegates concrete syntax and commands to the official
 > tool skills (obsidian-cli / obsidian-markdown / obsidian-bases / json-canvas /
 > defuddle) from the official Obsidian skills repository
