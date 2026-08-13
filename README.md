@@ -61,6 +61,9 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
 # 然后把 skills/ 下对应目录复制到用户级 skill 目录
 ```
 
+> 也可以从 GitHub Releases 下载 `<skill>-vX.Y.Z.zip` 安装包（每次发布自动生成，
+> zip 内以 skill 名为根目录）。
+
 > **依赖**：`knowops` 的具体语法与命令交由官方工具型 skill（obsidian-cli /
 > obsidian-markdown / obsidian-bases / json-canvas / defuddle），它们来自 Obsidian
 > 官方技能仓库 [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills)，
