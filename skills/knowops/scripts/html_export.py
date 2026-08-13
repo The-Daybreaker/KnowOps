@@ -149,10 +149,12 @@ def slugify(heading: str, used: set[str]) -> str:
 
 
 class MdConverter:
-    def __init__(self, resolver: LinkResolver, current_rel: str):
+    def __init__(self, resolver: LinkResolver, current_rel: str,
+                 all_files: set[str] | None = None):
         self.resolver = resolver
         self.current_rel = current_rel          # 当前笔记 vault 相对路径（posix）
         self.current_dir = posixpath.dirname(current_rel)
+        self._all_files = all_files if all_files is not None else set()
         self.has_mermaid = False
         self._used_slugs: set[str] = set()
         self._code_blocks: list[str] = []
@@ -190,12 +192,13 @@ class MdConverter:
             if ext in IMAGE_EXTS:
                 href = self._file_href(rel) if rel else html.escape(target)
                 w = f' width="{html.escape(size)}"' if size.isdigit() else ""
-                alt = html.escape(posixpath.basename(target))
+                alt = posixpath.basename(target)
                 return f'<img class="embed" src="{href}" alt="{alt}"{w}>'
             if rel:
-                label = html.escape(posixpath.basename(target))
+                label = posixpath.basename(target)
                 return f'<a class="wikilink embed-file" href="{self._href_to(rel[: -len(NOTE_EXT)] if rel.lower().endswith(NOTE_EXT) else rel)}">{label}</a>'
-            return f'<span class="unresolved">![[{html.escape(inner)}]]</span>'
+            inner_disp = inner.replace("[", "&#91;").replace("]", "&#93;")
+            return f'<span class="unresolved">!&#91;&#91;{inner_disp}&#93;&#93;</span>'
 
         text = re.sub(r"!\[\[([^\]]+)\]\]", repl_embed, text)
 
@@ -208,8 +211,8 @@ class MdConverter:
                 anchor_slug = ""
                 if anchor:
                     anchor_slug = re.sub(r"[^\w一-鿿\- ]", "", anchor.lstrip("#")).strip().lower().replace(" ", "-")
-                return f'<a class="wikilink" href="{self._href_to(stem, anchor_slug)}">{html.escape(label)}</a>'
-            return f'<span class="unresolved">{html.escape(label)}</span>'
+                return f'<a class="wikilink" href="{self._href_to(stem, anchor_slug)}">{label}</a>'
+            return f'<span class="unresolved">{label}</span>'
 
         text = re.sub(r"\[\[([^\]|#]+)(#[^\]|]*)?(?:\|([^\]]+))?\]\]", repl_wikilink, text)
 
@@ -287,8 +290,6 @@ class MdConverter:
             if posixpath.basename(f).lower() == base:
                 return f
         return None
-
-    _all_files: set[str] = set()
 
     # ---- 块级处理 ----
 
@@ -658,11 +659,15 @@ def scan_vault(vault_path: str, range_cfg: dict | None = None) -> tuple[list[str
 
 
 def mirror_root_for(export_root: str, vault_name: str) -> str:
-    return os.path.join(export_root, vault_name)
+    safe = re.sub(r'[\\/:*?"<>|]', "_", (vault_name or "")).strip()
+    if not safe or safe in (".", ".."):
+        raise ExportError(f"vault 名称非法：{vault_name!r}")
+    return os.path.join(export_root, safe)
 
 
 def convert_one(vault_path: str, mirror_root: str, rel: str,
-                resolver: LinkResolver, force: bool = False) -> str:
+                resolver: LinkResolver, all_files: set[str],
+                force: bool = False) -> str:
     """转换单篇笔记。返回状态：written / skipped。"""
     src = os.path.join(vault_path, rel.replace("/", os.sep))
     html_rel = rel[: -len(NOTE_EXT)] + ".html" if rel.lower().endswith(NOTE_EXT) else rel + ".html"
@@ -671,7 +676,7 @@ def convert_one(vault_path: str, mirror_root: str, rel: str,
         return "skipped"
     with open(src, "r", encoding="utf-8") as f:
         text = f.read()
-    conv = MdConverter(resolver, rel)
+    conv = MdConverter(resolver, rel, all_files)
     body, fm = conv.render(text)
     title = fm.get("title") or posixpath.basename(rel[: -len(NOTE_EXT)])
     depth = rel.count("/")
@@ -732,11 +737,12 @@ def cmd_export(args) -> dict:
 
     notes, attachments = scan_vault(vault_path, _range_cfg())
     resolver = LinkResolver(notes)
-    MdConverter._all_files = set(notes) | set(attachments)
+    all_files = set(notes) | set(attachments)
 
     stats = {"written": 0, "skipped": 0, "copied": 0, "pruned": []}
     for rel in notes:
-        status = convert_one(vault_path, mirror_root, rel, resolver, force=args.full)
+        status = convert_one(vault_path, mirror_root, rel, resolver,
+                             all_files, force=args.full)
         stats["written" if status == "written" else "skipped"] += 1
     for rel in attachments:
         if copy_attachment(vault_path, mirror_root, rel) == "copied":
@@ -759,18 +765,28 @@ def cmd_export(args) -> dict:
 def cmd_export_one(args) -> dict:
     vault_name, vault_path, export_root = _resolve_paths(args)
     mirror_root = mirror_root_for(export_root, vault_name)
-    rel = args.file.replace("\\", "/").lstrip("/")
+    vault_abs = os.path.abspath(vault_path)
     if os.path.isabs(args.file):
-        rel = os.path.relpath(args.file, vault_path).replace(os.sep, "/")
+        try:
+            rel = os.path.relpath(os.path.abspath(args.file), vault_abs)
+        except ValueError:
+            raise ExportError(f"路径不在 vault 所在驱动器：{args.file}")
+    else:
+        rel = args.file.replace("\\", "/").lstrip("/")
+    rel_norm = os.path.normpath(rel.replace("/", os.sep))
+    if rel_norm == ".." or rel_norm.startswith(".." + os.sep):
+        raise ExportError(f"路径越出 vault 范围：{args.file}")
+    rel = rel_norm.replace(os.sep, "/")
     if not rel.lower().endswith(NOTE_EXT):
         rel += NOTE_EXT
-    src = os.path.join(vault_path, rel.replace("/", os.sep))
+    src = os.path.join(vault_abs, rel.replace("/", os.sep))
     if not os.path.isfile(src):
         raise ExportError(f"笔记不存在：{rel}")
     notes, attachments = scan_vault(vault_path, _range_cfg())
     resolver = LinkResolver(notes)
-    MdConverter._all_files = set(notes) | set(attachments)
-    status = convert_one(vault_path, mirror_root, rel, resolver, force=True)
+    all_files = set(notes) | set(attachments)
+    status = convert_one(vault_path, mirror_root, rel, resolver,
+                         all_files, force=True)
     index_entries = [(r, os.path.getmtime(os.path.join(vault_path, r.replace("/", os.sep))))
                      for r in notes]
     os.makedirs(mirror_root, exist_ok=True)

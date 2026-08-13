@@ -2,13 +2,10 @@
 .workbuddy/
 # 发布产物（可随时重建）
 dist/
-# 开发期文档（本地维护，不进 GitHub）
-dev/
-AGENTS.md
+# 私有目录（个人/开发文档、测试库；内部子 git 管理，不进 GitHub）
+private/
 # 旧版存档（历史参考，不进 GitHub）
 legacy/
 # Python
 __pycache__/
 *.pyc
-# 本地测试知识库（不入库）
-test/
