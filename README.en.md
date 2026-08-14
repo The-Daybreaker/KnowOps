@@ -30,6 +30,7 @@ on phones/tablets.
   and common red lines; workflow.md, redlines.md and desktop-ingest.md are read on
   demand;
 - **Portable capture & unified ingest**: @ everywhere-note on a phone/portable device and dictate directly; it generates KB-compliant markdown (a file when supported) and sets a 22:00 reminder; back at the desktop, knowops parses the captures and writes them into `00 收件箱`; the phone only needs this one skill and no transfer channel;
+- **GitHub staging repo sync (optional)**: you designate a GitHub staging repo; on the phone, when GitHub capability is available (gh CLI / git / GitHub MCP etc.), entries are uploaded into this KB's folder in the staging repo; on the desktop, "ingest" pulls new entries into `00 收件箱` and archives the source files into `<KB-name>/归档/<date>/` in the staging repo (split by ingest date); multiple KBs can share one staging repo without conflicts;
 - **Full question lifecycle**: unresolved → in progress → resolved → distilled;
   the original question moves to `已沉淀` and keeps **bidirectional links** to the
   knowledge note;
@@ -99,10 +100,9 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
    - Obsidian operations → read `references/redlines.md` first;
    - Ingesting captured content/files → read `references/desktop-ingest.md`.
 2. The onboarding wizard confirms step by step: vault path & name, the 00–08
-   nine-module structure and config location (defaults to the hidden `.config/`
-   directory inside the vault), plugin integration rules (written to
-    `.config/agent-rules.md`), the `08 系统管理` template set, the `06 看板`
-   dashboard, and the HTML mirror export (enabled by default).
+   nine-module structure, optional GitHub staging repo sync, plugin integration
+   rules (written to `.config/agent-rules.md`), the `08 系统管理` template set,
+   the `06 看板` dashboard, and the HTML mirror export (enabled by default).
 3. Load the tool skills (CLI / Markdown / Bases / Canvas / web extraction) on
    demand when their capability is needed.
 
@@ -110,8 +110,8 @@ Usage examples:
 
 | You say | The agent does |
 |---|---|
-| Phone: "log: XXX" | everywhere-note generates a KB-compliant md entry and sets a 22:00 reminder |
-| "Ingest today's phone captures" | knowops loads desktop-ingest.md, parses and writes into `00 收件箱` |
+| Phone: "log: XXX" | everywhere-note generates a KB-compliant md entry and sets a 22:00 reminder; uploads to the staging repo when configured and GitHub capability is available |
+| "Ingest today's phone captures" | knowops loads desktop-ingest.md: user-provided content first; with a staging repo configured, pulls new entries from GitHub into `00 收件箱` and archives the sources to the staging repo |
 | "Log an idea: ..." | Writes it to `00 收件箱/灵感/` with properties & tags |
 | "Log a question: how to handle FPGA clock domain crossing" | Creates a question note (`01 生活系统/问题/未解决/`), links task and log |
 | "Project review at 3pm Friday" | Creates a schedule note + auto-creates a reminder |
@@ -130,25 +130,28 @@ KnowOps/
     │   ├── SKILL.md                 # trigger + loading rules + common red lines
     │   ├── references/
     │   │   ├── workflow.md          # workflow spec (model/classification/module flows/log/post-op)
-    │   │   ├── init-config.md       # onboarding/plugin integration/config & HTML export/scripts
+    │   │   ├── init-config.md       # onboarding/GitHub staging/plugin integration/config & HTML export/scripts
     │   │   ├── properties.md        # properties/naming/layout/lifecycle design
     │   │   ├── redlines.md          # execution red lines + direct-write exceptions
-    │   │   └── desktop-ingest.md    # captured content → 00 收件箱
+    │   │   └── desktop-ingest.md    # captured content / GitHub staging pull → 00 收件箱
     │   ├── scripts/                 # html_export
     │   └── assets/
     │       ├── system-manage/       # 08 系统管理 onboarding templates (5 files)
     │       ├── agent-rules.md       # .config/agent-rules.md template
     │       └── html-export.json     # HTML export range config template
-    └── everywhere-note/             # Portable capture
-        ├── SKILL.md
-        ├── references/mobile-capture.md
-        └── assets/capture-template.md
+    ├── everywhere-note/             # Portable capture (optional GitHub staging sync)
+    │   ├── SKILL.md
+    │   ├── references/mobile-capture.md
+    │   └── assets/capture-template.md
+    └── automation-prompt-template.md  # automation prompt template for scheduled ingest
 ```
 
 ## Roadmap (future directions)
 
-- Once mobile agents gain GitHub / Nutstore-style file sync: the portable side auto-syncs captures to the platform, and the desktop runs a scheduled task to pull and ingest them;
-- The phone sends a reminder to the desktop to trigger an automated ingest.
+- Other file-sync channels such as Nutstore (GitHub staging-repo sync is
+  implemented, see above);
+- The phone sends a reminder to the desktop to trigger an automated ingest
+  (scheduled ingest can be set up via `skills/automation-prompt-template.md`).
 
 Not implemented yet; recorded for future work.
 

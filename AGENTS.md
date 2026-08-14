@@ -8,7 +8,10 @@
 - **定位**：面向 AI agent 的 Obsidian 知识管理 skill 包，单仓库两 skill，统一版本号
   一起发布。
 - `skills/knowops/`：桌面端统一入口（知识库怎么组织 + Obsidian 怎么操作）。
-- `skills/everywhere-note/`：随身端捕获（手机 @ 即记，生成规范 md + 22:00 提醒）。
+- `skills/everywhere-note/`：随身端捕获（手机 @ 即记，生成规范 md + 22:00 提醒；
+  可选 GitHub 暂存库同步）。
+- `skills/automation-prompt-template.md`：自动化入库提示词模板（设置定时自动化时
+  使用）。
 - **版本**：两 skill 统一版本号，以各 SKILL.md frontmatter 的 `metadata.version`
   为准。
 - 同一设备不要同时安装两个 skill（触发竞争），README 已注明。
@@ -16,7 +19,7 @@
 ## 仓库布局
 
 git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.md`
-（本文件）、`skills/`（两 skill 的全部运行时文件）。
+（本文件）、`skills/`（两 skill 的全部运行时文件 + automation-prompt-template.md）。
 
 克隆本仓库后，把 `skills/` 下对应 skill 目录复制到 agent 的用户级 skill 目录即可
 安装（详见 README）。
@@ -24,7 +27,8 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
 ## 架构要点
 
 - **单 vault 配置**：`<vault>/.config/knowops.config.json`，由 agent 直接读写；
-  schema 为 `version / vaultPath / exportRoot / exportEnabled / preferences`。
+  schema 为 `version / vaultPath / exportRoot / exportEnabled / preferences`，
+  可选顶层键 `githubSync`（GitHub 暂存库同步：`enabled/repo/branch/folder`）。
 - **每次对话前置（bootstrap）**：定位 vault → 读配置 → 读 `.config/agent-rules.md`
   （若存在）→ 缺配置则按 `references/init-config.md` 初始化。任何新对话都能从零
   接手知识库。
@@ -35,6 +39,11 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
 - **两 skill 依赖方向**：knowops 解析 everywhere-note 的 capture 产物（字段契约
   `type/capture_kind/created/tags/文件名`）；everywhere-note 不依赖 knowops。
   **改契约必须两端同步**（desktop-ingest.md ↔ mobile-capture.md）。
+- **GitHub 暂存库同步（可选）**：手机端在用户指定暂存库且具备 GitHub 能力时上传
+  条目到暂存库 `<folder>/`；knowops 入库时拉取新条目、并把源文件归档到暂存库
+  `<folder>/归档/<入库日期>/`。暂存库目录约定两端同步。
+- **操作后核验**：每次写入/修改/移动/删除/归档后回读核验（必填属性/命名/双链/
+  操作日志与日记同步/任务双轨/插件与导出），缺失即补正。
 - 工具型 skill（obsidian-cli / obsidian-markdown / obsidian-bases / json-canvas /
   defuddle）来自 [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills)，
   不随本项目打包；knowops 只引用、不复制其内容。

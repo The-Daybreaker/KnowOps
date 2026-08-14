@@ -26,6 +26,10 @@ skill（`everywhere-note`）负责手机/平板上的快速记录。
 - **随身端捕获与统一入库**：手机/随身设备上 @ everywhere-note 直接口述记录，生成
   符合知识库格式的 md（支持生成文件）并设 22:00 提醒；回到电脑后由 knowops 解析
   暂存内容批量写入 `00 收件箱`；手机端只装这一个 skill 即可独立使用，不依赖传输通道；
+- **GitHub 暂存库同步（可选）**：用户指定一个 GitHub 暂存库；手机端在具备 GitHub
+  能力（gh CLI / git / GitHub MCP 等）时把条目上传到暂存库中本知识库的目录；电脑端
+  入库时自动拉取新条目写入 `00 收件箱`，并把源文件归档到暂存库
+  `<知识库名>/归档/<日期>/`（按入库日期切分）；多个知识库可共用同一暂存库互不冲突；
 - **问题全生命周期**：未解决 → 研究中 → 已解决 → 已沉淀；沉淀后原问题移入
   已沉淀并**双向链接**回知识笔记；
 - **知识沉淀**：按类型归类（概念原理 / 经验方法 / 方案 / 案例），领域二级目录
@@ -75,10 +79,10 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
    - 记录/管理/整理内容 → 先读 `references/workflow.md`，需要时运行**初始化向导**；
    - 执行 Obsidian 操作 → 先读 `references/redlines.md`；
    - 暂存内容入库 → 读 `references/desktop-ingest.md`。
-2. 初始化向导会逐步确认：vault 路径与名称、00–08 九个模块默认目录结构、插件
-   集成规则（写入 `.config/agent-rules.md`）、08 系统管理模板、06 看板；
-   配置与日志固定写入 vault 内隐藏目录 `.config/`，HTML 镜像导出默认启用
-   （`<vault>/.config/HTML-Export/`）。
+2. 初始化向导会逐步确认：vault 路径与名称、00–08 九个模块默认目录结构、GitHub
+   暂存库同步（可选）、插件集成规则（写入 `.config/agent-rules.md`）、08 系统管理
+   模板、06 看板；配置与日志固定写入 vault 内隐藏目录 `.config/`，HTML 镜像导出
+   默认启用（`<vault>/.config/HTML-Export/`）。
 3. 用到具体能力（CLI / Markdown / Bases / Canvas / 网页提取）时，按需加载对应
    工具型 skill。
 
@@ -86,8 +90,8 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
 
 | 你说 | agent 做 |
 |---|---|
-| 手机：记一下：XXX | everywhere-note 生成规范 md 条目 + 设置当晚 22:00 提醒 |
-| 入库今天手机记的 | knowops 加载 desktop-ingest.md，解析暂存内容写入 `00 收件箱` |
+| 手机：记一下：XXX | everywhere-note 生成规范 md 条目 + 设置当晚 22:00 提醒；指定了暂存库且具备 GitHub 能力时同步上传 |
+| 入库今天手机记的 | knowops 加载 desktop-ingest.md：优先收用户提供的内容；配置了暂存库时自动拉取 GitHub 新条目写入 `00 收件箱`，源文件归档至暂存库 |
 | "记一个灵感：……" | 写入 `00 收件箱/灵感/`，补属性和标签 |
 | "记录一个问题：FPGA 跨时钟域怎么处理" | 建问题笔记（`01 生活系统/问题/未解决/`），联动任务与日志 |
 | "周五下午 3 点项目评审" | 建日程笔记 + 自动创建定时提醒 |
@@ -106,25 +110,27 @@ KnowOps/
     │   ├── SKILL.md                 # 触发 + 加载规则 + 通用红线
     │   ├── references/
     │   │   ├── workflow.md          # 业务流程规范（模型/分类/模块流程/日志/操作后流程）
-    │   │   ├── init-config.md       # 初始化向导/插件集成/配置与HTML导出/脚本
+    │   │   ├── init-config.md       # 初始化向导/GitHub暂存库/插件集成/配置与HTML导出/脚本
     │   │   ├── properties.md        # 属性/命名/目录/生命周期设计
     │   │   ├── redlines.md          # 执行层红线 + 直写例外
-    │   │   └── desktop-ingest.md    # 暂存内容 → 00 收件箱
+    │   │   └── desktop-ingest.md    # 暂存内容/GitHub暂存库拉取 → 00 收件箱
     │   ├── scripts/                 # html_export
     │   └── assets/
     │       ├── system-manage/       # 08 系统管理初始化模板（5 文件）
     │       ├── agent-rules.md       # .config/agent-rules.md 模板
     │       └── html-export.json     # HTML 导出范围配置模板
-    └── everywhere-note/             # 随身端捕获
-        ├── SKILL.md
-        ├── references/mobile-capture.md
-        └── assets/capture-template.md
+    ├── everywhere-note/             # 随身端捕获（可选 GitHub 暂存库同步）
+    │   ├── SKILL.md
+    │   ├── references/mobile-capture.md
+    │   └── assets/capture-template.md
+    └── automation-prompt-template.md  # 自动化入库提示词模板（设置定时自动化时使用）
 ```
 
 ## Roadmap（未来方向）
 
-- 手机端 agent 若获得 GitHub / 坚果云等文件同步能力：随身端自动把暂存条目同步到对应平台，电脑端设定时任务拉取并写入知识库；
-- 手机端向电脑端发送提醒，触发电脑端自动化执行收集入库。
+- 坚果云等其他文件同步通道（GitHub 暂存库同步已实现，见上）；
+- 手机端向电脑端发送提醒，触发电脑端自动化执行收集入库（自动入库可通过
+  `skills/automation-prompt-template.md` 配置定时自动化实现）。
 
 以上为未实现的未来方向，已记录于开发文档，供后续实现。
 

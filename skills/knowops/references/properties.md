@@ -156,3 +156,10 @@
 `version`（跟随 skill 版本）、`vaultPath`、`exportRoot`（默认 `.config/HTML-Export`）、
 `exportEnabled`（默认 true）、`preferences`（上表）。修改需用户知情后进行；
 不兼容旧版本配置，旧库接入时现场询问用户。
+
+- **GitHub 暂存库同步（可选顶层键 `githubSync`）**：`enabled`（bool，默认 false）/
+  `repo`（owner/repo）/ `branch`（默认 main）/ `folder`（本库在暂存库中的目录名，
+  默认 = vault 文件夹名）；缺失或 `enabled=false` 视为未启用。暂存库约定：根目录下
+  每个知识库一个目录；`<folder>/` 根目录放待入库条目（everywhere-note 上传位置），
+  `<folder>/归档/<YYYY年MM月DD日>/` 放已入库源文件（按入库当天日期切分，中文补零；
+  本地 07 归档 不重复存放）。
