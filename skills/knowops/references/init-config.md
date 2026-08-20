@@ -23,7 +23,8 @@
 8. 创建 `07 看板/看板.md` + `看板.base`（默认视图，含「摘录-最近添加」）。
 9. 配置原生日记（文件夹与日期格式），验证路径形态。
 10. 若启用 HTML 导出（默认 `exportEnabled=true`）：复制 `scripts/html_export.py` 与
-    `assets/html-export.json` 到 `.config/scripts/`。
+    `assets/html-export.json` 到 `.config/scripts/`；同时复制
+    `scripts/vault_check.py`（结构校验脚本，始终复制）。
 11. 写首条操作日志，反馈汇总（配置路径、GitHub 暂存库、插件规则、系统管理文档、
     看板、日记格式、导出状态）。
 
@@ -45,7 +46,8 @@
 - **配置文件**：`.config/knowops.config.json`（单 vault，由 agent 直接读写）。键包括：
   `version`（跟随 skill 版本）、`vaultPath`、`exportRoot`（默认 `.config/HTML-Export`，
   相对 vault）、`exportEnabled`（默认 true）、`preferences`（各模块目录与偏好，见
-  `references/properties.md`）。
+  `references/properties.md`）。**配置只覆盖「配置层」约定；「规范层」固定约定见
+  `references/workflow.md`「规范与配置的边界」**。
 - **GitHub 暂存库同步（可选顶层键 `githubSync`）**：`enabled`（bool）/ `repo`
   （owner/repo）/ `branch`（默认 main）/ `folder`（本库在暂存库中的目录名，默认 =
   vault 文件夹名）。缺失或 `enabled=false` 视为未启用，入库时跳过 GitHub 检查。
@@ -58,9 +60,9 @@
   独立 HTML，增量同步、删除的笔记同步移除镜像；隐藏目录不导出；`09 系统管理` 属
   可见笔记，参与导出。启用时，每次操作后按 `references/workflow.md` 的「操作后流程」
   增量导出。
-- **库内脚本副本（可改造）**：初始化时把 `html_export.py` + `html-export.json` 复制
-  到 `.config/scripts/`，此后导出一律运行库内副本；skill 内脚本只是默认模板；升级时
-  副本与模板不一致则询问用户（覆盖/保留/对比）。
+- **库内脚本副本（可改造）**：初始化时把 `html_export.py` + `html-export.json` +
+  `vault_check.py` 复制到 `.config/scripts/`，此后导出与校验一律运行库内副本；
+  skill 内脚本只是默认模板；升级时副本与模板不一致则询问用户（覆盖/保留/对比）。
 - **导出范围**：`.config/scripts/html-export.json` 控制 include/exclude（glob），
   隐藏目录始终不导出。
 
@@ -69,5 +71,6 @@
 | 脚本 | 用途 |
 |---|---|
 | `scripts/html_export.py` | HTML 镜像导出：export / export-one |
+| `scripts/vault_check.py` | 结构面校验：check（指定笔记，输出 frontmatter 键值摘要，用于操作后核验）/ check-vault（全库巡检：目录与配置匹配、frontmatter 扫描，用于巡检、迁移前、升级后） |
 
 > 具体调用方式与参数以脚本 `-h` 输出为准；本文档不展开命令细节。

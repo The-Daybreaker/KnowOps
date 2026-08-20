@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: pip install pyyaml
+      - name: Run dev checks
+        # private/ 不在仓库内，check.py 自动按核心模式运行
+        # （版本一致、模块编号、引用完整性、JSON、README 双语、枚举同步）
+        run: python tools/check.py --core

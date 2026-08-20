@@ -110,6 +110,8 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
 ```
 KnowOps/
 ├── README.md / README.en.md / LICENSE / .gitignore / AGENTS.md
+├── tools/                        # 开发期校验脚本（check.py）
+├── .github/workflows/            # CI（推送/PR 触发核心校验）
 └── skills/
     ├── knowops/                     # 桌面端统一入口
     │   ├── SKILL.md                 # 触发 + 加载规则 + 通用红线
@@ -119,7 +121,7 @@ KnowOps/
     │   │   ├── properties.md        # 属性/命名/目录/生命周期设计
     │   │   ├── redlines.md          # 执行层红线 + 直写例外
     │   │   └── desktop-ingest.md    # 暂存内容/GitHub暂存库拉取 → 00 收件箱
-    │   ├── scripts/                 # html_export
+    │   ├── scripts/                 # html_export / vault_check
     │   └── assets/
     │       ├── system-manage/       # 09 系统管理初始化模板（5 文件）
     │       ├── agent-rules.md       # .config/agent-rules.md 模板
