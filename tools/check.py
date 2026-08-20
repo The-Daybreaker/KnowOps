@@ -7,7 +7,8 @@
   python tools/check.py --core           仅核心检查（CI 模式；private/ 不在仓库内）
   python tools/check.py --dist <version> 附加 dist 打包完整性检查（发布后运行）
 
-退出码：0 = 无 error（warning 不影响）；1 = 存在 error；2 = 环境缺依赖。
+退出码：0 = 无 error（warning 不影响）；1 = 存在 error；2 = 环境缺依赖
+（argparse 参数错误同为 2）。
 依赖：Python 3.10+、PyYAML。文件读写内部强制 UTF-8（规避本机 GBK 默认编码）。
 
 检查项：
@@ -93,8 +94,28 @@ def parse_frontmatter(text: str) -> tuple[dict | None, str]:
     raise ValueError("frontmatter 未闭合（缺少第二个 ---）")
 
 
-def ver_tuple(v: str) -> tuple[int, ...]:
-    return tuple(int(x) for x in v.split("."))
+def safe_read(rep: Report, p: Path, label: str) -> str | None:
+    """统一文件读取：失败记 error 并返回 None（调用方据此跳过，校验不中断）。
+    UnicodeDecodeError 属 ValueError 子类，坏编码文件同样被捕获。"""
+    try:
+        return read_text(p)
+    except (OSError, ValueError) as e:
+        rep.error(f"{label} 读取失败：{e}")
+        return None
+
+
+def read_fm(rep: Report, p: Path, label: str) -> dict | None:
+    """读取并解析 frontmatter。返回 None 表示读取/解析失败（已记 error）；
+    无 frontmatter 视为空 dict（后续 version 检查报缺失）。"""
+    text = safe_read(rep, p, label)
+    if text is None:
+        return None
+    try:
+        fm, _ = parse_frontmatter(text)
+    except ValueError as e:
+        rep.error(f"{label} frontmatter 解析失败：{e}")
+        return None
+    return fm if isinstance(fm, dict) else {}
 
 
 # ---------------------------------------------------------------------------
@@ -125,7 +146,9 @@ def check_c1_skill_versions(rep: Report) -> str | None:
 def parse_module_table(rep: Report) -> dict[str, str] | None:
     """解析 workflow.md「模块总览」表格 → {编号: 名称}。同时执行 C2。"""
     wf_path = SKILL_KNOWOPS / "references" / "workflow.md"
-    text = read_text(wf_path)
+    text = safe_read(rep, wf_path, "C2 workflow.md")
+    if text is None:
+        return None
     m = re.search(r"## 模块总览.*?(?=\n## |\Z)", text, re.S)
     if not m:
         rep.error("C2 workflow.md 未找到「## 模块总览」章节")
@@ -134,12 +157,17 @@ def parse_module_table(rep: Report) -> dict[str, str] | None:
     if not rows:
         rep.error("C2 workflow.md 模块表未解析到任何行")
         return None
+    # 先按原始行序查重（直接构造 dict 会静默去重，重号漏检）
+    nums_raw = [int(n) for n, _ in rows]
+    dup = sorted({n for n in nums_raw if nums_raw.count(n) > 1})
+    if dup:
+        rep.error(f"C2 模块编号重复：{dup}")
+        return None
     table = {num: name.strip() for num, name in rows}
 
-    # C2a：编号自 00 起连续
-    nums = [int(n) for n in table]
-    if nums != list(range(len(nums))):
-        rep.error(f"C2 模块编号不连续：{sorted(nums)}")
+    # C2a：编号自 00 起连续（按原始行序，兼顾乱序与缺号）
+    if nums_raw != list(range(len(nums_raw))):
+        rep.error(f"C2 模块编号不连续（原始行序 {nums_raw}）")
         return None
     # C2b：后三位固定
     tail = [table[n] for n in sorted(table, key=int)[-3:]]
@@ -169,10 +197,8 @@ def check_c3_references(rep: Report) -> None:
 
     missing: list[str] = []
     for doc, primary, fallback, label in targets:
-        try:
-            text = read_text(doc)
-        except OSError:
-            rep.error(f"C3 文档不存在：{label}")
+        text = safe_read(rep, doc, f"C3 {label}")
+        if text is None:
             continue
         for m in ref_re.finditer(text):
             # 排除更大路径的子串（如 .config/scripts/xxx 中的 scripts/xxx）
@@ -198,7 +224,7 @@ def check_c4_json(rep: Report) -> None:
     for p in json_files:
         try:
             json.loads(read_text(p))
-        except (OSError, json.JSONDecodeError) as e:
+        except (OSError, ValueError) as e:  # ValueError 含 JSON/解码错误
             bad.append(f"{p.relative_to(ROOT).as_posix()}：{e}")
     if bad:
         for it in bad:
@@ -212,11 +238,13 @@ def check_c5_module_refs(rep: Report, table: dict[str, str]) -> None:
     files = [ROOT / "README.md", ROOT / "README.en.md", AUTOMATION_TEMPLATE]
     problems = []
     for f in files:
-        if not f.is_file():
-            problems.append(f"文件不存在：{f.relative_to(ROOT).as_posix()}")
-            continue
-        text = read_text(f)
         label = f.relative_to(ROOT).as_posix()
+        if not f.is_file():
+            problems.append(f"文件不存在：{label}")
+            continue
+        text = safe_read(rep, f, f"C5 {label}")
+        if text is None:
+            continue
         seen: dict[str, list[str]] = {}
         for num, name in re.findall(r"`(\d{2})\s+([^`]+)`", text):
             name = name.strip().split("/")[0].strip()
@@ -240,26 +268,47 @@ def check_c5_module_refs(rep: Report, table: dict[str, str]) -> None:
         rep.ok("C5 README 双语与提示词模板的模块编号→名称与模块表一致")
 
 
-def check_c6_enum_sync(rep: Report) -> None:
-    """vault_check.py 内嵌 TYPE_ENUM 与 properties.md 的 type 枚举一致。"""
+def load_type_enum(rep: Report) -> frozenset | None:
+    """从 vault_check.py 提取 TYPE_ENUM（C6/P3 共用，单一定义点）。
+    提取失败记 error 并返回 None（绝不静默退化为空集）。"""
     vc_path = SKILL_KNOWOPS / "scripts" / "vault_check.py"
-    props_path = SKILL_KNOWOPS / "references" / "properties.md"
     if not vc_path.is_file():
-        rep.warn("C6 跳过：skills/knowops/scripts/vault_check.py 不存在")
-        return
-    vc = read_text(vc_path)
+        rep.error("vault_check.py 不存在：skills/knowops/scripts/vault_check.py")
+        return None
+    vc = safe_read(rep, vc_path, "vault_check.py")
+    if vc is None:
+        return None
     m = re.search(r"TYPE_ENUM\s*=\s*frozenset\(\s*\{([^}]*)\}", vc, re.S)
     if not m:
-        rep.error("C6 vault_check.py 未找到 TYPE_ENUM 定义")
-        return
-    vc_enum = set(re.findall(r"[\"'](\w+)[\"']", m.group(1)))
+        rep.error("vault_check.py 未找到 TYPE_ENUM 定义（正则失配，"
+                  "枚举相关检查全部失效，请先修复）")
+        return None
+    return frozenset(re.findall(r"[\"'](\w+)[\"']", m.group(1)))
 
-    props = read_text(props_path)
+
+def check_c6_enum_sync(rep: Report, vc_enum: frozenset | None) -> None:
+    """vault_check.py 内嵌 TYPE_ENUM 与 properties.md 的 type 枚举一致。"""
+    if vc_enum is None:
+        return  # 提取失败已在 load_type_enum 记 error
+    props_path = SKILL_KNOWOPS / "references" / "properties.md"
+    if not props_path.is_file():
+        rep.error("C6 properties.md 不存在")
+        return
+
+    props = safe_read(rep, props_path, "C6 properties.md")
+    if props is None:
+        return
     row = re.search(r"^\|\s*`type`\s*\|[^\n]*$", props, re.M)
     if not row:
         rep.error("C6 properties.md 未找到 type 属性行")
         return
-    props_enum = set(re.findall(r"`(\w+)`", row.group(0))) - {"type"}
+    # 只取值列（第三列；split 首元素为行首空前缀），避免把说明列或
+    # 交叉引用的反引词计入枚举
+    cells = row.group(0).split("|")
+    if len(cells) < 4:
+        rep.error("C6 properties.md type 行格式异常（缺少值列）")
+        return
+    props_enum = set(re.findall(r"`(\w+)`", cells[3]))
 
     if vc_enum != props_enum:
         only_vc = sorted(vc_enum - props_enum)
@@ -283,10 +332,11 @@ def load_test_config(rep: Report) -> dict | None:
         return None
 
 
-def check_p1_versions(rep: Report, skill_ver: str) -> None:
+def check_p1_versions(rep: Report, skill_ver: str, cfg: dict | None) -> None:
     # CHANGELOG 顶部条目与历史版本集合
-    cl_path = PRIVATE / "dev" / "CHANGELOG.md"
-    cl = read_text(cl_path)
+    cl = safe_read(rep, PRIVATE / "dev" / "CHANGELOG.md", "P1 CHANGELOG.md")
+    if cl is None:
+        return
     entries = re.findall(r"^## \[(\d+\.\d+\.\d+)\]", cl, re.M)
     if not entries:
         rep.error("P1 CHANGELOG.md 未找到任何版本条目")
@@ -296,37 +346,39 @@ def check_p1_versions(rep: Report, skill_ver: str) -> None:
     else:
         rep.ok(f"P1 CHANGELOG 顶部条目 = {skill_ver}")
 
-    # private/AGENTS.md frontmatter
-    fm, _ = parse_frontmatter(read_text(PRIVATE / "AGENTS.md"))
-    v = str((fm or {}).get("version", ""))
-    if v != skill_ver:
-        rep.error(f"P1 private/AGENTS.md frontmatter version={v or '缺失'} ≠ {skill_ver}")
-    else:
-        rep.ok(f"P1 private/AGENTS.md version = {v}")
+    # 严格分档（每版必更）：private/AGENTS.md、TEST-REPORT.md
+    for label, path in (("private/AGENTS.md", PRIVATE / "AGENTS.md"),
+                        ("TEST-REPORT.md", PRIVATE / "dev" / "TEST-REPORT.md")):
+        fm = read_fm(rep, path, f"P1 {label}")
+        if fm is None:
+            continue  # 读取/解析失败已记 error
+        v = str(fm.get("version", ""))
+        if v != skill_ver:
+            rep.error(f"P1 {label} version={v or '缺失'} ≠ {skill_ver}")
+        else:
+            rep.ok(f"P1 {label} version = {v}")
 
-    # TEST-REPORT frontmatter
-    fm, _ = parse_frontmatter(read_text(PRIVATE / "dev" / "TEST-REPORT.md"))
-    v = str((fm or {}).get("version", ""))
-    if v != skill_ver:
-        rep.error(f"P1 TEST-REPORT.md frontmatter version={v or '缺失'} ≠ {skill_ver}")
-    else:
-        rep.ok(f"P1 TEST-REPORT.md version = {v}")
-
-    # DESIGN frontmatter：允许滞后但须为历史版本
-    fm, _ = parse_frontmatter(read_text(PRIVATE / "dev" / "DESIGN.md"))
-    v = str((fm or {}).get("version", ""))
-    if not v:
-        rep.error("P1 DESIGN.md frontmatter 缺 version")
-    elif v not in entries:
-        rep.error(f"P1 DESIGN.md version={v} 不是 CHANGELOG 中的历史版本")
-    elif v != skill_ver:
-        rep.warn(f"P1 DESIGN.md version={v} 滞后于当前 {skill_ver}（若本次改动不影响"
-                 "设计文档内容属预期，否则需更新）")
-    else:
-        rep.ok(f"P1 DESIGN.md version = {v}")
+    # 滞后分档（须为 CHANGELOG 历史版本；本次无相关改动的版本允许滞后）：
+    # DESIGN.md、AUDIT.md（审计档案，首次审计建立前允许不存在）
+    for label, path in (("DESIGN.md", PRIVATE / "dev" / "DESIGN.md"),
+                        ("AUDIT.md", PRIVATE / "dev" / "AUDIT.md")):
+        if label == "AUDIT.md" and not path.is_file():
+            continue
+        fm = read_fm(rep, path, f"P1 {label}")
+        if fm is None:
+            continue
+        v = str(fm.get("version", ""))
+        if not v:
+            rep.error(f"P1 {label} frontmatter 缺 version")
+        elif v not in entries:
+            rep.error(f"P1 {label} version={v} 不是 CHANGELOG 中的历史版本")
+        elif v != skill_ver:
+            rep.warn(f"P1 {label} version={v} 滞后于当前 {skill_ver}（本次无相关"
+                     "改动属预期，否则需更新）")
+        else:
+            rep.ok(f"P1 {label} version = {v}")
 
     # 测试库 config 版本
-    cfg = load_test_config(rep)
     if cfg is not None:
         cv = str(cfg.get("version", ""))
         if cv != skill_ver:
@@ -336,7 +388,10 @@ def check_p1_versions(rep: Report, skill_ver: str) -> None:
 
 
 def check_p2_test_structure(rep: Report, cfg: dict) -> None:
-    prefs = cfg.get("preferences", {})
+    prefs = cfg.get("preferences")
+    if not isinstance(prefs, dict):
+        rep.error("P2 knowops.config.json 的 preferences 应为对象")
+        prefs = {}
     dir_keys = ["inboxDir", "lifeDir", "knowledgeDir", "assetsDir", "standardsDir",
                 "projectsDir", "excerptDir", "dashboardDir", "archiveDir", "systemDir"]
     expected: dict[int, str] = {}
@@ -349,21 +404,22 @@ def check_p2_test_structure(rep: Report, cfg: dict) -> None:
         if not m:
             rep.error(f"P2 preferences.{k}={val} 不符合「NN 名称」格式")
             continue
-        expected[int(m.group(1))] = m.group(2)
+        num = int(m.group(1))
+        if num in expected:
+            rep.error(f"P2 preferences 编号 {num:02d} 重复"
+                      f"（{expected[num]} 与 {m.group(2)}）")
+            continue
+        expected[num] = m.group(2)
 
-    # 后三位固定：dashboard < archive < system 且为最大编号
-    tail_keys = {"dashboardDir": prefs.get("dashboardDir"),
-                 "archiveDir": prefs.get("archiveDir"),
-                 "systemDir": prefs.get("systemDir")}
-    tail_nums = []
-    for k, val in tail_keys.items():
-        m = re.match(r"^(\d{2})\s+", str(val or ""))
-        if m:
-            tail_nums.append(int(m.group(1)))
-    if expected and tail_nums:
-        max_num = max(expected)
-        if sorted(tail_nums) != [max_num - 2, max_num - 1, max_num]:
-            rep.error(f"P2 后三位编号异常：{sorted(tail_nums)}，模块最大编号 {max_num}")
+    # 后三位固定：编号为最大三个连续值，且名称与 FIXED_TAIL 逐位对应
+    # （防 dashboardDir/archiveDir 名称与键错位）
+    if len(expected) >= 3:
+        mx = max(expected)
+        for off, want in zip((2, 1, 0), FIXED_TAIL):
+            got = expected.get(mx - off)
+            if got != want:
+                rep.error(f"P2 后三位第 {3 - off} 位（编号 {mx - off:02d}）"
+                          f"应为「{want}」，实际「{got}」")
 
     # 实际目录 ⊆ expected（懒加载允许缺失）
     actual: dict[int, str] = {}
@@ -386,14 +442,11 @@ def check_p2_test_structure(rep: Report, cfg: dict) -> None:
         rep.ok(f"P2 测试库一级目录与 config 匹配（存在 {len(actual)} 个模块目录）")
 
 
-def check_p3_test_frontmatter(rep: Report, cfg: dict) -> None:
-    vc_path = SKILL_KNOWOPS / "scripts" / "vault_check.py"
-    if not vc_path.is_file():
-        rep.warn("P3 跳过：vault_check.py 不存在（枚举来源缺失）")
+def check_p3_test_frontmatter(rep: Report, cfg: dict,
+                              type_enum: frozenset | None) -> None:
+    if type_enum is None:
+        rep.warn("P3 跳过：TYPE_ENUM 提取失败（见前述 error）")
         return
-    vc = read_text(vc_path)
-    m = re.search(r"TYPE_ENUM\s*=\s*frozenset\(\s*\{([^}]*)\}", vc, re.S)
-    type_enum = set(re.findall(r"[\"'](\w+)[\"']", m.group(1))) if m else set()
 
     system_dir = str(cfg.get("preferences", {}).get("systemDir", "09 系统管理"))
     dashboard_file = str(cfg.get("preferences", {}).get("dashboardFile", "看板.md"))
@@ -408,7 +461,7 @@ def check_p3_test_frontmatter(rep: Report, cfg: dict) -> None:
         count += 1
         try:
             fm, _ = parse_frontmatter(read_text(p))
-        except ValueError as e:
+        except (OSError, ValueError) as e:
             bad_fm.append(f"{rel}：{e}")
             continue
         if fm is None:
@@ -437,7 +490,10 @@ def check_p3_test_frontmatter(rep: Report, cfg: dict) -> None:
 
 
 def check_p4_template_sync(rep: Report, cfg: dict) -> None:
-    system_dir = str(cfg.get("preferences", {}).get("systemDir", "09 系统管理"))
+    prefs = cfg.get("preferences")
+    if not isinstance(prefs, dict):
+        prefs = {}
+    system_dir = str(prefs.get("systemDir", "09 系统管理"))
     tpl_dir = SKILL_KNOWOPS / "assets" / "system-manage"
     tgt_dir = TEST_VAULT / system_dir
     problems = []
@@ -451,7 +507,12 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
         if not tgt.is_file():
             problems.append(f"测试库副本缺失：{system_dir}/{name}")
             continue
-        if read_text(tpl) != read_text(tgt):
+        try:
+            differs = read_text(tpl) != read_text(tgt)
+        except (OSError, ValueError) as e:
+            problems.append(f"模板/副本读取失败（{e}）：{name}")
+            continue
+        if differs:
             problems.append(f"副本与模板不一致：{system_dir}/{name}")
     vc = "变更记录.md"
     tpl, tgt = tpl_dir / vc, tgt_dir / vc
@@ -460,11 +521,15 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
     else:
         # 变更记录是活文档：副本初始化自模板后持续追加历史条目，且模板的初始
         # 示例条目会随版本更新——历史条目不回溯改写。只校验标题一致性。
-        tpl_title = read_text(tpl).splitlines()[0].strip()
-        tgt_title = read_text(tgt).splitlines()[0].strip()
-        if tpl_title != tgt_title:
-            problems.append(f"{system_dir}/{vc} 副本标题与模板不一致"
-                            f"（{tgt_title!r} ≠ {tpl_title!r}）")
+        try:
+            tpl_title = read_text(tpl).splitlines()[0].strip()
+            tgt_title = read_text(tgt).splitlines()[0].strip()
+        except (OSError, ValueError, IndexError) as e:
+            problems.append(f"{system_dir}/{vc} 读取失败（{e}）")
+        else:
+            if tpl_title != tgt_title:
+                problems.append(f"{system_dir}/{vc} 副本标题与模板不一致"
+                                f"（{tgt_title!r} ≠ {tpl_title!r}）")
 
     # 脚本与配置副本逐字一致
     pairs = [
@@ -479,7 +544,14 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
     for src, dst in pairs:
         if not dst.is_file():
             problems.append(f"库内副本缺失：{dst.relative_to(TEST_VAULT).as_posix()}")
-        elif read_text(src) != read_text(dst):
+            continue
+        try:
+            same = read_text(src) == read_text(dst)
+        except (OSError, ValueError) as e:
+            problems.append(f"库内副本读取失败（{e}）："
+                            f"{dst.relative_to(TEST_VAULT).as_posix()}")
+            continue
+        if not same:
             problems.append(f"库内副本与模板不一致：{dst.relative_to(TEST_VAULT).as_posix()}")
     if problems:
         for it in problems:
@@ -489,39 +561,47 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
 
 
 def check_p5_dist(rep: Report, version: str) -> None:
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        rep.error(f"P5 --dist 版本号格式非法：{version!r}（应为 X.Y.Z）")
+        return
     dist_dir = PRIVATE / "dist" / version
     if not dist_dir.is_dir():
         rep.error(f"P5 dist 目录不存在：{dist_dir.relative_to(ROOT).as_posix()}")
         return
+    import zipfile
     for skill, src_root in (("knowops", SKILL_KNOWOPS), ("everywhere-note", SKILL_NOTE)):
         zips = sorted(dist_dir.glob(f"{skill}-v{version}-*.zip"))
         if not zips:
             rep.error(f"P5 缺少 zip：{skill}-v{version}-*.zip")
             continue
-        import zipfile
-        with zipfile.ZipFile(zips[-1]) as zf:
-            names = [n for n in zf.namelist() if not n.endswith("/")]
-            roots = {n.split("/", 1)[0] for n in names}
-            if roots != {skill}:
-                rep.error(f"P5 {zips[-1].name} 根目录应为 {skill}/，实际 {sorted(roots)}")
+        for zp in zips:  # 该版本可能存在多份（重跑打包），逐份校验
+            try:
+                with zipfile.ZipFile(zp) as zf:
+                    names = [n for n in zf.namelist() if not n.endswith("/")]
+                    roots = {n.split("/", 1)[0] for n in names}
+                    if roots != {skill}:
+                        rep.error(f"P5 {zp.name} 根目录应为 {skill}/，实际 {sorted(roots)}")
+                        continue
+                    zip_set = {n.split("/", 1)[1] for n in names}
+                    src_set = {p.relative_to(src_root).as_posix()
+                               for p in src_root.rglob("*")
+                               if p.is_file() and "__pycache__" not in p.parts
+                               and p.suffix != ".pyc"}
+                    if zip_set != src_set:
+                        rep.error(f"P5 {zp.name} 清单不一致：仅 zip 有 "
+                                  f"{sorted(zip_set - src_set)}；仅源目录有 "
+                                  f"{sorted(src_set - zip_set)}")
+                        continue
+                    fm_text = zf.read(f"{skill}/SKILL.md").decode("utf-8-sig")
+                    fm, _ = parse_frontmatter(fm_text)
+            except (OSError, ValueError, KeyError, zipfile.BadZipFile) as e:
+                rep.error(f"P5 {zp.name} 读取/校验失败：{e}")
                 continue
-            zip_set = {n.split("/", 1)[1] for n in names}
-            src_set = {p.relative_to(src_root).as_posix() for p in src_root.rglob("*")
-                       if p.is_file() and "__pycache__" not in p.parts
-                       and p.suffix != ".pyc"}
-            if zip_set != src_set:
-                rep.error(f"P5 {zips[-1].name} 清单不一致：仅 zip 有 "
-                          f"{sorted(zip_set - src_set)}；仅源目录有 "
-                          f"{sorted(src_set - zip_set)}")
-                continue
-            # zip 内版本号
-            fm_text = zf.read(f"{skill}/SKILL.md").decode("utf-8-sig")
-            fm, _ = parse_frontmatter(fm_text)
             v = str((fm or {}).get("metadata", {}).get("version", ""))
             if v != version:
-                rep.error(f"P5 {zips[-1].name} 内 SKILL.md version={v} ≠ {version}")
+                rep.error(f"P5 {zp.name} 内 SKILL.md version={v} ≠ {version}")
                 continue
-            rep.ok(f"P5 {zips[-1].name} 完整（{len(zip_set)} 个文件，版本正确）")
+            rep.ok(f"P5 {zp.name} 完整（{len(zip_set)} 个文件，版本正确）")
 
 
 # ---------------------------------------------------------------------------
@@ -546,17 +626,20 @@ def main() -> int:
     check_c4_json(rep)
     if table:
         check_c5_module_refs(rep, table)
-    check_c6_enum_sync(rep)
+    type_enum = load_type_enum(rep)  # C6/P3 共用，单次提取（失败即记 error）
+    check_c6_enum_sync(rep, type_enum)
 
     # 私有检查
     private_on = not args.core and PRIVATE.is_dir()
     if private_on:
         cfg = load_test_config(rep)
         if skill_ver:
-            check_p1_versions(rep, skill_ver)
+            check_p1_versions(rep, skill_ver, cfg)
+        else:
+            rep.warn("P1 跳过：C1 未取得 skill 版本（先修复 C1）")
         if cfg is not None:
             check_p2_test_structure(rep, cfg)
-            check_p3_test_frontmatter(rep, cfg)
+            check_p3_test_frontmatter(rep, cfg, type_enum)
             check_p4_template_sync(rep, cfg)
         if args.dist:
             check_p5_dist(rep, args.dist)

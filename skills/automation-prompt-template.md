@@ -59,6 +59,6 @@
 
 - `{{vault_path}}` → `D:\MyVault`
 - `{{skill_path}}` → `C:\Users\me\.workbuddy\skills\knowops`
-- `{{repo}}` → `The-Daybreaker/notes-staging`
+- `{{repo}}` → `你的GitHub用户名/notes-staging`
 - `{{branch}}` → `main`
 - `{{folder}}` → `我的知识库`（与 knowops.config.json 的 `githubSync.folder` 一致）
