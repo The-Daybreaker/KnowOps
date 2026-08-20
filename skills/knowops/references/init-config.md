@@ -7,9 +7,9 @@
 ## 初始化向导（首次接入知识库，按序逐项确认，不一次性抛所有问题）
 
 1. 确认 vault 实际路径与名称（已注册 vault 供点选；未注册时按应用流程注册）。
-2. 展示并确认默认目录结构（00–08 九个模块）；配置与日志固定写入 vault 内隐藏
+2. 展示并确认默认目录结构（00–09 十个模块）；配置与日志固定写入 vault 内隐藏
    目录 `.config/`（不提供仓库外选项）；**内容模块目录按需创建（懒加载）**：
-   初始化只预置 08 系统管理 与 06 看板，其余模块在首次写入时自动出现。
+   初始化只预置 09 系统管理 与 07 看板，其余模块在首次写入时自动出现。
 3. 由 agent 直接写 `.config/knowops.config.json`（schema 见下，默认值见
    `references/properties.md`）。
 4. **GitHub 暂存库同步配置（可选）**：确认是否启用、仓库（owner/repo）、分支、
@@ -18,9 +18,9 @@
 5. 扫描当前知识库可用的插件/扩展能力。
 6. 逐个确认插件集成规则（是否纳入、时机与顺序），按 `assets/agent-rules.md` 模板
    写入 `.config/agent-rules.md`。
-7. 复制 `assets/system-manage/` 模板到 `08 系统管理/`（已存在不覆盖，询问
+7. 复制 `assets/system-manage/` 模板到 `09 系统管理/`（已存在不覆盖，询问
    保留/合并）。
-8. 创建 `06 看板/看板.md` + `看板.base`（默认视图）。
+8. 创建 `07 看板/看板.md` + `看板.base`（默认视图，含「摘录-最近添加」）。
 9. 配置原生日记（文件夹与日期格式），验证路径形态。
 10. 若启用 HTML 导出（默认 `exportEnabled=true`）：复制 `scripts/html_export.py` 与
     `assets/html-export.json` 到 `.config/scripts/`。
@@ -55,7 +55,7 @@
 - **agent 读的个性化约束**：`.config/agent-rules.md`（插件规则、额外红线、额外操作、
   旧库约定）；每次变更操作前读取（见 SKILL.md 红线 7）。
 - **HTML 镜像导出**（默认启用，`exportEnabled=true`）：把 vault 内笔记镜像导出为
-  独立 HTML，增量同步、删除的笔记同步移除镜像；隐藏目录不导出；`08 系统管理` 属
+  独立 HTML，增量同步、删除的笔记同步移除镜像；隐藏目录不导出；`09 系统管理` 属
   可见笔记，参与导出。启用时，每次操作后按 `references/workflow.md` 的「操作后流程」
   增量导出。
 - **库内脚本副本（可改造）**：初始化时把 `html_export.py` + `html-export.json` 复制

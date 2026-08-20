@@ -1,8 +1,8 @@
 ---
 name: knowops
 metadata:
-  version: 1.2.8
-description: 知识库管理与 Obsidian 操作。当用户要求记录、整理、搜索、审阅知识库内容，执行 Obsidian 操作（读写改删笔记、移动、日记、插件、Bases/Canvas/Markdown），或将暂存内容/文件写入知识库（含从 GitHub 暂存库拉取新条目入库）时使用。工作流规范与执行红线按 references 渐进式加载；具体语法与命令以 obsidian-cli、obsidian-markdown、obsidian-bases、json-canvas、defuddle 及官方文档为准。
+  version: 1.2.9
+description: 知识库管理与 Obsidian 操作。当用户要求记录、整理、搜索、审阅知识库内容（含摘录诗词、文言、名言警句等），执行 Obsidian 操作（读写改删笔记、移动、日记、插件、Bases/Canvas/Markdown），或将暂存内容/文件写入知识库（含从 GitHub 暂存库拉取新条目入库）时使用。工作流规范与执行红线按 references 渐进式加载；具体语法与命令以 obsidian-cli、obsidian-markdown、obsidian-bases、json-canvas、defuddle 及官方文档为准。
 ---
 
 # knowops 知识库管理

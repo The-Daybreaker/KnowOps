@@ -1,7 +1,9 @@
 # AGENTS.md — KnowOps
 
 > 本文件随仓库发布到 GitHub，只承载可公开、面向使用者的内容；项目开发与维护的
-> 完整规范位于开发工作区的私有指引（由平台自动加载）。
+> 完整规范位于开发工作区的私有指引（由平台自动加载）。仓库内的 `private/`
+> 文件夹存放开发期文档（不进 git、不对外发布）；**承担开发、测试、发布等维护
+> 任务时必须先完整阅读该文件夹**，其规范与本文件冲突时以 `private/` 为准。
 
 ## 项目概览
 
@@ -32,13 +34,16 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
 - **每次对话前置（bootstrap）**：定位 vault → 读配置 → 读 `.config/agent-rules.md`
   （若存在）→ 缺配置则按 `references/init-config.md` 初始化。任何新对话都能从零
   接手知识库。
-- **约束收口**：agent 读的个性化约束统一存 `.config/agent-rules.md`；`08 系统管理/`
+- **约束收口**：agent 读的个性化约束统一存 `.config/agent-rules.md`；`09 系统管理/`
   只放 5 份用户可见文档，agent 不读。
 - **HTML 镜像导出**：`html_export.py` 自包含（标准库），初始化复制到
   `.config/scripts/` 与 `html-export.json` 配对；导出默认启用。
+- **模块结构**：00 收件箱 → 05 项目系统 + 06 摘录系统（长篇/短篇摘录，含
+  超量拆分）+ 07 看板 → 08 归档 → 09 系统管理；看板、归档与系统管理固定
+  最后三位，新模块插入其前顺延编号。
 - **两 skill 依赖方向**：knowops 解析 everywhere-note 的 capture 产物（字段契约
-  `type/capture_kind/created/tags/文件名`）；everywhere-note 不依赖 knowops。
-  **改契约必须两端同步**（desktop-ingest.md ↔ mobile-capture.md）。
+  `type/capture_kind/created/tags/文件名`，capture_kind 含 `摘录`）；everywhere-note
+  不依赖 knowops。**改契约必须两端同步**（desktop-ingest.md ↔ mobile-capture.md）。
 - **GitHub 暂存库同步（可选）**：手机端在用户指定暂存库且具备 GitHub 能力时上传
   条目到暂存库 `<folder>/`；knowops 入库时拉取新条目、并把源文件归档到暂存库
   `<folder>/归档/<入库日期>/`。暂存库目录约定两端同步。
