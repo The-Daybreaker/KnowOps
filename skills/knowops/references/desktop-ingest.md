@@ -70,7 +70,9 @@
 2. 文件名沿用 `YYYY-MM-DD 标题.md`；
 3. 用 Obsidian CLI 创建（路径/名称以配置与 `.config/agent-rules.md` 为准）；长内容或特殊
    字符按 `references/redlines.md` 的直写例外规范处理；
-4. 写入后**回读校验**，确认内容与结构正确；
+4. 写入后**回读校验**（批量入库优先用库内脚本 `vault_check.py check` 批量核验
+   结构面并抽 1 篇全文回读，见 `references/workflow.md`「操作后流程」），
+   确认内容与结构正确；
 5. 在当日操作日志追加一行（`<时间> [入库] 路径与条目`）。
 
 ## 汇总反馈

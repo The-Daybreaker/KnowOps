@@ -132,6 +132,8 @@ Usage examples:
 ```
 KnowOps/
 ├── README.md / README.en.md / LICENSE / .gitignore / AGENTS.md
+├── tools/                        # dev-time validation script (check.py)
+├── .github/workflows/            # CI (core checks on push/PR)
 └── skills/
     ├── knowops/                     # Desktop entry point
     │   ├── SKILL.md                 # trigger + loading rules + common red lines
@@ -141,7 +143,7 @@ KnowOps/
     │   │   ├── properties.md        # properties/naming/layout/lifecycle design
     │   │   ├── redlines.md          # execution red lines + direct-write exceptions
     │   │   └── desktop-ingest.md    # captured content / GitHub staging pull → 00 收件箱
-    │   ├── scripts/                 # html_export
+    │   ├── scripts/                 # html_export / vault_check
     │   └── assets/
     │       ├── system-manage/       # 09 系统管理 onboarding templates (5 files)
     │       ├── agent-rules.md       # .config/agent-rules.md template

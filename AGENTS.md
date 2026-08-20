@@ -21,7 +21,8 @@
 ## 仓库布局
 
 git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.md`
-（本文件）、`skills/`（两 skill 的全部运行时文件 + automation-prompt-template.md）。
+（本文件）、`skills/`（两 skill 的全部运行时文件 + automation-prompt-template.md）、
+`tools/`（开发期校验脚本 check.py）、`.github/workflows/`（CI）。
 
 克隆本仓库后，把 `skills/` 下对应 skill 目录复制到 agent 的用户级 skill 目录即可
 安装（详见 README）。
@@ -36,8 +37,9 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
   接手知识库。
 - **约束收口**：agent 读的个性化约束统一存 `.config/agent-rules.md`；`09 系统管理/`
   只放 5 份用户可见文档，agent 不读。
-- **HTML 镜像导出**：`html_export.py` 自包含（标准库），初始化复制到
-  `.config/scripts/` 与 `html-export.json` 配对；导出默认启用。
+- **库内脚本**：`html_export.py`（HTML 镜像导出，与 `html-export.json` 配对，
+  导出默认启用）与 `vault_check.py`（结构面校验：frontmatter 可解析/必填属性/
+  type 枚举），均自包含（标准库），初始化复制到 `.config/scripts/`。
 - **模块结构**：00 收件箱 → 05 项目系统 + 06 摘录系统（长篇/短篇摘录，含
   超量拆分）+ 07 看板 → 08 归档 → 09 系统管理；看板、归档与系统管理固定
   最后三位，新模块插入其前顺延编号。
@@ -47,8 +49,10 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
 - **GitHub 暂存库同步（可选）**：手机端在用户指定暂存库且具备 GitHub 能力时上传
   条目到暂存库 `<folder>/`；knowops 入库时拉取新条目、并把源文件归档到暂存库
   `<folder>/归档/<入库日期>/`。暂存库目录约定两端同步。
-- **操作后核验**：每次写入/修改/移动/删除/归档后回读核验（必填属性/命名/双链/
-  操作日志与日记同步/任务双轨/插件与导出），缺失即补正。
+- **操作后核验**：每次写入/修改/移动/删除/归档后核验，缺失即补正——结构面
+  （frontmatter 可解析/必填属性/type 枚举/命名）由库内脚本 `vault_check.py`
+  输出键值摘要、agent 扫读（批量 ≥3 篇时抽 1 篇全文回读）；语义面（双链/
+  操作日志与日记同步/任务双轨/插件与导出）由 agent 回读核验。
 - 工具型 skill（obsidian-cli / obsidian-markdown / obsidian-bases / json-canvas /
   defuddle）来自 [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills)，
   不随本项目打包；knowops 只引用、不复制其内容。
