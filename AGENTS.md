@@ -77,3 +77,6 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
 5. **创建前相似检查**。
 6. **重要写入后回读校验**。
 7. **变更操作前读取 `.config/agent-rules.md`**。
+8. **Obsidian 操作以官方工具 skill 为准**：前置检测可用性并记录；已安装则加载
+   遵循其语法，未安装先与用户确认兜底（安装或 help.obsidian.md），不自行猜测
+   命令、不以网络搜索替代。
