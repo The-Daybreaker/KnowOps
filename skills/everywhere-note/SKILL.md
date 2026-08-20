@@ -1,8 +1,8 @@
 ---
 name: everywhere-note
 metadata:
-  version: 1.2.8
-description: 随身记录。在手机/平板等随身设备上被调用后，直接口述要记录的内容，生成符合知识库格式的 markdown 条目，并在有暂存记录时设置当晚 22:00 提醒；用户指定 GitHub 暂存库且平台具备 GitHub 能力时，可把条目同步上传到暂存库。
+  version: 1.2.9
+description: 随身记录。在手机/平板等随身设备上被调用后，直接口述要记录的内容（含摘录诗词、名言警句等），生成符合知识库格式的 markdown 条目，并在有暂存记录时设置当晚 22:00 提醒；用户指定 GitHub 暂存库且平台具备 GitHub 能力时，可把条目同步上传到暂存库。
 ---
 
 # everywhere-note 随身记录

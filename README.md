@@ -20,7 +20,10 @@ skill（`everywhere-note`）负责手机/平板上的快速记录。
 ## 特性
 
 - **收件箱捕获与审阅**：顿悟、灵感、想法等简短零碎内容默认进 `00 收件箱`
-  （随手记 / 灵感 / 待整理内容）；审阅时按"未来怎么用"沉淀、删除或归档；
+  （随手记 / 灵感 / 待整理内容 / 摘录）；审阅时按"未来怎么用"沉淀、删除或归档；
+- **摘录系统**：诗词、文言等长篇摘抄一篇一笔记（作品名命名，作者/朝代/出处
+  属性），名言、警句、思考等短句按分类聚合（超 100 条自动拆分序号文件）；
+  桌面端"摘录：……"直达，随身端摘录经收件箱审阅沉淀；
 - **渐进式加载**：`knowops` 的 SKILL.md 只承载触发、加载规则与通用红线；业务流程
   （workflow.md）、执行层红线（redlines.md）、桌面入库（desktop-ingest.md）按需读取；
 - **随身端捕获与统一入库**：手机/随身设备上 @ everywhere-note 直接口述记录，生成
@@ -40,8 +43,9 @@ skill（`everywhere-note`）负责手机/平板上的快速记录。
 - **任务双轨同步**：任务笔记为看板数据源，TODO.md 为人工快捷清单，两边互为
   镜像、双向同步；
 - **看板默认创建**：Bases 数据库驱动，改状态 / 标签即实时更新，可扩展视图；
-- **归档与系统管理**：`07 归档` 按中文补零日期切分；`08 系统管理` 承载架构、
-  分类、命名、Frontmatter、变更记录与用户手册；
+- **归档与系统管理**：`08 归档` 按中文补零日期切分；`09 系统管理` 承载架构、
+  分类、命名、Frontmatter、变更记录与用户手册；看板、归档与系统管理固定
+  最后三位；
 - **插件集成规则**：初始化扫描插件、由用户确认规则写入隐藏配置 `.config/agent-rules.md`，
   每次变更操作前读取、操作后按规则执行（如先版本提交、再云同步）；
 - **配置驱动、版本跟随**：目录与偏好全在 `.config/knowops.config.json`（单 vault），schema 版本跟随 skill 版本；
@@ -79,9 +83,9 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
    - 记录/管理/整理内容 → 先读 `references/workflow.md`，需要时运行**初始化向导**；
    - 执行 Obsidian 操作 → 先读 `references/redlines.md`；
    - 暂存内容入库 → 读 `references/desktop-ingest.md`。
-2. 初始化向导会逐步确认：vault 路径与名称、00–08 九个模块默认目录结构、GitHub
-   暂存库同步（可选）、插件集成规则（写入 `.config/agent-rules.md`）、08 系统管理
-   模板、06 看板；配置与日志固定写入 vault 内隐藏目录 `.config/`，HTML 镜像导出
+2. 初始化向导会逐步确认：vault 路径与名称、00–09 十个模块默认目录结构、GitHub
+   暂存库同步（可选）、插件集成规则（写入 `.config/agent-rules.md`）、09 系统管理
+   模板、07 看板；配置与日志固定写入 vault 内隐藏目录 `.config/`，HTML 镜像导出
    默认启用（`<vault>/.config/HTML-Export/`）。
 3. 用到具体能力（CLI / Markdown / Bases / Canvas / 网页提取）时，按需加载对应
    工具型 skill。
@@ -93,6 +97,7 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
 | 手机：记一下：XXX | everywhere-note 生成规范 md 条目 + 设置当晚 22:00 提醒；指定了暂存库且具备 GitHub 能力时同步上传 |
 | 入库今天手机记的 | knowops 加载 desktop-ingest.md：优先收用户提供的内容；配置了暂存库时自动拉取 GitHub 新条目写入 `00 收件箱`，源文件归档至暂存库 |
 | "记一个灵感：……" | 写入 `00 收件箱/灵感/`，补属性和标签 |
+| "摘录：将进酒……" | 长篇作品建独立笔记到 `06 摘录系统/长篇/诗词/`（作品名命名）；短句追加到 `06 摘录系统/短篇/` 对应分类文件 |
 | "记录一个问题：FPGA 跨时钟域怎么处理" | 建问题笔记（`01 生活系统/问题/未解决/`），联动任务与日志 |
 | "周五下午 3 点项目评审" | 建日程笔记 + 自动创建定时提醒 |
 | "这个问题解决了" | 移入 `已解决`，更新属性，勾选任务 |
@@ -116,7 +121,7 @@ KnowOps/
     │   │   └── desktop-ingest.md    # 暂存内容/GitHub暂存库拉取 → 00 收件箱
     │   ├── scripts/                 # html_export
     │   └── assets/
-    │       ├── system-manage/       # 08 系统管理初始化模板（5 文件）
+    │       ├── system-manage/       # 09 系统管理初始化模板（5 文件）
     │       ├── agent-rules.md       # .config/agent-rules.md 模板
     │       └── html-export.json     # HTML 导出范围配置模板
     ├── everywhere-note/             # 随身端捕获（可选 GitHub 暂存库同步）

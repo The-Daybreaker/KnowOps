@@ -24,8 +24,13 @@ on phones/tablets.
 ## Features
 
 - **Inbox capture & review**: short, fragmented thoughts, inspirations and unclear
-  items go to `00 收件箱` (随手记 / 灵感 / 待整理内容) by default; during review,
-  each item is distilled, deleted or archived based on how it will be used;
+  items go to `00 收件箱` (随手记 / 灵感 / 待整理内容 / 摘录) by default; during
+  review, each item is distilled, deleted or archived based on how it will be used;
+- **Excerpt system**: long excerpts (poetry, classical prose) get one note per work
+  (named by work title, with author / dynasty / source properties); short quotes
+  (famous sayings, aphorisms, personal reflections) are aggregated by category
+  (split into numbered files past 100 entries); desktop "excerpt: ..." goes
+  straight in, portable excerpts settle via inbox review;
 - **Progressive loading**: knowops' SKILL.md only carries the trigger, loading rules
   and common red lines; workflow.md, redlines.md and desktop-ingest.md are read on
   demand;
@@ -47,9 +52,10 @@ on phones/tablets.
   human quick checklist; both mirror each other and stay in sync;
 - **Dashboard created by default**: Bases-driven real-time aggregation; views are
   extensible on request;
-- **Archive & system management**: `07 归档` uses zero-padded Chinese date folders;
-  `08 系统管理` holds architecture, classification, naming, frontmatter, agent
-  change log and user manual;
+- **Archive & system management**: `08 归档` uses zero-padded Chinese date folders;
+  `09 系统管理` holds architecture, classification, naming, frontmatter, agent
+  change log and user manual; dashboard, archive and system management are fixed
+  as the last three modules;
 - **Plugin integration rules**: at onboarding, plugins are scanned and the user
   confirms how they integrate; rules are written to hidden config `.config/agent-rules.md`,
   read before every mutating operation and executed afterwards (e.g., version
@@ -99,10 +105,10 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
      and run the **onboarding wizard** when needed;
    - Obsidian operations → read `references/redlines.md` first;
    - Ingesting captured content/files → read `references/desktop-ingest.md`.
-2. The onboarding wizard confirms step by step: vault path & name, the 00–08
-   nine-module structure, optional GitHub staging repo sync, plugin integration
-   rules (written to `.config/agent-rules.md`), the `08 系统管理` template set,
-   the `06 看板` dashboard, and the HTML mirror export (enabled by default).
+2. The onboarding wizard confirms step by step: vault path & name, the 00–09
+   ten-module structure, optional GitHub staging repo sync, plugin integration
+   rules (written to `.config/agent-rules.md`), the `09 系统管理` template set,
+   the `07 看板` dashboard, and the HTML mirror export (enabled by default).
 3. Load the tool skills (CLI / Markdown / Bases / Canvas / web extraction) on
    demand when their capability is needed.
 
@@ -113,6 +119,7 @@ Usage examples:
 | Phone: "log: XXX" | everywhere-note generates a KB-compliant md entry and sets a 22:00 reminder; uploads to the staging repo when configured and GitHub capability is available |
 | "Ingest today's phone captures" | knowops loads desktop-ingest.md: user-provided content first; with a staging repo configured, pulls new entries from GitHub into `00 收件箱` and archives the sources to the staging repo |
 | "Log an idea: ..." | Writes it to `00 收件箱/灵感/` with properties & tags |
+| "Excerpt: 将进酒..." | Long works get a dedicated note under `06 摘录系统/长篇/诗词/` (named by work title); short quotes are appended to the matching category file under `06 摘录系统/短篇/` |
 | "Log a question: how to handle FPGA clock domain crossing" | Creates a question note (`01 生活系统/问题/未解决/`), links task and log |
 | "Project review at 3pm Friday" | Creates a schedule note + auto-creates a reminder |
 | "This question is resolved" | Moves it to `已解决`, updates properties, checks the task |
@@ -136,7 +143,7 @@ KnowOps/
     │   │   └── desktop-ingest.md    # captured content / GitHub staging pull → 00 收件箱
     │   ├── scripts/                 # html_export
     │   └── assets/
-    │       ├── system-manage/       # 08 系统管理 onboarding templates (5 files)
+    │       ├── system-manage/       # 09 系统管理 onboarding templates (5 files)
     │       ├── agent-rules.md       # .config/agent-rules.md template
     │       └── html-export.json     # HTML export range config template
     ├── everywhere-note/             # Portable capture (optional GitHub staging sync)
