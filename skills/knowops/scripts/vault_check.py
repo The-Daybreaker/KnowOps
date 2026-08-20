@@ -74,7 +74,7 @@ def clean_val(v: str):
 
 def parse_frontmatter(text: str) -> tuple[dict | None, str | None]:
     """轻量 YAML frontmatter 解析（覆盖 knowops 用到的子集：
-    标量、行内数组、一层嵌套如 metadata.version）。
+    标量、行内数组、块式列表、一层嵌套如 metadata.version）。
     返回 (dict|None, 错误信息|None)。"""
     if not text.startswith("---"):
         return None, None
@@ -88,12 +88,19 @@ def parse_frontmatter(text: str) -> tuple[dict | None, str | None]:
         return None, "frontmatter 未闭合（缺少第二个 ---）"
     data: dict = {}
     parent: str | None = None
-    for ln in lines[1:end]:
+    for idx, ln in enumerate(lines[1:end], start=2):
         if not ln.strip() or ln.lstrip().startswith("#"):
+            continue
+        # 块式列表项：挂在最近的父键下（如 tags:\n  - a\n  - b）
+        mi = re.match(r"^\s+-\s+(.*)$", ln)
+        if mi and parent is not None:
+            if not isinstance(data.get(parent), list):
+                data[parent] = []
+            data[parent].append(clean_val(mi.group(1)))
             continue
         m = re.match(r"^(\s*)([A-Za-z_][\w-]*):\s*(.*)$", ln)
         if not m:
-            return None, f"无法解析行：{ln.strip()[:40]}"
+            return None, f"第 {idx} 行无法解析：{ln.strip()[:40]}"
         indent, key, val = len(m.group(1)), m.group(2), m.group(3).strip()
         if indent == 0:
             if val == "":
@@ -103,13 +110,38 @@ def parse_frontmatter(text: str) -> tuple[dict | None, str | None]:
                 parent = None
                 data[key] = clean_val(val)
         elif parent:
-            data[parent][key] = clean_val(val)
+            if isinstance(data.get(parent), dict):
+                data[parent][key] = clean_val(val)
+            else:
+                return None, f"第 {idx} 行结构冲突：{parent} 混用列表与映射"
     return data, None
 
 
 def fmt_val(v) -> str:
     s = json.dumps(v, ensure_ascii=False) if isinstance(v, list) else str(v)
     return s if len(s) <= 60 else s[:57] + "..."
+
+
+def is_empty(v) -> bool:
+    """属性值为空：None / 空串 / 空列表 / 空字典。"""
+    return v is None or v == "" or v == [] or v == {}
+
+
+def required_problems(fm: dict, t: str | None) -> list[str]:
+    """必填属性检查（check 与 check-vault 共用）：缺失与空值都算问题。"""
+    if t not in REQUIRED:
+        return []
+    keys = list(REQUIRED[t])
+    if t == "excerpt" and str(fm.get("excerpt_kind")) == "长篇":
+        keys += EXCERPT_LONG_EXTRA
+    missing = [k for k in keys if k not in fm]
+    empty = [k for k in keys if k in fm and is_empty(fm[k])]
+    out = []
+    if missing:
+        out.append(f"缺必填属性：{'、'.join(missing)}")
+    if empty:
+        out.append(f"必填属性值为空：{'、'.join(empty)}")
+    return out
 
 
 def load_prefs(vault: Path) -> dict:
@@ -119,7 +151,7 @@ def load_prefs(vault: Path) -> dict:
         try:
             cfg = json.loads(read_text(cfg_path))
             prefs.update(cfg.get("preferences", {}))
-        except (OSError, json.JSONDecodeError):
+        except (OSError, ValueError):  # ValueError 含 JSON/解码错误
             pass  # 配置异常时用默认值兜底（check-vault 会单独报告配置问题）
     return prefs
 
@@ -131,7 +163,7 @@ def check_note(path: Path, vault: Path) -> dict:
               "ok": True, "problems": [], "summary": ""}
     try:
         text = read_text(path)
-    except OSError as e:
+    except (OSError, ValueError) as e:  # ValueError 含 UnicodeDecodeError
         result["ok"] = False
         result["problems"].append(f"读取失败：{e}")
         return result
@@ -150,13 +182,8 @@ def check_note(path: Path, vault: Path) -> dict:
         result["problems"].append("缺 type")
     elif t not in TYPE_ENUM:
         result["problems"].append(f"type={t} 不在枚举内")
-    # 必填属性（仅 REQUIRED 覆盖的类型）
-    if t in REQUIRED:
-        missing = [k for k in REQUIRED[t] if k not in fm]
-        if t == "excerpt" and str(fm.get("excerpt_kind")) == "长篇":
-            missing += [k for k in EXCERPT_LONG_EXTRA if k not in fm]
-        if missing:
-            result["problems"].append(f"缺必填属性：{'、'.join(missing)}")
+    # 必填属性（仅 REQUIRED 覆盖的类型；缺失与空值都算问题）
+    result["problems"].extend(required_problems(fm, t))
     if result["problems"]:
         result["ok"] = False
     # 键值摘要（type 置前，其余按解析顺序）
@@ -247,7 +274,11 @@ def cmd_check_vault(vault: Path, as_json: bool) -> int:
             if any(part.startswith(".") for part in rel.parts):
                 continue
             count += 1
-            fm, err = parse_frontmatter(read_text(p))
+            try:
+                fm, err = parse_frontmatter(read_text(p))
+            except (OSError, ValueError) as e:  # ValueError 含 UnicodeDecodeError
+                bad.append(f"{rel.as_posix()}：读取失败：{e}")
+                continue
             if err:
                 bad.append(f"{rel.as_posix()}：{err}")
             elif fm is None:
@@ -262,6 +293,10 @@ def cmd_check_vault(vault: Path, as_json: bool) -> int:
                 no_fm.append(f"{rel.as_posix()}（有 frontmatter 但无 type）")
             elif str(fm.get("type")) not in TYPE_ENUM:
                 bad.append(f"{rel.as_posix()}：type={fm.get('type')} 不在枚举内")
+            else:
+                # 必填属性（与 check 模式同一套规则）
+                for prob in required_problems(fm, str(fm.get("type"))):
+                    bad.append(f"{rel.as_posix()}：{prob}")
 
     ok = not problems and not bad
     if as_json:
