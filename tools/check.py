@@ -19,6 +19,8 @@
     C4  仓库内 JSON 配置可解析
     C5  README 双语与 automation-prompt-template 中模块编号→名称与模块表一致
     C6  vault_check.py 内嵌 type 枚举与 properties.md 声明一致（防双源漂移）
+    C7  隐私门禁：跟踪内容禁密钥样式/邮箱/本机绝对路径/手机号；
+        .gitignore 必备条目齐全（防测试产物再入库）
   私有（本地全量，private/ 存在时启用）：
     P1  版本一致性链 + 开发期文档 frontmatter 分档检查
     P2  测试库一级目录与 config preferences 匹配
@@ -32,6 +34,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -59,6 +62,31 @@ NO_FM_ALLOW = {
 # P3：项目六文件中除项目说明.md 外的五份固定结构文档（项目说明.md 为项目主
 # 笔记，需 frontmatter；其余五份为项目内结构文档，无 frontmatter 属预期）
 PROJECT_FIXED_FILES = {"目标.md", "决策记录.md", "研究记录.md", "问题.md", "复盘.md"}
+
+# C7 隐私门禁：敏感模式（仅扫 git 跟踪内容——精确等于将公开的部分）
+C7_SECRET_PATTERNS = [
+    (r"ghp_[A-Za-z0-9]{20,}", "GitHub personal access token（ghp_）"),
+    (r"gho_[A-Za-z0-9]{20,}", "GitHub OAuth token（gho_）"),
+    (r"ghu_[A-Za-z0-9]{20,}", "GitHub user-to-server token（ghu_）"),
+    (r"ghs_[A-Za-z0-9]{20,}", "GitHub server-to-server token（ghs_）"),
+    (r"ghr_[A-Za-z0-9]{20,}", "GitHub refresh token（ghr_）"),
+    (r"github_pat_[A-Za-z0-9_]{20,}", "GitHub fine-grained PAT"),
+    (r"xox[baprs]-[A-Za-z0-9-]{10,}", "Slack token"),
+    (r"sk-[A-Za-z0-9]{16,}", "sk- 样式 API key"),
+    (r"AKIA[0-9A-Z]{12,}", "AWS Access Key ID"),
+    (r"AIza[0-9A-Za-z_\-]{20,}", "Google API key"),
+    (r"-----BEGIN [A-Z ]*PRIVATE KEY-----", "私钥内容"),
+]
+C7_EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+# 邮箱豁免：GitHub 匿名邮箱与示例域
+C7_EMAIL_ALLOW_SUFFIX = ("@users.noreply.github.com", "@example.com", "@example.org")
+# 本机绝对路径（lookbehind 排除 URL scheme 如 https://）
+C7_ABSPATH_RE = re.compile(r"(?<![A-Za-z0-9])[A-Za-z]:[\\/]\S*")
+# 豁免：已文档化的占位示例路径（新增占位符须在此显式登记，可审查）
+C7_ABSPATH_ALLOW_PREFIX = ("D:\\MyVault", "C:\\Users\\me\\")
+C7_PHONE_RE = re.compile(r"(?<!\d)1[3-9]\d{9}(?!\d)")
+# .gitignore 必备条目：本地目录绝不入库（缺一条即 error）
+C7_REQUIRED_IGNORE = [".workbuddy/", "dist/", "private/", "legacy/", ".test-env/"]
 
 
 def read_text(p: Path) -> str:
@@ -317,6 +345,60 @@ def check_c6_enum_sync(rep: Report, vc_enum: frozenset | None) -> None:
                   f"properties 独有 {only_props}")
     else:
         rep.ok(f"C6 vault_check.py 与 properties.md 的 type 枚举一致（{len(vc_enum)} 个）")
+
+
+def _c7_tracked_files(rep: Report) -> list[Path]:
+    """git 跟踪文件清单（= 将被公开的精确集合）。git 不可用时退化为全盘扫描
+    （排除 .git/、private/、.workbuddy/），保证门禁不因环境缺失而失效。"""
+    try:
+        out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT,
+                             capture_output=True, check=True).stdout.decode("utf-8")
+        return [ROOT / name for name in out.split("\0") if name]
+    except (OSError, subprocess.CalledProcessError, UnicodeDecodeError) as e:
+        rep.warn(f"C7 git 跟踪清单获取失败（{e}），退化为全盘扫描")
+        return [p for p in ROOT.rglob("*")
+                if p.is_file() and ".git" not in p.parts
+                and "private" not in p.parts and ".workbuddy" not in p.parts]
+
+
+def check_c7_privacy(rep: Report) -> None:
+    """隐私门禁：跟踪内容禁密钥样式/邮箱/本机绝对路径/手机号；
+    .gitignore 必备条目齐全（2026-08-03 .test-env 误入库事故的机制封堵）。"""
+    hits: list[str] = []
+    scanned = skipped = 0
+    for p in _c7_tracked_files(rep):
+        try:
+            text = read_text(p)
+        except (OSError, ValueError):
+            skipped += 1
+            continue  # 二进制/不可解码文件不参与文本模式检查
+        scanned += 1
+        rel = p.relative_to(ROOT).as_posix()
+        for i, line in enumerate(text.splitlines(), 1):
+            for pat, label in C7_SECRET_PATTERNS:
+                if re.search(pat, line):
+                    hits.append(f"{rel}:{i} 含{label}")
+            for m in C7_EMAIL_RE.finditer(line):
+                if not m.group(0).lower().endswith(C7_EMAIL_ALLOW_SUFFIX):
+                    hits.append(f"{rel}:{i} 含邮箱 {m.group(0)}")
+            for m in C7_ABSPATH_RE.finditer(line):
+                # 归一化转义写法（源码/JSON 中的双反斜杠）再比对豁免前缀
+                norm = m.group(0).replace("\\\\", "\\")
+                if not norm.startswith(C7_ABSPATH_ALLOW_PREFIX):
+                    hits.append(f"{rel}:{i} 含本机绝对路径 {norm[:60]!r}")
+            if C7_PHONE_RE.search(line):
+                hits.append(f"{rel}:{i} 疑似国内手机号")
+    gi = safe_read(rep, ROOT / ".gitignore", "C7 .gitignore")
+    if gi is not None:
+        entries = {ln.strip() for ln in gi.splitlines()}
+        for req in C7_REQUIRED_IGNORE:
+            if req not in entries:
+                hits.append(f".gitignore 缺必备条目 {req}")
+    if hits:
+        for h in hits:
+            rep.error(f"C7 {h}")
+    else:
+        rep.ok(f"C7 隐私门禁通过（扫描 {scanned} 份跟踪文本，跳过二进制 {skipped} 份）")
 
 
 # ---------------------------------------------------------------------------
@@ -628,6 +710,7 @@ def main() -> int:
         check_c5_module_refs(rep, table)
     type_enum = load_type_enum(rep)  # C6/P3 共用，单次提取（失败即记 error）
     check_c6_enum_sync(rep, type_enum)
+    check_c7_privacy(rep)
 
     # 私有检查
     private_on = not args.core and PRIVATE.is_dir()

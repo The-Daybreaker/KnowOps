@@ -2,6 +2,8 @@
 .workbuddy/
 # 发布产物（可随时重建）
 dist/
+# 测试产物（forward-test 配置与导出镜像，绝不入库）
+.test-env/
 # 私有目录（个人/开发文档、测试库；内部子 git 管理，不进 GitHub）
 private/
 # 旧版存档（历史参考，不进 GitHub）
