@@ -13,7 +13,7 @@
 | `type` | 笔记类型（六值） | `capture` / `knowledge` / `excerpt` / `daily` / `archive` / `system` |
 | `capture_kind` | 捕获时的松提示（仅 capture） | `随手记` / `灵感` / `待整理内容` / `摘录`——只是捕获时的初步印象，**不作为路由依据**，沉淀去向由内容判定 |
 | `excerpt_kind` | 摘录形态（仅 excerpt） | `长篇` / `短篇` |
-| `category` | 摘录分类（仅 excerpt） | 长篇：`诗词` / `文言` / `文学` / `网络`；短篇：`名言` / `警句` / `思考` / `摘抄` |
+| `category` | 摘录分类（仅 excerpt） | 长篇：`诗词` / `文言` / `文学` / `网络`；短篇：`名言` / `警句` / `思考` / `摘抄`（默认集合，可经确认扩展） |
 | `author` | 作者（摘录长篇重点使用） | `李白` / `鲁迅` / `佚名` |
 | `dynasty` | 朝代（仅摘录诗词/文言） | `唐` / `宋` / `先秦` |
 | `source` / `source_url` | 来源 | 课程/文章/URL |
@@ -21,19 +21,21 @@
 | `tags` | 标签（也可用行内 `#tag`） | `[fpga, 架构设计]` |
 | `aliases` | 别名 | `[跨时钟域同步]` |
 
-**必填与自由**：
+**必填与自由**（下表为权威定义，与 `scripts/vault_check.py` 的 REQUIRED 定义由
+开发期 `tools/check.py` C6 兜底同步）：
 
-- **收件箱（capture）**：agent 写入须 `type` / `created` / `tags`，并带
-  `capture_kind` 松提示（拿不准默认 `随手记`）；**用户手写无任何必填**——
-  收件箱是校验豁免区，缺什么都在沉淀时补。
-- **知识（knowledge）**：属性载体是**主题文档**——`type: knowledge` ＋
-  `created` / `updated` / `tags`；主题文档内的条目是章节小节，不带独立属性。
-- **摘录（excerpt）**：至少 `type` / `excerpt_kind` / `category` / `created` /
-  标签，长篇另加 `source`（出处，未知填 `佚名` 或留空待补）。
-- **日记（daily）**：`type: daily`，其余从简（日记由 agent 自动维护）。
-- **系统（system）**：用户文档与模板等库自身文件，`type: system`。
+| type | 必填属性（agent 写入时） |
+|---|---|
+| capture | `type` / `created` / `tags`（另带 `capture_kind` 松提示，不作必填） |
+| knowledge | `type` / `created` / `updated` / `tags` |
+| excerpt | `type` / `excerpt_kind` / `category` / `created` / `tags`；`excerpt_kind: 长篇` 另加 `source` |
+| daily | `type`（其余从简，日记由 agent 自动维护） |
+| system | `type` |
 
-除上述外，其余属性用户可自由增删；`updated` 在修改时必须更新。
+- 收件箱是校验豁免区：**用户手写无任何必填**，缺什么都在沉淀时补；
+- 知识的属性载体是**主题文档**——主题文档内的条目是章节小节，不带独立属性；
+- 摘录长篇的 `source`（出处）未知填 `佚名` 或留空待补；
+- 除上表外，其余属性用户可自由增删；`updated` 在修改时必须更新。
 
 ## 标签与双向链接约定
 
@@ -96,7 +98,7 @@
 
 - **收件箱**：捕获（agent 写入带属性 / 用户手写零要求）→ 审阅沉淀（摘抄→02 摘录；
   经验结论→01 知识主题文档；不再活跃→04 归档；无价值→删除；不明确→留下，
-  沉淀时删除原记录）。
+  原文件保留；已离箱条目的原收件箱文件在沉淀后删除）。
 - **知识**：条目合并进主题文档（章节不存在则新增；主题文档不存在则新建）→
   单章约 30 条涨破 → 提议拆分为文件夹（用户同意后执行）。
 - **摘录**：长篇一篇作品一篇笔记（命名 `作品名.md`）；短篇按分类聚合追加

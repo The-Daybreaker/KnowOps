@@ -12,6 +12,7 @@
   - check-vault 模式：全库结构巡检（一级目录与配置匹配、frontmatter 扫描），
     适用于日常巡检、升级后核对。收件箱路径整体跳过，模板目录跳过（占位符），
     非 md 文件不参与扫描。
+    **fail-closed**：check 模式传入目录或不存在的路径判 FAIL（不静默豁免）。
 
 用法：
   python vault_check.py check <vault> <文件...> [--json]
@@ -74,7 +75,8 @@ def clean_val(v: str):
 
 def parse_frontmatter(text: str) -> tuple[dict | None, str | None]:
     """轻量 YAML frontmatter 解析（覆盖 knowops 用到的子集：
-    标量、行内数组、块式列表、一层嵌套如 metadata.version）。
+    标量、行内数组、块式列表、一层嵌套如 metadata.version；键名支持
+    Unicode（中文属性键，Obsidian 属性面板允许）。键名仅 ASCII 时行为不变。
     返回 (dict|None, 错误信息|None)。"""
     if not text.startswith("---"):
         return None, None
@@ -98,7 +100,7 @@ def parse_frontmatter(text: str) -> tuple[dict | None, str | None]:
                 data[parent] = []
             data[parent].append(clean_val(mi.group(1)))
             continue
-        m = re.match(r"^(\s*)([A-Za-z_][\w-]*):\s*(.*)$", ln)
+        m = re.match(r"^(\s*)(\w[\w-]*):\s*(.*)$", ln)
         if not m:
             return None, f"第 {idx} 行无法解析：{ln.strip()[:40]}"
         indent, key, val = len(m.group(1)), m.group(2), m.group(3).strip()
@@ -172,6 +174,11 @@ def check_note(path: Path, vault: Path, prefs: dict) -> dict:
     rel = rel_posix(path, vault)
     result = {"path": rel, "ok": True, "exempt": False, "problems": [],
               "summary": ""}
+    if not path.is_file():
+        # 目录 / 不存在的路径：fail-closed（与「非 md 文件跳过」区分开）
+        result["ok"] = False
+        result["problems"].append("路径不存在或不是文件")
+        return result
     if path.suffix.lower() != ".md":
         # 非 md（含 .canvas）：用户自由空间/非笔记内容，不判定
         result["exempt"] = True

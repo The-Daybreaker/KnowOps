@@ -18,7 +18,8 @@
     C3  skill 文档引用的 references/assets/scripts 路径真实存在
     C4  仓库内 JSON 配置可解析
     C5  README 双语与 automation-prompt-template 中模块编号→名称与模块表一致
-    C6  vault_check.py 内嵌 type 枚举与 properties.md 声明一致（防双源漂移）
+    C6  vault_check.py 内嵌 type 枚举与必填表（REQUIRED/EXCERPT_LONG_EXTRA）
+        同 properties.md 声明一致（防双源漂移）
     C7  隐私门禁：跟踪内容禁密钥样式/邮箱/本机绝对路径/手机号；
         .gitignore 必备条目齐全（防测试产物再入库）
   私有（本地全量，private/ 存在时启用）：
@@ -54,6 +55,10 @@ TEST_VAULT = PRIVATE / "test" / "Obsidian测试知识库"
 # 模块表末两位固定名称（编号规则：系统倒数第二、归档殿后）
 FIXED_TAIL = ["系统", "归档"]
 
+# P5：源目录 junk 文件（与 release.py ZIP_EXCLUDE_NAMES 口径一致，
+# 打包排除它们 → src_set 同样排除，避免 --dist 误报）
+ZIP_JUNK_NAMES = {".DS_Store", "Thumbs.db", "desktop.ini"}
+
 # P3：允许无 frontmatter 的文件（相对测试库根）
 NO_FM_ALLOW = {
     "看板.md",          # 根目录看板嵌入容器（位置固定）
@@ -68,7 +73,7 @@ C7_SECRET_PATTERNS = [
     (r"ghr_[A-Za-z0-9]{20,}", "GitHub refresh token（ghr_）"),
     (r"github_pat_[A-Za-z0-9_]{20,}", "GitHub fine-grained PAT"),
     (r"xox[baprs]-[A-Za-z0-9-]{10,}", "Slack token"),
-    (r"sk-[A-Za-z0-9]{16,}", "sk- 样式 API key"),
+    (r"(?<![A-Za-z0-9])sk-[A-Za-z0-9\-_]{16,}", "sk- 样式 API key"),
     (r"AKIA[0-9A-Z]{12,}", "AWS Access Key ID"),
     (r"AIza[0-9A-Za-z_\-]{20,}", "Google API key"),
     (r"-----BEGIN [A-Z ]*PRIVATE KEY-----", "私钥内容"),
@@ -76,8 +81,13 @@ C7_SECRET_PATTERNS = [
 C7_EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 # 邮箱豁免：GitHub 匿名邮箱与示例域
 C7_EMAIL_ALLOW_SUFFIX = ("@users.noreply.github.com", "@example.com", "@example.org")
-# 本机绝对路径（lookbehind 排除 URL scheme 如 https://）
-C7_ABSPATH_RE = re.compile(r"(?<![A-Za-z0-9])[A-Za-z]:[\\/]\S*")
+# 本机绝对路径：盘符形态（lookbehind 排除 URL scheme 与 URL 内的盘符片段）
+# + UNC 形态（双反斜杠开头的网络路径；lookbehind 排除盘符转义与多反斜杠源码
+# 字面量，避免把转义写法误报为 UNC）
+C7_ABSPATH_RES = [
+    re.compile(r"(?<![A-Za-z0-9/])[A-Za-z]:[\\/]\S*"),
+    re.compile(r"(?<![A-Za-z0-9:\\])\\\\[\w.\-]+[\\/][^\s]+"),
+]
 # 豁免：已文档化的占位示例路径（新增占位符须在此显式登记，可审查）
 C7_ABSPATH_ALLOW_PREFIX = ("D:\\MyVault", "C:\\Users\\me\\")
 C7_PHONE_RE = re.compile(r"(?<!\d)1[3-9]\d{9}(?!\d)")
@@ -292,22 +302,108 @@ def check_c5_module_refs(rep: Report, table: dict[str, str]) -> None:
         rep.ok("C5 README 双语与提示词模板的模块编号→名称与模块表一致")
 
 
-def load_type_enum(rep: Report) -> frozenset | None:
-    """从 vault_check.py 提取 TYPE_ENUM（C6/P3 共用，单一定义点）。
-    提取失败记 error 并返回 None（绝不静默退化为空集）。"""
+def load_vc_defs(rep: Report) -> tuple[frozenset | None, dict[str, list[str]] | None,
+                                       list[str] | None]:
+    """从 vault_check.py 提取 TYPE_ENUM / REQUIRED / EXCERPT_LONG_EXTRA
+    （C6/P3 共用，单一定义点）。任一提取失败记 error 并返回 None 分量
+    （绝不静默退化为空集）。"""
     vc_path = SKILL_KNOWOPS / "scripts" / "vault_check.py"
     if not vc_path.is_file():
         rep.error("vault_check.py 不存在：skills/knowops/scripts/vault_check.py")
-        return None
+        return None, None, None
     vc = safe_read(rep, vc_path, "vault_check.py")
     if vc is None:
-        return None
+        return None, None, None
     m = re.search(r"TYPE_ENUM\s*=\s*frozenset\(\s*\{([^}]*)\}", vc, re.S)
     if not m:
         rep.error("vault_check.py 未找到 TYPE_ENUM 定义（正则失配，"
                   "枚举相关检查全部失效，请先修复）")
-        return None
-    return frozenset(re.findall(r"[\"'](\w+)[\"']", m.group(1)))
+        return None, None, None
+    enum = frozenset(re.findall(r"[\"'](\w+)[\"']", m.group(1)))
+
+    m2 = re.search(r"REQUIRED\s*=\s*\{(.*?)\n\}", vc, re.S)
+    if not m2:
+        rep.error("vault_check.py 未找到 REQUIRED 定义（正则失配，"
+                  "必填表检查失效，请先修复）")
+        return enum, None, None
+    required: dict[str, list[str]] = {}
+    for t, attrs in re.findall(r'"(\w+)":\s*\[([^\]]*)\]', m2.group(1)):
+        required[t] = re.findall(r'"(\w+)"', attrs)
+
+    m3 = re.search(r"EXCERPT_LONG_EXTRA\s*=\s*\[([^\]]*)\]", vc)
+    if not m3:
+        rep.error("vault_check.py 未找到 EXCERPT_LONG_EXTRA 定义")
+        return enum, required, None
+    extra = re.findall(r'"(\w+)"', m3.group(1))
+    return enum, required, extra
+
+
+def check_c6_required_sync(rep: Report, required: dict[str, list[str]] | None,
+                           excerpt_extra: list[str] | None) -> None:
+    """C6b：vault_check.py REQUIRED/EXCERPT_LONG_EXTRA 与 properties.md
+    「必填与自由」表一致（表格为文档侧权威定义，见 check_c6_enum_sync 同源思路）。"""
+    if required is None or excerpt_extra is None:
+        return  # 提取失败已在 load_vc_defs 记 error
+    props_path = SKILL_KNOWOPS / "references" / "properties.md"
+    if not props_path.is_file():
+        rep.error("C6 properties.md 不存在")
+        return
+    props = safe_read(rep, props_path, "C6 properties.md")
+    if props is None:
+        return
+
+    # 行扫描定位「| type | 必填属性…」表头，收集后续表格行（遇非表格行停止）
+    rows: list[tuple[str, str]] = []
+    in_table = False
+    for ln in props.splitlines():
+        if re.match(r"^\|\s*type\s*\|\s*必填属性", ln):
+            in_table = True
+            continue
+        if in_table:
+            if not ln.strip().startswith("|"):
+                break
+            cells = [c.strip() for c in ln.strip().strip("|").split("|")]
+            if len(cells) < 2 or set(cells[0]) <= set("-: "):
+                continue  # 分隔行
+            rows.append((cells[0], cells[1]))
+    if not rows:
+        rep.error("C6 properties.md 未找到「必填与自由」必填表（| type | 必填属性 |）")
+        return
+
+    parsed: dict[str, tuple[set, set]] = {}
+    for t, cell in rows:
+        base = cell.split("；")[0].split("（")[0]
+        toks = set(re.findall(r"`(\w+)`", base))
+        extra_toks: set = set()
+        m = re.search(r"另加\s*(.+)$", cell)
+        if m:
+            extra_toks = set(re.findall(r"`(\w+)`", m.group(1)))
+        parsed[t] = (toks, extra_toks)
+
+    problems = []
+    unknown = set(required) - set(parsed)
+    if unknown:
+        problems.append(f"vault_check REQUIRED 中的类型在必填表缺失：{sorted(unknown)}")
+    for t in sorted(set(required) | set(parsed)):
+        if t in unknown:
+            continue
+        toks, extra_toks = parsed[t]
+        if t not in required:
+            if toks != {"type"}:
+                problems.append(f"type {t} 必填表应仅含 type（vault_check 无此必填），"
+                                f"实际 {sorted(toks)}")
+            continue
+        if set(required[t]) != toks:
+            problems.append(f"type {t} 必填属性漂移：vault_check {sorted(required[t])}"
+                            f" vs properties {sorted(toks)}")
+        if t == "excerpt" and set(excerpt_extra) != extra_toks:
+            problems.append(f"excerpt 长篇附加必填漂移：vault_check {sorted(excerpt_extra)}"
+                            f" vs properties {sorted(extra_toks)}")
+    if problems:
+        for it in problems:
+            rep.error(f"C6 必填表双源漂移：{it}")
+    else:
+        rep.ok(f"C6 必填表与 vault_check REQUIRED 一致（{len(required)} 类）")
 
 
 def check_c6_enum_sync(rep: Report, vc_enum: frozenset | None) -> None:
@@ -345,16 +441,18 @@ def check_c6_enum_sync(rep: Report, vc_enum: frozenset | None) -> None:
 
 def _c7_tracked_files(rep: Report) -> list[Path]:
     """git 跟踪文件清单（= 将被公开的精确集合）。git 不可用时退化为全盘扫描
-    （排除 .git/、private/、.workbuddy/），保证门禁不因环境缺失而失效。"""
+    （排除 .git/、private/、dist/、legacy/、.test-env/、.workbuddy/ 目录），
+    保证门禁不因环境缺失而失效；名为 private 的文件本身仍参与扫描。"""
     try:
         out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT,
                              capture_output=True, check=True).stdout.decode("utf-8")
         return [ROOT / name for name in out.split("\0") if name]
     except (OSError, subprocess.CalledProcessError, UnicodeDecodeError) as e:
         rep.warn(f"C7 git 跟踪清单获取失败（{e}），退化为全盘扫描")
+        skip_dirs = {".git", "private", "dist", "legacy", ".test-env", ".workbuddy"}
         return [p for p in ROOT.rglob("*")
-                if p.is_file() and ".git" not in p.parts
-                and "private" not in p.parts and ".workbuddy" not in p.parts]
+                if p.is_file()
+                and not (set(p.parts[:-1]) & skip_dirs)]
 
 
 def check_c7_privacy(rep: Report) -> None:
@@ -377,11 +475,13 @@ def check_c7_privacy(rep: Report) -> None:
             for m in C7_EMAIL_RE.finditer(line):
                 if not m.group(0).lower().endswith(C7_EMAIL_ALLOW_SUFFIX):
                     hits.append(f"{rel}:{i} 含邮箱 {m.group(0)}")
-            for m in C7_ABSPATH_RE.finditer(line):
-                # 归一化转义写法（源码/JSON 中的双反斜杠）再比对豁免前缀
-                norm = m.group(0).replace("\\\\", "\\")
-                if not norm.startswith(C7_ABSPATH_ALLOW_PREFIX):
-                    hits.append(f"{rel}:{i} 含本机绝对路径 {norm[:60]!r}")
+            for rex in C7_ABSPATH_RES:
+                for m in rex.finditer(line):
+                    # 归一化转义写法（源码/JSON 中的双反斜杠）与正斜杠分隔符，
+                    # 再比对豁免前缀
+                    norm = m.group(0).replace("\\\\", "\\").replace("/", "\\")
+                    if not norm.startswith(C7_ABSPATH_ALLOW_PREFIX):
+                        hits.append(f"{rel}:{i} 含本机绝对路径 {norm[:60]!r}")
             if C7_PHONE_RE.search(line):
                 hits.append(f"{rel}:{i} 疑似国内手机号")
     gi = safe_read(rep, ROOT / ".gitignore", "C7 .gitignore")
@@ -691,7 +791,8 @@ def check_p5_dist(rep: Report, version: str) -> None:
                     src_set = {p.relative_to(src_root).as_posix()
                                for p in src_root.rglob("*")
                                if p.is_file() and "__pycache__" not in p.parts
-                               and p.suffix != ".pyc"}
+                               and p.suffix != ".pyc"
+                               and p.name not in ZIP_JUNK_NAMES}
                     if zip_set != src_set:
                         rep.error(f"P5 {zp.name} 清单不一致：仅 zip 有 "
                                   f"{sorted(zip_set - src_set)}；仅源目录有 "
@@ -731,8 +832,9 @@ def main() -> int:
     check_c4_json(rep)
     if table:
         check_c5_module_refs(rep, table)
-    type_enum = load_type_enum(rep)  # C6/P3 共用，单次提取（失败即记 error）
-    check_c6_enum_sync(rep, type_enum)
+    vc_enum, vc_required, vc_extra = load_vc_defs(rep)  # C6/P3 共用，单次提取
+    check_c6_enum_sync(rep, vc_enum)
+    check_c6_required_sync(rep, vc_required, vc_extra)
     check_c7_privacy(rep)
 
     # 私有检查
@@ -745,7 +847,7 @@ def main() -> int:
             rep.warn("P1 跳过：C1 未取得 skill 版本（先修复 C1）")
         if cfg is not None:
             check_p2_test_structure(rep, cfg)
-            check_p3_test_frontmatter(rep, cfg, type_enum)
+            check_p3_test_frontmatter(rep, cfg, vc_enum)
             check_p4_template_sync(rep, cfg)
         if args.dist:
             check_p5_dist(rep, args.dist)

@@ -11,6 +11,10 @@
     附件按相对路径一并复制；白板（.canvas）是用户自由空间，不进镜像也不计入
     附件；生成 vault 级详细索引 index.html
     （只生成 vault 级索引，历史残留的导出根级索引自动清理）。
+  - 导出范围（html-export.json include/exclude）对 export 与 export-one 同样
+    生效：被排除的文件（日记/模板等）export-one 返回 status=excluded、不落盘。
+    镜像根子树始终不参与扫描（exportRoot 位于 vault 内可见目录时防自吞）。
+    单篇源文件读取失败记入 failed 列表、不中断整体导出。
   - 不依赖 Obsidian 处于打开状态；转换目标为"跨设备可读"，不追求与 Obsidian 完全一致。
 
 自写轻量 Markdown 转换器覆盖（Obsidian Flavored Markdown 子集）：
@@ -85,12 +89,13 @@ def _dir_excluded(rel_dir: str, exclude: list[str]) -> bool:
     """目录级排除（os.walk 剪枝）。rel_dir 为 posix 相对目录（vault 根为 ""）。
 
     目录排除模式支持三种等价写法：`d`、`d/`、`d/**`——均排除该目录及其下全部内容。
+    模式分隔符统一按 `/` 处理（反斜杠写法自动归一，避免跨平台行为分裂）。
     """
     if not rel_dir:
         return False
     d = rel_dir.rstrip("/") + "/"
     for pat in exclude:
-        p = pat.rstrip("/")
+        p = pat.replace("\\", "/").rstrip("/")
         if p.endswith("/**"):
             base = p[:-3].rstrip("/") + "/"
         elif p.endswith("/*"):
@@ -103,10 +108,13 @@ def _dir_excluded(rel_dir: str, exclude: list[str]) -> bool:
 
 
 def _file_excluded(rel: str, include: list[str], exclude: list[str]) -> bool:
-    """文件级过滤：include 未命中则跳过；命中 exclude 则跳过。"""
-    if include and not any(fnmatch.fnmatch(rel, p) for p in include):
+    """文件级过滤：include 未命中则跳过；命中 exclude 则跳过。
+    模式分隔符统一按 `/` 处理（反斜杠写法自动归一）。"""
+    inc = [p.replace("\\", "/") for p in include]
+    exc = [p.replace("\\", "/") for p in exclude]
+    if inc and not any(fnmatch.fnmatch(rel, p) for p in inc):
         return True
-    return any(fnmatch.fnmatch(rel, p) for p in exclude)
+    return any(fnmatch.fnmatch(rel, p) for p in exc)
 
 
 def _range_cfg() -> dict:
@@ -141,7 +149,9 @@ class LinkResolver:
 
 def slugify(heading: str, used: set[str]) -> str:
     s = re.sub(r"[^\w一-鿿\- ]", "", heading).strip().lower().replace(" ", "-")
-    base, i = s or "section", 2
+    if not s:
+        s = "section"
+    base, i = s, 2
     while s in used:
         s = f"{base}-{i}"
         i += 1
@@ -180,7 +190,8 @@ class MdConverter:
             return f"\x00IC{len(codes) - 1}\x00"
 
         text = re.sub(r"`([^`\n]+)`", stash_code, text)
-        text = html.escape(text, quote=False)
+        # quote=True：引号转义为 &quot;，保证后续插入属性位置（img alt 等）安全
+        text = html.escape(text)
 
         # 嵌入 ![[...]]（先于普通 wikilink）
         def repl_embed(m):
@@ -443,7 +454,9 @@ class MdConverter:
                 row = row[1:]
             if row.endswith("|"):
                 row = row[:-1]
-            return [c.strip() for c in row.split("|")]
+            # 先把转义竖线 \| 换占位符再切分，切分后还原
+            row = row.replace("\\|", "\x00")
+            return [c.strip().replace("\x00", "|") for c in row.split("|")]
 
         header = split_row(lines[0])
         consumed = 2
@@ -628,15 +641,20 @@ def render_index(vault_name: str, entries: list[tuple[str, float]]) -> str:
 # 导出逻辑
 # ---------------------------------------------------------------------------
 
-def scan_vault(vault_path: str, range_cfg: dict | None = None) -> tuple[list[str], list[str]]:
+def scan_vault(vault_path: str, range_cfg: dict | None = None,
+               exclude_prefixes: list[str] | None = None) -> tuple[list[str], list[str]]:
     """返回 (笔记相对路径列表, 附件相对路径列表)，均为 posix 相对路径。
 
     range_cfg 来自 html-export.json（include/exclude glob 规则）；
     未提供或为空时导出全部非隐藏内容（保持历史行为）。
+    exclude_prefixes：绝对路径前缀（如镜像根目录），其子树整体不参与扫描
+    ——防止 exportRoot 位于 vault 内可见目录时，上一轮导出物被当附件自吞。
     """
     range_cfg = range_cfg or {}
     include = range_cfg.get("include") or []
     exclude = range_cfg.get("exclude") or []
+    prefixes = [os.path.normpath(p).lower().rstrip(os.sep)
+                for p in (exclude_prefixes or [])]
     notes, others = [], []
     for dirpath, dirnames, filenames in os.walk(vault_path):
         dirnames[:] = [d for d in dirnames if not d.startswith(SKIP_DIR_PREFIX)]
@@ -651,6 +669,10 @@ def scan_vault(vault_path: str, range_cfg: dict | None = None) -> tuple[list[str
             if fn.lower().endswith(".canvas"):
                 continue  # 白板是用户自由空间，不进镜像
             full = os.path.join(dirpath, fn)
+            if prefixes:
+                norm = os.path.abspath(full).lower()
+                if any(norm == p or norm.startswith(p + os.sep) for p in prefixes):
+                    continue  # 镜像根子树不参与扫描（防自吞）
             rel = os.path.relpath(full, vault_path).replace(os.sep, "/")
             if _file_excluded(rel, include, exclude):
                 continue
@@ -670,15 +692,23 @@ def mirror_root_for(export_root: str, vault_name: str) -> str:
 
 def convert_one(vault_path: str, mirror_root: str, rel: str,
                 resolver: LinkResolver, all_files: set[str],
-                force: bool = False) -> str:
-    """转换单篇笔记。返回状态：written / skipped。"""
+                force: bool = False,
+                errors: list[tuple[str, str]] | None = None) -> str:
+    """转换单篇笔记。返回状态：written / skipped / failed。
+    读取失败（含坏编码）记入 errors 并返回 failed，不中断整体导出。"""
     src = os.path.join(vault_path, rel.replace("/", os.sep))
     html_rel = rel[: -len(NOTE_EXT)] + ".html" if rel.lower().endswith(NOTE_EXT) else rel + ".html"
     dst = os.path.join(mirror_root, html_rel.replace("/", os.sep))
-    if not force and os.path.exists(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
-        return "skipped"
-    with open(src, "r", encoding="utf-8") as f:
-        text = f.read()
+    try:
+        if not force and os.path.exists(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
+            return "skipped"
+        # utf-8-sig：兼容带 BOM 的源文件（否则 BOM 击穿 frontmatter 识别）
+        with open(src, "r", encoding="utf-8-sig") as f:
+            text = f.read()
+    except (OSError, ValueError) as e:  # ValueError 含 UnicodeDecodeError
+        if errors is not None:
+            errors.append((rel, str(e)))
+        return "failed"
     conv = MdConverter(resolver, rel, all_files)
     body, fm = conv.render(text)
     title = fm.get("title") or posixpath.basename(rel[: -len(NOTE_EXT)])
@@ -738,18 +768,24 @@ def cmd_export(args) -> dict:
     mirror_root = mirror_root_for(export_root, vault_name)
     os.makedirs(mirror_root, exist_ok=True)
 
-    notes, attachments = scan_vault(vault_path, _range_cfg())
+    notes, attachments = scan_vault(vault_path, _range_cfg(),
+                                    exclude_prefixes=[mirror_root])
     resolver = LinkResolver(notes)
     all_files = set(notes) | set(attachments)
 
-    stats = {"written": 0, "skipped": 0, "copied": 0, "pruned": []}
+    stats = {"written": 0, "skipped": 0, "copied": 0, "pruned": [],
+             "failed": []}
     for rel in notes:
         status = convert_one(vault_path, mirror_root, rel, resolver,
-                             all_files, force=args.full)
-        stats["written" if status == "written" else "skipped"] += 1
+                             all_files, force=args.full, errors=stats["failed"])
+        if status in ("written", "skipped"):
+            stats[status] += 1
     for rel in attachments:
-        if copy_attachment(vault_path, mirror_root, rel) == "copied":
-            stats["copied"] += 1
+        try:
+            if copy_attachment(vault_path, mirror_root, rel) == "copied":
+                stats["copied"] += 1
+        except OSError as e:
+            stats["failed"].append((rel, str(e)))
     stats["pruned"] = prune_mirror(mirror_root, notes, attachments)
 
     index_entries = [(rel, os.path.getmtime(os.path.join(vault_path, rel.replace("/", os.sep))))
@@ -785,11 +821,21 @@ def cmd_export_one(args) -> dict:
     src = os.path.join(vault_abs, rel.replace("/", os.sep))
     if not os.path.isfile(src):
         raise ExportError(f"笔记不存在：{rel}")
-    notes, attachments = scan_vault(vault_path, _range_cfg())
+    range_cfg = _range_cfg()
+    if _file_excluded(rel, range_cfg.get("include") or [],
+                      range_cfg.get("exclude") or []):
+        # 被导出范围排除的文件（日记/模板等）：不导出、不报错（与全量导出口径一致）
+        return {"vault": vault_name, "file": rel, "status": "excluded",
+                "html": ""}
+    notes, attachments = scan_vault(vault_path, range_cfg,
+                                    exclude_prefixes=[mirror_root])
     resolver = LinkResolver(notes)
     all_files = set(notes) | set(attachments)
+    errors: list[tuple[str, str]] = []
     status = convert_one(vault_path, mirror_root, rel, resolver,
-                         all_files, force=True)
+                         all_files, force=True, errors=errors)
+    if status == "failed":
+        raise ExportError(f"笔记读取失败：{rel}：{errors[0][1]}")
     index_entries = [(r, os.path.getmtime(os.path.join(vault_path, r.replace("/", os.sep))))
                      for r in notes]
     os.makedirs(mirror_root, exist_ok=True)
@@ -874,6 +920,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv=None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     parser = build_parser()
     args = parser.parse_args(argv)
     try:

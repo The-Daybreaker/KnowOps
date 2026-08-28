@@ -87,7 +87,8 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
 1. 桌面端任务命中 `knowops` 后，按 SKILL.md 的加载规则先读 references：
    - 记录/管理/整理内容 → 先读 `references/workflow.md`，需要时运行**初始化向导**；
    - 执行 Obsidian 操作 → 先读 `references/redlines.md`；
-   - 暂存内容入库 → 读 `references/desktop-ingest.md`。
+   - 暂存内容入库 → 读 `references/desktop-ingest.md`，并按其头注加载
+     `references/workflow.md` 与 `references/redlines.md`。
 2. 初始化向导会逐步确认：vault 路径与名称、五个模块的默认目录结构（懒加载：
    收件箱/摘录/归档首次写入时才出现）、GitHub 暂存库同步（可选）、插件集成规则
    （写入 `.config/agent-rules.md`）、`03 系统` 的用户文档与模板、示例主题文档、
@@ -101,7 +102,7 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
 | 你说 | agent 做 |
 |---|---|
 | 手机：记一下：XXX | everywhere-note 生成规范 md 条目 + 设置当晚 22:00 提醒；指定了暂存库且具备 GitHub 能力时同步上传 |
-| 入库今天手机记的 | knowops 加载 desktop-ingest.md：优先收用户提供的内容；配置了暂存库时自动拉取 GitHub 新条目，序号命名写入 `00 收件箱`，源文件归档至暂存库 |
+| 入库今天手机记的 | knowops 加载 desktop-ingest.md：优先收用户提供的内容；未提供内容且配置了暂存库时，自动拉取 GitHub 新条目，序号命名写入 `00 收件箱`，源文件归档至暂存库 |
 | "记一下：……" | 写入 `00 收件箱/`（序号命名，补属性和标签） |
 | "摘录：将进酒……" | 长篇作品建独立笔记到 `02 摘录/长篇/诗词/`（作品名命名）；短句追加到 `02 摘录/短篇/` 对应分类文件 |
 | "这条经验入库，主题是架构设计" | 合并进 `01 知识/` 对应主题文档的对应章节 |

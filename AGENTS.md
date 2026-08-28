@@ -35,9 +35,9 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
 - **单 vault 配置**：`<vault>/.config/knowops.config.json`，由 agent 直接读写；
   schema 为 `version / vaultPath / exportRoot / exportEnabled / preferences`，
   可选顶层键 `githubSync`（GitHub 暂存库同步：`enabled/repo/branch/folder`）。
-- **每次对话前置（bootstrap）**：定位 vault → 读配置 → 读 `.config/agent-rules.md`
-  （若存在）→ 缺配置则按 `references/init-config.md` 初始化。任何新对话都能从零
-  接手知识库。
+- **每次对话前置（bootstrap）**：检测官方工具 skill 可用性 → 定位 vault → 读配置
+  → 读 `.config/agent-rules.md`（若存在）→ 缺配置则按 `references/init-config.md`
+  初始化。任何新对话都能从零接手知识库。
 - **约束收口**：agent 读的个性化约束统一存 `.config/agent-rules.md`；`03 系统/`
   只放 2 份用户可见文档（用户手册、变更记录），agent 不读。
 - **库内脚本**：`html_export.py`（HTML 镜像导出，与 `html-export.json` 配对，

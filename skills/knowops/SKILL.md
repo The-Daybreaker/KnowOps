@@ -1,7 +1,7 @@
 ---
 name: knowops
 metadata:
-  version: 2.0.1
+  version: 2.0.2
 description: 知识库管理与 Obsidian 操作。当用户要求记录、整理、搜索、审阅知识库内容（含摘录诗词、文言、名言警句等），执行 Obsidian 操作（读写改删笔记、移动、日记、插件、Bases/Canvas/Markdown），或将暂存内容/文件写入知识库（含从 GitHub 暂存库拉取新条目入库）时使用。工作流规范与执行红线按 references 渐进式加载；具体语法与命令以 obsidian-cli、obsidian-markdown、obsidian-bases、json-canvas、defuddle 及官方文档为准。
 ---
 
@@ -19,17 +19,17 @@ obsidian-bases / json-canvas / defuddle）为准；未安装时询问用户是�
 
 ## 每次对话前置（任何任务开始前必做）
 
-1. 确定目标 vault（用户指定 / 通过 Obsidian CLI 查询已注册 vault 供点选 / 当前目录
-   向上查找 `.config/knowops.config.json`；仍不确定就询问用户，不猜测）。
-2. 读取该 vault 的 `.config/knowops.config.json`（目录名、路径、HTML 导出、GitHub
-   暂存库同步等偏好）。
-3. 读取该 vault 的 `.config/agent-rules.md`（若存在：插件规则、额外红线、额外操作、
-   旧库约定）。
-4. 找不到配置 → 该 vault 尚未初始化 → 按 `references/init-config.md` 走初始化向导。
-5. 检测官方工具 skill 可用性：核对当前环境的可用 skill 列表或 skill 安装目录，
+1. 检测官方工具 skill 可用性：核对当前环境的可用 skill 列表或 skill 安装目录，
    确认 obsidian-cli / obsidian-markdown / obsidian-bases / json-canvas /
    defuddle 哪些已安装，记录结果；环境检测不到时询问用户，不默认「未安装」。
    后续 Obsidian 操作按此记录执行（见通用红线 8）。
+2. 确定目标 vault（用户指定 / 通过 Obsidian CLI 查询已注册 vault 供点选 / 当前
+   目录向上查找 `.config/knowops.config.json`；仍不确定就询问用户，不猜测）。
+3. 读取该 vault 的 `.config/knowops.config.json`（目录名、路径、HTML 导出、GitHub
+   暂存库同步等偏好）。
+4. 读取该 vault 的 `.config/agent-rules.md`（若存在：插件规则、额外红线、额外操作、
+   旧库约定）。
+5. 找不到配置 → 该 vault 尚未初始化 → 按 `references/init-config.md` 走初始化向导。
 
 ## 加载规则（先读引用，再操作）
 
@@ -41,6 +41,8 @@ obsidian-bases / json-canvas / defuddle）为准；未安装时询问用户是�
 | 暂存内容/文件入库（含 GitHub 暂存库拉取） | `references/desktop-ingest.md`、`references/workflow.md`、`references/redlines.md` | 官方工具 skill |
 
 > 任何写入/修改/移动/删除/归档操作前，必须读完对应引用后再执行。
+> 涉及删除/移动/归档或隐藏目录直写的任务（含审阅沉淀、初始化配置、HTML 导出），
+> `references/redlines.md` 一并必读。
 
 ## 通用红线
 
@@ -57,7 +59,7 @@ obsidian-bases / json-canvas / defuddle）为准；未安装时询问用户是�
 7. **变更操作前读取 `.config/agent-rules.md`**：agent 读的个性化约束（插件规则、
    额外红线、额外操作、旧库约定）；文件不存在视为无额外约束。
 8. **Obsidian 操作以官方工具 skill 为准**：执行 Obsidian CLI 命令或语法操作前，
-   核对前置第 5 步的可用性记录——对应 skill 已安装则加载并遵循其语法；未安装
+   核对前置第 1 步的可用性记录——对应 skill 已安装则加载并遵循其语法；未安装
    或不确定则先与用户确认兜底方式（安装该 skill，或改用官方文档
    help.obsidian.md），确认前不开始操作；不凭记忆猜测命令参数、不以网络搜索
    结果替代官方 skill 与官方文档（执行层细则见 `references/redlines.md`

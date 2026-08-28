@@ -33,8 +33,9 @@
     知识-最近更新、摘录-最近添加；视图可扩展）。
 11. 确认日记配置：`03 系统/日记`，按年切分（`YYYY/YYYY-MM-DD.md`）。
 12. 若启用 HTML 导出（默认 `exportEnabled=true`）：复制 `scripts/html_export.py`
-    与 `assets/html-export.json` 到 `.config/scripts/`；同时复制
-    `scripts/vault_check.py`（结构校验脚本，始终复制）。
+    与 `assets/html-export.json` 到 `.config/scripts/`（json 的 exclude 目录路径
+    按本库确认的 `dailyFolder`/`templatesDir` 改写；glob 分隔符必须用 `/`）；
+    同时复制 `scripts/vault_check.py`（结构校验脚本，始终复制）。
 13. 写首条日记（当日 `03 系统/日记/` 追加一行初始化记录），反馈汇总（配置路径、
     GitHub 暂存库、插件规则、系统文档、模板、看板、日记格式、导出状态）。
 

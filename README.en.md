@@ -102,7 +102,9 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
    - Recording/managing/organizing content → read `references/workflow.md` first,
      and run the **onboarding wizard** when needed;
    - Obsidian operations → read `references/redlines.md` first;
-   - Ingesting captured content/files → read `references/desktop-ingest.md`.
+   - Ingesting captured content/files → read `references/desktop-ingest.md`,
+     then load `references/workflow.md` and `references/redlines.md` per its
+     header note.
 2. The onboarding wizard confirms step by step: vault path & name, the five-module
    default structure (lazy loading: inbox/excerpt/archive appear on first write),
    optional GitHub staging repo sync, plugin integration rules (written to
@@ -118,7 +120,7 @@ Usage examples:
 | You say | The agent does |
 |---|---|
 | Phone: "log: XXX" | everywhere-note generates a KB-compliant md entry and sets a 22:00 reminder; uploads to the staging repo when configured and GitHub capability is available |
-| "Ingest today's phone captures" | knowops loads desktop-ingest.md: user-provided content first; with a staging repo configured, pulls new entries from GitHub, writes them into `00 收件箱` with numbered filenames, archives the sources to the staging repo |
+| "Ingest today's phone captures" | knowops loads desktop-ingest.md: user-provided content first; when no content is provided and a staging repo is configured, new entries are pulled from GitHub, written into `00 收件箱` with numbered filenames, and the sources are archived to the staging repo |
 | "Log this: ..." | Writes it to `00 收件箱/` (numbered, with properties & tags) |
 | "Excerpt: 将进酒..." | Long works get a dedicated note under `02 摘录/长篇/诗词/` (named by work title); short quotes are appended to the matching category file under `02 摘录/短篇/` |
 | "File this experience under the topic 架构设计" | Merges it into the matching section of the topic document under `01 知识/` |
