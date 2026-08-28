@@ -8,7 +8,8 @@
     默认导出位置为 <vault>/.config/HTML-Export/（vault 内隐藏目录，初始化默认
     写入 exportRoot）；未配置时自动回退该默认位置，可后续改选。
   - 增量导出（按 mtime）与全量导出（--full）；删除的笔记同步移除对应 HTML；
-    附件按相对路径一并复制；生成 vault 级详细索引 index.html
+    附件按相对路径一并复制；白板（.canvas）是用户自由空间，不进镜像也不计入
+    附件；生成 vault 级详细索引 index.html
     （只生成 vault 级索引，历史残留的导出根级索引自动清理）。
   - 不依赖 Obsidian 处于打开状态；转换目标为"跨设备可读"，不追求与 Obsidian 完全一致。
 
@@ -60,7 +61,7 @@ def load_range_config(script_dir: str) -> dict:
     配置结构（JSON）：
       {
         "include": ["**"],              # 导出哪些（glob 相对路径，默认 ["**"] 全部）
-        "exclude": ["00 收件箱/待整理内容/**", "附件/*.tmp"]   # 排除哪些（glob）；目录用 d/** 形式
+        "exclude": ["03 系统/日记/**", "03 系统/模板/**"]   # 排除哪些（glob）；目录用 d/** 形式
       }
     其他键（如 _comment 说明文字）被忽略，可随意添加。
     """
@@ -647,6 +648,8 @@ def scan_vault(vault_path: str, range_cfg: dict | None = None) -> tuple[list[str
                 if not _dir_excluded(f"{rel_dir_posix}/{d}" if rel_dir_posix else d, exclude)
             ]
         for fn in filenames:
+            if fn.lower().endswith(".canvas"):
+                continue  # 白板是用户自由空间，不进镜像
             full = os.path.join(dirpath, fn)
             rel = os.path.relpath(full, vault_path).replace(os.sep, "/")
             if _file_excluded(rel, include, exclude):

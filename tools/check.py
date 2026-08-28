@@ -14,7 +14,7 @@
 检查项：
   核心（CI 可跑，不依赖 private/）：
     C1  两 skill SKILL.md frontmatter 可解析且 metadata.version 相等
-    C2  workflow.md 模块表：编号自 00 连续、后三位固定为 看板/归档/系统管理
+    C2  workflow.md 模块表：编号自 00 连续、末两位固定为 系统/归档
     C3  skill 文档引用的 references/assets/scripts 路径真实存在
     C4  仓库内 JSON 配置可解析
     C5  README 双语与 automation-prompt-template 中模块编号→名称与模块表一致
@@ -24,8 +24,8 @@
   私有（本地全量，private/ 存在时启用）：
     P1  版本一致性链 + 开发期文档 frontmatter 分档检查
     P2  测试库一级目录与 config preferences 匹配
-    P3  测试库笔记 frontmatter 可解析且 type 在枚举内
-    P4  模板联动：system-manage 与 html_export 副本一致
+    P3  测试库笔记 frontmatter 可解析且 type 在枚举内（收件箱豁免）
+    P4  模板联动：系统文档、笔记模板、示例主题与脚本副本一致
     P5  dist 完整性（--dist）：zip 清单与源目录一致
 """
 
@@ -51,17 +51,13 @@ AUTOMATION_TEMPLATE = ROOT / "skills" / "automation-prompt-template.md"
 PRIVATE = ROOT / "private"
 TEST_VAULT = PRIVATE / "test" / "Obsidian测试知识库"
 
-# 模块表后三位固定名称（编号规则）
-FIXED_TAIL = ["看板", "归档", "系统管理"]
+# 模块表末两位固定名称（编号规则：系统倒数第二、归档殿后）
+FIXED_TAIL = ["系统", "归档"]
 
-# P3：允许无 frontmatter 的文件（相对测试库根，posix 风格）
+# P3：允许无 frontmatter 的文件（相对测试库根）
 NO_FM_ALLOW = {
-    "看板.md",          # 07 看板嵌入容器（由 dashboardFile 配置）
-    "TODO.md",          # 人工快捷清单
+    "看板.md",          # 根目录看板嵌入容器（位置固定）
 }
-# P3：项目六文件中除项目说明.md 外的五份固定结构文档（项目说明.md 为项目主
-# 笔记，需 frontmatter；其余五份为项目内结构文档，无 frontmatter 属预期）
-PROJECT_FIXED_FILES = {"目标.md", "决策记录.md", "研究记录.md", "问题.md", "复盘.md"}
 
 # C7 隐私门禁：敏感模式（仅扫 git 跟踪内容——精确等于将公开的部分）
 C7_SECRET_PATTERNS = [
@@ -197,12 +193,12 @@ def parse_module_table(rep: Report) -> dict[str, str] | None:
     if nums_raw != list(range(len(nums_raw))):
         rep.error(f"C2 模块编号不连续（原始行序 {nums_raw}）")
         return None
-    # C2b：后三位固定
-    tail = [table[n] for n in sorted(table, key=int)[-3:]]
+    # C2b：末两位固定（系统倒数第二、归档殿后）
+    tail = [table[n] for n in sorted(table, key=int)[-len(FIXED_TAIL):]]
     if tail != FIXED_TAIL:
-        rep.error(f"C2 模块表后三位应为 {FIXED_TAIL}，实际 {tail}")
+        rep.error(f"C2 模块表末 {len(FIXED_TAIL)} 位应为 {FIXED_TAIL}，实际 {tail}")
         return None
-    rep.ok(f"C2 模块表编号连续（{len(table)} 个模块）、后三位固定 {FIXED_TAIL}")
+    rep.ok(f"C2 模块表编号连续（{len(table)} 个模块）、末位固定 {FIXED_TAIL}")
     return table
 
 
@@ -474,8 +470,7 @@ def check_p2_test_structure(rep: Report, cfg: dict) -> None:
     if not isinstance(prefs, dict):
         rep.error("P2 knowops.config.json 的 preferences 应为对象")
         prefs = {}
-    dir_keys = ["inboxDir", "lifeDir", "knowledgeDir", "assetsDir", "standardsDir",
-                "projectsDir", "excerptDir", "dashboardDir", "archiveDir", "systemDir"]
+    dir_keys = ["inboxDir", "knowledgeDir", "excerptDir", "systemDir", "archiveDir"]
     expected: dict[int, str] = {}
     for k in dir_keys:
         val = prefs.get(k)
@@ -493,14 +488,14 @@ def check_p2_test_structure(rep: Report, cfg: dict) -> None:
             continue
         expected[num] = m.group(2)
 
-    # 后三位固定：编号为最大三个连续值，且名称与 FIXED_TAIL 逐位对应
-    # （防 dashboardDir/archiveDir 名称与键错位）
-    if len(expected) >= 3:
+    # 末两位固定：编号为最大两个连续值，且名称与 FIXED_TAIL 逐位对应
+    # （防 systemDir/archiveDir 名称与键错位）
+    if len(expected) >= len(FIXED_TAIL):
         mx = max(expected)
-        for off, want in zip((2, 1, 0), FIXED_TAIL):
+        for off, want in zip(range(len(FIXED_TAIL) - 1, -1, -1), FIXED_TAIL):
             got = expected.get(mx - off)
             if got != want:
-                rep.error(f"P2 后三位第 {3 - off} 位（编号 {mx - off:02d}）"
+                rep.error(f"P2 倒数第 {off + 1} 位（编号 {mx - off:02d}）"
                           f"应为「{want}」，实际「{got}」")
 
     # 实际目录 ⊆ expected（懒加载允许缺失）
@@ -530,9 +525,9 @@ def check_p3_test_frontmatter(rep: Report, cfg: dict,
         rep.warn("P3 跳过：TYPE_ENUM 提取失败（见前述 error）")
         return
 
-    system_dir = str(cfg.get("preferences", {}).get("systemDir", "09 系统管理"))
-    dashboard_file = str(cfg.get("preferences", {}).get("dashboardFile", "看板.md"))
-    projects_dir = str(cfg.get("preferences", {}).get("projectsDir", "05 项目系统"))
+    prefs = cfg.get("preferences", {})
+    system_dir = str(prefs.get("systemDir", "03 系统"))
+    inbox_dir = str(prefs.get("inboxDir", "00 收件箱"))
 
     no_fm, bad_fm, bad_type = [], [], []
     count = 0
@@ -540,6 +535,8 @@ def check_p3_test_frontmatter(rep: Report, cfg: dict,
         rel = p.relative_to(TEST_VAULT).as_posix()
         if any(part.startswith(".") for part in p.relative_to(TEST_VAULT).parts):
             continue  # 隐藏目录（.config/.obsidian 等）不扫
+        if rel == inbox_dir or rel.startswith(inbox_dir + "/"):
+            continue  # 收件箱校验豁免区（零门槛捕获区）
         count += 1
         try:
             fm, _ = parse_frontmatter(read_text(p))
@@ -547,11 +544,8 @@ def check_p3_test_frontmatter(rep: Report, cfg: dict,
             bad_fm.append(f"{rel}：{e}")
             continue
         if fm is None:
-            # 豁免：TODO/看板容器、系统管理用户文档、项目固定结构文档
-            if (p.name in NO_FM_ALLOW or p.name == dashboard_file
-                    or rel.startswith(system_dir + "/")
-                    or (rel.startswith(projects_dir + "/")
-                        and p.name in PROJECT_FIXED_FILES)):
+            # 豁免：根目录看板容器、系统模块内文件（用户文档/模板/日记）
+            if p.name in NO_FM_ALLOW or rel.startswith(system_dir + "/"):
                 continue
             no_fm.append(rel)
             continue
@@ -575,12 +569,13 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
     prefs = cfg.get("preferences")
     if not isinstance(prefs, dict):
         prefs = {}
-    system_dir = str(prefs.get("systemDir", "09 系统管理"))
+    system_dir = str(prefs.get("systemDir", "03 系统"))
+    knowledge_dir = str(prefs.get("knowledgeDir", "01 知识"))
     tpl_dir = SKILL_KNOWOPS / "assets" / "system-manage"
     tgt_dir = TEST_VAULT / system_dir
     problems = []
-    # 4 份逐字一致 + 变更记录前缀一致（副本允许追加变更历史）
-    exact = ["用户手册.md", "知识库架构.md", "分类规则.md", "记录规范.md"]
+    # 系统文档：用户手册逐字一致；变更记录校验标题（副本持续追加历史条目）
+    exact = ["用户手册.md"]
     for name in exact:
         tpl, tgt = tpl_dir / name, tgt_dir / name
         if not tpl.is_file():
@@ -613,6 +608,34 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
                 problems.append(f"{system_dir}/{vc} 副本标题与模板不一致"
                                 f"（{tgt_title!r} ≠ {tpl_title!r}）")
 
+    # 笔记模板：源文件存在 + 测试库 系统/模板/ 副本逐字一致
+    note_tpl_src = SKILL_KNOWOPS / "assets" / "templates"
+    note_tpl_tgt = tgt_dir / "模板"
+    for name in ("主题文档模板.md", "摘录长篇模板.md"):
+        src, dst = note_tpl_src / name, note_tpl_tgt / name
+        if not src.is_file():
+            problems.append(f"笔记模板缺失：assets/templates/{name}")
+            continue
+        if not dst.is_file():
+            problems.append(f"测试库模板副本缺失：{system_dir}/模板/{name}")
+            continue
+        try:
+            if read_text(src) != read_text(dst):
+                problems.append(f"模板副本与源不一致：{system_dir}/模板/{name}")
+        except (OSError, ValueError) as e:
+            problems.append(f"模板副本读取失败（{e}）：{name}")
+
+    # 示例主题文档：源存在；测试库知识模块至少有一份主题文档
+    # （副本初始化时替换了 {{date}}，不逐字比对）
+    example_src = SKILL_KNOWOPS / "assets" / "knowledge-example" / "示例主题.md"
+    if not example_src.is_file():
+        problems.append("示例主题模板缺失：assets/knowledge-example/示例主题.md")
+    kdir = TEST_VAULT / knowledge_dir
+    if not kdir.is_dir():
+        problems.append(f"测试库知识模块缺失：{knowledge_dir}/")
+    elif not any(kdir.rglob("*.md")):
+        problems.append(f"测试库知识模块无主题文档：{knowledge_dir}/")
+
     # 脚本与配置副本逐字一致
     pairs = [
         (SKILL_KNOWOPS / "scripts" / "html_export.py",
@@ -639,7 +662,7 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
         for it in problems:
             rep.error(f"P4 {it}")
     else:
-        rep.ok("P4 模板联动一致（system-manage 5 份 + 脚本副本）")
+        rep.ok("P4 模板联动一致（系统文档 2 份 + 笔记模板 2 份 + 示例主题 + 脚本副本）")
 
 
 def check_p5_dist(rep: Report, version: str) -> None:
