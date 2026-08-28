@@ -39,7 +39,8 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
   → 读 `.config/agent-rules.md`（若存在）→ 缺配置则按 `references/init-config.md`
   初始化。任何新对话都能从零接手知识库。
 - **约束收口**：agent 读的个性化约束统一存 `.config/agent-rules.md`；`03 系统/`
-  只放 2 份用户可见文档（用户手册、变更记录），agent 不读。
+  只放 1 份用户可见文档（用户手册），agent 不读；库的结构与规则变更史由 agent
+  记入 `.config/变更记录.md`（隐藏目录，不占用户可见空间）。
 - **库内脚本**：`html_export.py`（HTML 镜像导出，与 `html-export.json` 配对，
   导出默认启用，日记/模板/白板默认不导出）与 `vault_check.py`（结构面校验：
   frontmatter 可解析/必填属性/type 枚举；收件箱豁免、非 md 跳过），均自包含
@@ -68,8 +69,9 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
 - knowops 的 SKILL.md 只承载触发、前置引导、加载规则与通用红线；references 按需
   加载（workflow / redlines / init-config / desktop-ingest / properties）。
 - workflow.md 保持**工具无关的中立规范**视角，不写工具名/命令/委托链。
-- `assets/system-manage/` 是 03 系统的 2 份**用户文档模板**（用户手册——含布局/
-  记录/整理/查找/质量参考的总手册；变更记录）；初始化复制、已存在不覆盖。
+- `assets/system-manage/` 是库自身文档模板（用户手册——含布局/记录/整理/查找/
+  质量参考的总手册，初始化进 `03 系统/`；变更记录，初始化进 `.config/`）；
+  初始化复制、已存在不覆盖。
 - `assets/templates/` 是供 Obsidian Templates 插件使用的笔记模板（主题文档/
   摘录长篇）；`assets/knowledge-example/` 是知识模块的示例主题文档（通用、
   去个人化）。

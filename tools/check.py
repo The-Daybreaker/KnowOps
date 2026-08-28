@@ -26,7 +26,8 @@
     P1  版本一致性链 + 开发期文档 frontmatter 分档检查
     P2  测试库一级目录与 config preferences 匹配
     P3  测试库笔记 frontmatter 可解析且 type 在枚举内（收件箱豁免）
-    P4  模板联动：系统文档、笔记模板、示例主题与脚本副本一致
+    P4  模板联动：用户手册（03 系统）、变更记录（.config）、笔记模板、
+        示例主题与脚本副本一致
     P5  dist 完整性（--dist）：zip 清单与源目录一致
 """
 
@@ -674,7 +675,8 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
     tpl_dir = SKILL_KNOWOPS / "assets" / "system-manage"
     tgt_dir = TEST_VAULT / system_dir
     problems = []
-    # 系统文档：用户手册逐字一致；变更记录校验标题（副本持续追加历史条目）
+    # 用户手册逐字一致；变更记录在 .config/（v2.0.3 起为 agent 维护的隐藏基建），
+    # 校验标题（副本持续追加历史条目）
     exact = ["用户手册.md"]
     for name in exact:
         tpl, tgt = tpl_dir / name, tgt_dir / name
@@ -692,21 +694,30 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
         if differs:
             problems.append(f"副本与模板不一致：{system_dir}/{name}")
     vc = "变更记录.md"
-    tpl, tgt = tpl_dir / vc, tgt_dir / vc
-    if not (tpl.is_file() and tgt.is_file()):
-        problems.append(f"变更记录模板或副本缺失：{system_dir}/{vc}")
-    else:
+    tpl, tgt = tpl_dir / vc, TEST_VAULT / ".config" / vc
+    if not tpl.is_file():
+        problems.append(f"变更记录模板缺失：assets/system-manage/{vc}")
+    if not tgt.is_file():
+        problems.append(f"测试库副本缺失：.config/{vc}")
+    if (tgt_dir / vc).is_file():
+        problems.append(f"变更记录仍残留在 {system_dir}/{vc}"
+                        f"（v2.0.3 起应为 .config/{vc}）")
+    if tpl.is_file() and tgt.is_file():
         # 变更记录是活文档：副本初始化自模板后持续追加历史条目，且模板的初始
         # 示例条目会随版本更新——历史条目不回溯改写。只校验标题一致性。
         try:
             tpl_title = read_text(tpl).splitlines()[0].strip()
-            tgt_title = read_text(tgt).splitlines()[0].strip()
         except (OSError, ValueError, IndexError) as e:
-            problems.append(f"{system_dir}/{vc} 读取失败（{e}）")
+            problems.append(f"assets/system-manage/{vc} 读取失败（{e}）")
         else:
-            if tpl_title != tgt_title:
-                problems.append(f"{system_dir}/{vc} 副本标题与模板不一致"
-                                f"（{tgt_title!r} ≠ {tpl_title!r}）")
+            try:
+                tgt_title = read_text(tgt).splitlines()[0].strip()
+            except (OSError, ValueError, IndexError) as e:
+                problems.append(f".config/{vc} 读取失败（{e}）")
+            else:
+                if tpl_title != tgt_title:
+                    problems.append(f".config/{vc} 副本标题与模板不一致"
+                                    f"（{tgt_title!r} ≠ {tpl_title!r}）")
 
     # 笔记模板：源文件存在 + 测试库 系统/模板/ 副本逐字一致
     note_tpl_src = SKILL_KNOWOPS / "assets" / "templates"
@@ -762,7 +773,8 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
         for it in problems:
             rep.error(f"P4 {it}")
     else:
-        rep.ok("P4 模板联动一致（系统文档 2 份 + 笔记模板 2 份 + 示例主题 + 脚本副本）")
+        rep.ok("P4 模板联动一致（用户手册 + 变更记录（.config）+ 笔记模板 2 份"
+               " + 示例主题 + 脚本副本）")
 
 
 def check_p5_dist(rep: Report, version: str) -> None:

@@ -145,7 +145,7 @@ KnowOps/
     │   │   └── desktop-ingest.md    # captured content / GitHub staging pull → 00 收件箱
     │   ├── scripts/                 # html_export / vault_check
     │   └── assets/
-    │       ├── system-manage/       # 03 系统 onboarding user docs (2 files: manual/change log)
+    │       ├── system-manage/       # vault doc templates (user manual→03 系统; change log→.config)
     │       ├── templates/           # note templates (topic document/long excerpt, for the Obsidian Templates plugin)
     │       ├── knowledge-example/   # example topic document for the knowledge module
     │       ├── agent-rules.md       # .config/agent-rules.md template

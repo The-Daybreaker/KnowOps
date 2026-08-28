@@ -127,7 +127,7 @@ KnowOps/
     │   │   └── desktop-ingest.md    # 暂存内容/GitHub暂存库拉取 → 00 收件箱
     │   ├── scripts/                 # html_export / vault_check
     │   └── assets/
-    │       ├── system-manage/       # 03 系统初始化用户文档（2 文件：用户手册/变更记录）
+    │       ├── system-manage/       # 库自身文档模板（用户手册→03 系统；变更记录→.config）
     │       ├── templates/           # 笔记模板（主题文档/摘录长篇，供 Obsidian Templates 插件）
     │       ├── knowledge-example/   # 知识模块示例主题文档
     │       ├── agent-rules.md       # .config/agent-rules.md 模板
