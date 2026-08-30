@@ -2,7 +2,7 @@
 
 > 本文件是 knowops 的桌面端入库流程。执行前先加载 `references/workflow.md`
 > （流程规范）与 `references/redlines.md`（操作规范与红线），并按其中约定读取
-> `.config/agent-rules.md`。本文件只定义"内容 → 00 收件箱"这一步。
+> 用户手册「模块规则」「agent 约束」两章。本文件只定义"内容 → 收件箱"这一步。
 >
 > 随身端条目由 everywhere-note 生成；字段契约（`type`/`created`/`tags`/标题）
 > 需与其 SKILL.md 保持一致，任何修改须两端同步。**随身端稳定原则**：契约只含
@@ -78,7 +78,7 @@
 2. 文件名 `序号-标题.md`：序号＝现有**`数字-` 开头 md 文件**的最大序号＋1
    （`待审阅-*.md` 与用户手写文件不计入序号），两位补零，超 99 自动三位；
    标题取条目标题（去掉日期前缀等旧格式痕迹）；
-3. 用 Obsidian CLI 创建（路径/名称以配置与 `.config/agent-rules.md` 为准）；长内容或特殊
+3. 用 Obsidian CLI 创建（路径/名称以配置、手册「agent 约束」章与用户确认为准）；长内容或特殊
    字符按 `references/redlines.md` 的直写例外规范处理；
 4. 写入后**回读校验**（批量入库优先用库内脚本 `vault_check.py check` 输出每篇
    键值摘要并抽 1 篇全文回读，见 `references/workflow.md`「操作后流程」；

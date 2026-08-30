@@ -37,9 +37,8 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
   （preferences 含 `modules` 模块登记索引与日记/模板目录），可选顶层键
   `githubSync`（GitHub 暂存库同步：`enabled/repo/branch/folder`）。
 - **每次对话前置（bootstrap）**：检测官方工具 skill 可用性 → 定位 vault → 读配置
-  → 读 `.config/agent-rules.md`（若存在）与 `03 系统/用户手册.md`「模块规则」
-  章节 → 缺配置则按 `references/init-config.md` 初始化。任何新对话都能从零
-  接手知识库。
+  → 读 `03 系统/用户手册.md` 的「模块规则」「agent 约束」两章 → 缺配置则按
+  `references/init-config.md` 初始化。任何新对话都能从零接手知识库。
 - **单一事实来源**：各模块装什么、怎么入库、怎么分类、怎么命名，唯一落点是
   库内 `03 系统/用户手册.md` 的「模块规则」章节——用户可见可编辑，同时是
   agent 必读的执行依据；config 只存机器索引（modules），不存规则副本。agent
@@ -81,9 +80,10 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
 - knowops 的 SKILL.md 只承载触发、前置引导、加载规则与通用红线；references 按需
   加载（workflow / redlines / init-config / desktop-ingest / properties）。
 - workflow.md 保持**工具无关的中立规范**视角，不写工具名/命令/委托链。
-- `assets/system-manage/` 是库自身文档模板（用户手册——含**模块规则**（唯一
-  事实来源，agent 必读）/记录/整理/查找/质量参考的总手册，初始化进
-  `03 系统/`；变更记录，初始化进 `.config/`）；初始化复制、已存在不覆盖。
+- `assets/system-manage/` 是库自身文档模板（用户手册——含**模块规则**与
+  **agent 约束**（唯一事实来源，agent 必读）/记录/整理/查找/质量参考的总手册，
+  初始化进 `03 系统/`；变更记录，初始化进 `.config/`）；初始化复制、已存在
+  不覆盖。
 - `assets/templates/` 是供 Obsidian Templates 插件使用的笔记模板（主题文档）。
 - `everywhere-note` 单文件自洽：仅 SKILL.md（流程、条目形状与红线全部内嵌）。
 - 两 skill 的 SKILL.md frontmatter 均含 `metadata.version`，跟随当前版本。
@@ -96,7 +96,7 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
 4. **信息以用户给出为准**；**用户原话完整记录，不改写、不压缩**。
 5. **创建前相似检查**。
 6. **重要写入后回读校验**。
-7. **变更操作前读取 `.config/agent-rules.md` 与用户手册「模块规则」章节**。
+7. **变更操作前读取用户手册「模块规则」与「agent 约束」两章**。
 8. **Obsidian 操作以官方工具 skill 为准**：前置检测可用性并记录；已安装则加载
    遵循其语法，未安装先与用户确认兜底（安装或 help.obsidian.md），不自行猜测
    命令、不以网络搜索替代。

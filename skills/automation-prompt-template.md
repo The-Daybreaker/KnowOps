@@ -22,8 +22,8 @@
 
 【执行步骤】
 1. 加载 knowops skill（位于 {{skill_path}}），按 SKILL.md 的「每次对话前置」完成：
-   定位 vault → 读取 `.config/knowops.config.json` → 读取 `.config/agent-rules.md`
-   与 `03 系统/用户手册.md` 的「模块规则」章节。
+   定位 vault → 读取 `.config/knowops.config.json` → 读取 `03 系统/用户手册.md`
+   的「模块规则」与「agent 约束」两章。
 2. 读取 `githubSync` 配置：repo={{repo}}、branch={{branch}}、folder={{folder}}。
 3. 检查暂存库 `<folder>/` 根目录（排除 `归档/` 子目录）是否有新的 md 文件：
    - 没有新文件 → 输出「无新内容，本次无需入库」并结束；

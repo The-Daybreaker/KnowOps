@@ -70,7 +70,8 @@ experience, and half-formed thoughts.
 - **Archive**: `04 归档` uses zero-padded Chinese date folders;
 - **Canvas is free space**: canvases you create are never managed, checked or exported;
 - **Plugin integration rules**: at onboarding, plugins are scanned and the user
-  confirms how they integrate; rules are written to hidden config `.config/agent-rules.md`,
+  confirms how they integrate; rules are written to the user manual's "agent
+  约束" chapter (same book as the module rules, viewable and editable anytime),
   read before every mutating operation and executed afterwards (e.g., version
   commit first, then cloud sync);
 - **Config-driven, version-following**: module index and preferences live in
@@ -124,9 +125,9 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
 2. The onboarding wizard confirms step by step: vault path & name, the four base
    modules (lazy loading: inbox/archive appear on first write), whether to enable
    the excerpt module (the preset extension; skippable), optional GitHub staging
-   repo sync, plugin integration rules (written to `.config/agent-rules.md`), the
-   `03 系统` user manual and templates (the manual's "模块规则" chapter is what the
-   agent executes against), the root dashboard, and the
+   repo sync, plugin integration rules (written to the manual's "agent 约束"
+   chapter), the `03 系统` user manual and templates (the manual's "模块规则"
+   chapter is what the agent executes against), the root dashboard, and the
    Daily notes diary setup; config lives in the vault's hidden `.config/` directory,
    and the HTML mirror export is enabled by default
    (`<vault>/.config/HTML-Export/`).
@@ -166,7 +167,6 @@ KnowOps/
     │   └── assets/
     │       ├── system-manage/       # vault doc templates (user manual→03 系统; change log→.config)
     │       ├── templates/           # note template (topic document, for the Obsidian Templates plugin)
-    │       ├── agent-rules.md       # .config/agent-rules.md template
     │       └── html-export.json     # HTML export range config template
     ├── everywhere-note/             # Portable capture (optional GitHub staging sync; single-file)
     │   └── SKILL.md

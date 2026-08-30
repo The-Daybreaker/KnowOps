@@ -58,8 +58,9 @@ CLI 读写笔记、尊重删除红线）。本仓库把这两件事放进一个�
   知识最近更新等），模块登记/注销时同步增减；
 - **归档**：`04 归档` 按中文补零日期切分；
 - **白板自由空间**：你在库里建的 canvas 不会被管理、校验或导出；
-- **插件集成规则**：初始化扫描插件、由用户确认规则写入隐藏配置 `.config/agent-rules.md`，
-  每次变更操作前读取、操作后按规则执行（如先版本提交、再云同步）；
+- **插件集成规则**：初始化扫描插件、由用户确认规则写入用户手册**「agent 约束」
+  章节**（与模块规则同册，随时可看可改），每次变更操作前读取、操作后按规则
+  执行（如先版本提交、再云同步）；
 - **配置驱动、版本跟随**：模块索引与偏好全在 `.config/knowops.config.json`
   （单 vault），schema 版本跟随 skill 版本；
 - **数据安全红线**：删除永远进系统回收站且可恢复、高风险改删移前征求同意、不代为
@@ -99,7 +100,7 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
      `references/workflow.md` 与 `references/redlines.md`。
 2. 初始化向导会逐步确认：vault 路径与名称、基础骨架四个模块（懒加载：收件箱/
    归档首次写入时才出现）、是否启用摘录模块（预置扩展模块，不启用可跳过）、
-   GitHub 暂存库同步（可选）、插件集成规则（写入 `.config/agent-rules.md`）、
+   GitHub 暂存库同步（可选）、插件集成规则（写入用户手册「agent 约束」章节）、
    `03 系统` 的用户手册与模板（手册「模块规则」章节是 agent 的执行依据）、
    根目录看板、Daily notes 日记配置；配置固定写入 vault 内隐藏
    目录 `.config/`，HTML 镜像导出默认启用（`<vault>/.config/HTML-Export/`）。
@@ -139,7 +140,6 @@ KnowOps/
     │   └── assets/
     │       ├── system-manage/       # 库自身文档模板（用户手册→03 系统；变更记录→.config）
     │       ├── templates/           # 笔记模板（主题文档，供 Obsidian Templates 插件）
-    │       ├── agent-rules.md       # .config/agent-rules.md 模板
     │       └── html-export.json     # HTML 导出范围配置模板
     ├── everywhere-note/             # 随身端捕获（可选 GitHub 暂存库同步；单文件自洽）
     │   └── SKILL.md

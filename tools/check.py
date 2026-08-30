@@ -708,24 +708,29 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
     tpl_dir = SKILL_KNOWOPS / "assets" / "system-manage"
     tgt_dir = TEST_VAULT / system_dir
     problems = []
-    # 用户手册逐字一致；变更记录在 .config/（v2.0.3 起为 agent 维护的隐藏基建），
-    # 校验标题（副本持续追加历史条目）
-    exact = ["用户手册.md"]
-    for name in exact:
-        tpl, tgt = tpl_dir / name, tgt_dir / name
-        if not tpl.is_file():
-            problems.append(f"模板缺失：assets/system-manage/{name}")
-            continue
-        if not tgt.is_file():
-            problems.append(f"测试库副本缺失：{system_dir}/{name}")
-            continue
+    # 用户手册：v3.0.2 起初始化会把实际目录名/插件规则填入副本，不再逐字比对；
+    # 改为章节锚点校验——模板的全部「## 」章节标题必须在副本中逐一存在
+    # （副本是"已初始化"形态，章节集合不得缺失或改名）
+    manual = "用户手册.md"
+    tpl, tgt = tpl_dir / manual, tgt_dir / manual
+    if not tpl.is_file():
+        problems.append(f"模板缺失：assets/system-manage/{manual}")
+    if not tgt.is_file():
+        problems.append(f"测试库副本缺失：{system_dir}/{manual}")
+    if tpl.is_file() and tgt.is_file():
         try:
-            differs = read_text(tpl) != read_text(tgt)
+            tpl_lines = read_text(tpl).splitlines()
+            tgt_lines = read_text(tgt).splitlines()
         except (OSError, ValueError) as e:
-            problems.append(f"模板/副本读取失败（{e}）：{name}")
-            continue
-        if differs:
-            problems.append(f"副本与模板不一致：{system_dir}/{name}")
+            problems.append(f"模板/副本读取失败（{e}）：{manual}")
+        else:
+            tpl_heads = [ln.strip() for ln in tpl_lines
+                         if ln.startswith("## ")]
+            tgt_set = {ln.strip() for ln in tgt_lines if ln.startswith("## ")}
+            for h in tpl_heads:
+                if h not in tgt_set:
+                    problems.append(f"手册副本缺章节「{h}」"
+                                    f"（模板章节须逐一存在）")
     vc = "变更记录.md"
     tpl, tgt = tpl_dir / vc, TEST_VAULT / ".config" / vc
     if not tpl.is_file():
@@ -770,9 +775,10 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
         except (OSError, ValueError) as e:
             problems.append(f"模板副本读取失败（{e}）：{name}")
     for legacy_rel in ("assets/knowledge-example",
-                       "assets/templates/摘录长篇模板.md"):
+                       "assets/templates/摘录长篇模板.md",
+                       "assets/agent-rules.md"):
         if (SKILL_KNOWOPS / legacy_rel).exists():
-            problems.append(f"v3.0.1 已移除的资产仍存在：{legacy_rel}")
+            problems.append(f"已移除的资产仍存在（v3.0.1/v3.0.2）：{legacy_rel}")
 
     # 测试库知识模块至少有一份主题文档（示例主题已移除，其余为真实测试数据）
     kdir = TEST_VAULT / knowledge_dir
