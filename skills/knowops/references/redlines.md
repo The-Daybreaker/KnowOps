@@ -44,6 +44,10 @@
   `--help` 试探代替加载 skill、以网络搜索结果替代官方指引；
 - 对应 skill 未安装或不确定：先告知用户并确认兜底方式——安装官方 skill，或按
   官方文档 help.obsidian.md 执行；用户确认前不开始操作；
+- **安装指引**：官方工具 skill 来自 kepano/obsidian-skills
+  （https://github.com/kepano/obsidian-skills）——把仓库中对应 skill 目录复制
+  到 agent 的用户级 skill 目录即完成安装（与 knowops 本身的安装方式相同）；
+  用户确认安装后按此执行，装不上再回退官方文档兜底；
 - 例外：用户明确同意自行探索（如「直接试试」）时按用户指示执行，但命令失败
   即回报请用户决策，不反复重试轰炸。
 

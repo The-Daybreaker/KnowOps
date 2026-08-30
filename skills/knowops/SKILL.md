@@ -1,7 +1,7 @@
 ---
 name: knowops
 metadata:
-  version: 3.0.0
+  version: 3.0.1
 description: 知识库管理与 Obsidian 操作。当用户要求记录、整理、搜索、审阅知识库内容（含摘录诗词、文言、名言警句等），执行 Obsidian 操作（读写改删笔记、移动、日记、插件、Bases/Canvas/Markdown），或将暂存内容/文件写入知识库（含从 GitHub 暂存库拉取新条目入库）时使用。工作流规范与执行红线按 references 渐进式加载；具体语法与命令以 obsidian-cli、obsidian-markdown、obsidian-bases、json-canvas、defuddle 及官方文档为准。
 ---
 
@@ -22,7 +22,11 @@ obsidian-bases / json-canvas / defuddle）为准；未安装时询问用户是�
 1. 检测官方工具 skill 可用性：核对当前环境的可用 skill 列表或 skill 安装目录，
    确认 obsidian-cli / obsidian-markdown / obsidian-bases / json-canvas /
    defuddle 哪些已安装，记录结果；环境检测不到时询问用户，不默认「未安装」。
-   后续 Obsidian 操作按此记录执行（见通用红线 8）。
+   后续 Obsidian 操作按此记录执行（见通用红线 8）。**安装来源**：这些工具型
+   skill 来自 Obsidian 官方技能仓库 kepano/obsidian-skills
+   （https://github.com/kepano/obsidian-skills）——用户同意安装时，把仓库中
+   对应的 skill 目录复制到 agent 的用户级 skill 目录即可（与本 skill 的安装
+   方式相同）。
 2. 确定目标 vault（用户指定 / 通过 Obsidian CLI 查询已注册 vault 供点选 / 当前
    目录向上查找 `.config/knowops.config.json`；仍不确定就询问用户，不猜测）。
 3. 读取该 vault 的 `.config/knowops.config.json`（目录名、路径、HTML 导出、GitHub
@@ -66,6 +70,8 @@ obsidian-bases / json-canvas / defuddle）为准；未安装时询问用户是�
 8. **Obsidian 操作以官方工具 skill 为准**：执行 Obsidian CLI 命令或语法操作前，
    核对前置第 1 步的可用性记录——对应 skill 已安装则加载并遵循其语法；未安装
    或不确定则先与用户确认兜底方式（安装该 skill，或改用官方文档
-   help.obsidian.md），确认前不开始操作；不凭记忆猜测命令参数、不以网络搜索
+   help.obsidian.md），确认前不开始操作；用户同意安装时，从官方技能仓库
+   kepano/obsidian-skills（https://github.com/kepano/obsidian-skills）把对应
+   skill 目录复制到用户级 skill 目录；不凭记忆猜测命令参数、不以网络搜索
    结果替代官方 skill 与官方文档（执行层细则见 `references/redlines.md`
    「工具纪律」）。

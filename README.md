@@ -42,7 +42,7 @@ CLI 读写笔记、尊重删除红线）。本仓库把这两件事放进一个�
 - **日记分「用户 / agent」两章**：每天一个文件（遵循 Obsidian Daily notes 规则，
   按年存放于 `03 系统/日记/`）；agent 的动作按类型记在 agent 章，你手动改动的
   部分由 agent 依文件历史与 git **补记**（注明推断依据）——谁做的，一翻便知；
-- **Obsidian 模板接入**：`03 系统/模板/` 提供主题文档与摘录长篇两份模板，
+- **Obsidian 模板接入**：`03 系统/模板/` 提供主题文档模板，
   配合 Obsidian 核心插件 Templates 套用；
 - **渐进式加载**：`knowops` 的 SKILL.md 只承载触发、加载规则与通用红线；业务流程
   （workflow.md）、执行层红线（redlines.md）、桌面入库（desktop-ingest.md）按需读取；
@@ -101,7 +101,7 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
    归档首次写入时才出现）、是否启用摘录模块（预置扩展模块，不启用可跳过）、
    GitHub 暂存库同步（可选）、插件集成规则（写入 `.config/agent-rules.md`）、
    `03 系统` 的用户手册与模板（手册「模块规则」章节是 agent 的执行依据）、
-   示例主题文档、根目录看板、Daily notes 日记配置；配置固定写入 vault 内隐藏
+   根目录看板、Daily notes 日记配置；配置固定写入 vault 内隐藏
    目录 `.config/`，HTML 镜像导出默认启用（`<vault>/.config/HTML-Export/`）。
 3. 用到具体能力（CLI / Markdown / Bases / Canvas / 网页提取）时，按需加载对应
    工具型 skill。
@@ -138,24 +138,13 @@ KnowOps/
     │   ├── scripts/                 # html_export / vault_check
     │   └── assets/
     │       ├── system-manage/       # 库自身文档模板（用户手册→03 系统；变更记录→.config）
-    │       ├── templates/           # 笔记模板（主题文档/摘录长篇，供 Obsidian Templates 插件）
-    │       ├── knowledge-example/   # 知识模块示例主题文档
+    │       ├── templates/           # 笔记模板（主题文档，供 Obsidian Templates 插件）
     │       ├── agent-rules.md       # .config/agent-rules.md 模板
     │       └── html-export.json     # HTML 导出范围配置模板
-    ├── everywhere-note/             # 随身端捕获（可选 GitHub 暂存库同步）
-    │   ├── SKILL.md
-    │   ├── references/mobile-capture.md
-    │   └── assets/capture-template.md
+    ├── everywhere-note/             # 随身端捕获（可选 GitHub 暂存库同步；单文件自洽）
+    │   └── SKILL.md
     └── automation-prompt-template.md  # 自动化入库提示词模板（设置定时自动化时使用）
 ```
-
-## Roadmap（未来方向）
-
-- 坚果云等其他文件同步通道（GitHub 暂存库同步已实现，见上）；
-- 手机端向电脑端发送提醒，触发电脑端自动化执行收集入库（自动入库可通过
-  `skills/automation-prompt-template.md` 配置定时自动化实现）。
-
-以上为未实现的未来方向，已记录于开发文档，供后续实现。
 
 ## 相关项目
 

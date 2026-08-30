@@ -58,8 +58,8 @@ experience, and half-formed thoughts.
   are logged by type in the agent chapter, and your manual edits are **back-filled**
   by the agent from file history and git (with the inference noted) — who did what
   is always answerable;
-- **Obsidian templates**: `03 系统/模板/` ships two note templates (topic document,
-  long excerpt) for use with Obsidian's core Templates plugin;
+- **Obsidian templates**: `03 系统/模板/` ships the topic-document template for
+  use with Obsidian's core Templates plugin;
 - **Progressive loading**: knowops' SKILL.md only carries the trigger, loading rules
   and common red lines; workflow.md, redlines.md and desktop-ingest.md are read on
   demand;
@@ -126,7 +126,7 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
    the excerpt module (the preset extension; skippable), optional GitHub staging
    repo sync, plugin integration rules (written to `.config/agent-rules.md`), the
    `03 系统` user manual and templates (the manual's "模块规则" chapter is what the
-   agent executes against), the example topic document, the root dashboard, and the
+   agent executes against), the root dashboard, and the
    Daily notes diary setup; config lives in the vault's hidden `.config/` directory,
    and the HTML mirror export is enabled by default
    (`<vault>/.config/HTML-Export/`).
@@ -165,25 +165,13 @@ KnowOps/
     │   ├── scripts/                 # html_export / vault_check
     │   └── assets/
     │       ├── system-manage/       # vault doc templates (user manual→03 系统; change log→.config)
-    │       ├── templates/           # note templates (topic document/long excerpt, for the Obsidian Templates plugin)
-    │       ├── knowledge-example/   # example topic document for the knowledge module
+    │       ├── templates/           # note template (topic document, for the Obsidian Templates plugin)
     │       ├── agent-rules.md       # .config/agent-rules.md template
     │       └── html-export.json     # HTML export range config template
-    ├── everywhere-note/             # Portable capture (optional GitHub staging sync)
-    │   ├── SKILL.md
-    │   ├── references/mobile-capture.md
-    │   └── assets/capture-template.md
+    ├── everywhere-note/             # Portable capture (optional GitHub staging sync; single-file)
+    │   └── SKILL.md
     └── automation-prompt-template.md  # automation prompt template for scheduled ingest
 ```
-
-## Roadmap (future directions)
-
-- Other file-sync channels such as Nutstore (GitHub staging-repo sync is
-  implemented, see above);
-- The phone sends a reminder to the desktop to trigger an automated ingest
-  (scheduled ingest can be set up via `skills/automation-prompt-template.md`).
-
-Not implemented yet; recorded for future work.
 
 ## Related projects
 

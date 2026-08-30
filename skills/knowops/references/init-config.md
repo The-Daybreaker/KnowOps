@@ -30,24 +30,21 @@
    手册「模块规则」章节（未启用的扩展模块保持示例标注）；复制
    `assets/system-manage/变更记录.md` 到 `.config/变更记录.md`（库的结构与
    规则变更史，agent 维护；已存在不覆盖）。
-9. 复制 `assets/templates/` 到 `03 系统/模板/`（主题文档模板、摘录长篇模板共
-   2 份；已存在不覆盖），并引导用户启用 Obsidian 核心插件 **Templates**、把
+9. 复制 `assets/templates/主题文档模板.md` 到 `03 系统/模板/`（共 1 份；
+   已存在不覆盖），并引导用户启用 Obsidian 核心插件 **Templates**、把
    模板文件夹指向 `03 系统/模板`（设置路径：设置 → 核心插件 → Templates →
    模板文件夹位置）。模板里的时间用模板变量自动填写，无需手改。
 10. **引导配置核心插件 Daily notes**（日记规则遵循 Obsidian 本身）：设置 →
     核心插件 → Daily notes → 新建文件位置填 `03 系统/日记`、日期格式填
     `YYYY/YYYY-MM-DD`（年份做子文件夹，实现按年切分）。
-11. 复制 `assets/knowledge-example/` 的示例主题文档到 `01 知识/`（自解释用法；
-    用户可改名、删除或替换为自己的主题）。复制时把文件内的 `{{date}}` 替换为
-    当日日期——该文件是直接复制的，不经过模板插件，变量不会自动生效。
-12. 创建根目录 `看板.md` ＋ `03 系统/看板.base`（基础视图：收件箱-待沉淀、
+11. 创建根目录 `看板.md` ＋ `03 系统/看板.base`（基础视图：收件箱-待沉淀、
     知识-最近更新；摘录-最近添加仅启用摘录时创建；已登记扩展模块各对应
     一个视图，视图可扩展）。
-13. 若启用 HTML 导出（默认 `exportEnabled=true`）：复制 `scripts/html_export.py`
+12. 若启用 HTML 导出（默认 `exportEnabled=true`）：复制 `scripts/html_export.py`
     与 `assets/html-export.json` 到 `.config/scripts/`（json 的 exclude 目录路径
     按本库确认的 `dailyFolder`/`templatesDir` 改写；glob 分隔符必须用 `/`）；
     同时复制 `scripts/vault_check.py`（结构校验脚本，始终复制）。
-14. 写首条日记（当日日记，agent 章「系统」小节追加初始化记录；日记为两章节
+13. 写首条日记（当日日记，agent 章「系统」小节追加初始化记录；日记为两章节
     结构，见 `references/workflow.md`「日记」），反馈汇总（配置路径、模块清单
     与登记状态、GitHub 暂存库、插件规则、用户手册（模块规则位置）、变更记录
     位置、模板、看板、日记格式、导出状态）。

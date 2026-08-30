@@ -13,7 +13,7 @@
 - `skills/everywhere-note/`：随身端捕获（手机 @ 即记，生成规范 md + 22:00 提醒；
   可选 GitHub 暂存库同步）。
 - `skills/automation-prompt-template.md`：自动化入库提示词模板（设置定时自动化时
-  使用）。
+  使用；随 GitHub Release 一并分发）。
 - **版本**：两 skill 统一版本号，以各 SKILL.md frontmatter 的 `metadata.version`
   为准。
 - 同一设备不要同时安装两个 skill（触发竞争），README 已注明。
@@ -61,9 +61,10 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
   `看板.md` 一屏总览（不是模块）；摘录为预置登记的扩展模块（初始化询问启用，
   可停用），其余业务模块由用户建文件夹登记产生，规则全在用户手册。
 - **两 skill 依赖方向**：knowops 解析 everywhere-note 的 capture 产物（字段契约
-  `type/capture_kind/created/tags/标题`，一句话标题不带日期，随身端不写归属指向）；
-  everywhere-note 不依赖 knowops，且不内嵌任何桌面库结构信息（桌面结构变更不要求
-  随身端重装）。**改契约必须两端同步**（desktop-ingest.md ↔ mobile-capture.md）。
+  `type/created/tags/标题`，一句话标题不带日期，随身端不做任何入库判断、不写
+  归属指向；历史字段如 `capture_kind` 容忍但不依赖）；everywhere-note 不依赖
+  knowops，且不内嵌任何桌面库结构信息（桌面结构变更不要求随身端重装）。
+  **改契约必须两端同步**（desktop-ingest.md ↔ everywhere-note SKILL.md）。
 - **GitHub 暂存库同步（可选）**：手机端在用户指定暂存库且具备 GitHub 能力时上传
   条目到暂存库 `<folder>/`；knowops 入库时拉取新条目、并把源文件归档到暂存库
   `<folder>/归档/<入库日期>/`。暂存库目录约定两端同步。
@@ -83,11 +84,8 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
 - `assets/system-manage/` 是库自身文档模板（用户手册——含**模块规则**（唯一
   事实来源，agent 必读）/记录/整理/查找/质量参考的总手册，初始化进
   `03 系统/`；变更记录，初始化进 `.config/`）；初始化复制、已存在不覆盖。
-- `assets/templates/` 是供 Obsidian Templates 插件使用的笔记模板（主题文档/
-  摘录长篇）；`assets/knowledge-example/` 是知识模块的示例主题文档（通用、
-  去个人化）。
-- `everywhere-note` 独立自洽：SKILL.md + references/mobile-capture.md +
-  assets/capture-template.md。
+- `assets/templates/` 是供 Obsidian Templates 插件使用的笔记模板（主题文档）。
+- `everywhere-note` 单文件自洽：仅 SKILL.md（流程、条目形状与红线全部内嵌）。
 - 两 skill 的 SKILL.md frontmatter 均含 `metadata.version`，跟随当前版本。
 
 ## 通用红线（对知识库操作）
