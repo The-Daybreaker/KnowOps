@@ -22,21 +22,23 @@
 
 【执行步骤】
 1. 加载 knowops skill（位于 {{skill_path}}），按 SKILL.md 的「每次对话前置」完成：
-   定位 vault → 读取 `.config/knowops.config.json` → 读取 `.config/agent-rules.md`。
+   定位 vault → 读取 `.config/knowops.config.json` → 读取 `.config/agent-rules.md`
+   与 `03 系统/用户手册.md` 的「模块规则」章节。
 2. 读取 `githubSync` 配置：repo={{repo}}、branch={{branch}}、folder={{folder}}。
 3. 检查暂存库 `<folder>/` 根目录（排除 `归档/` 子目录）是否有新的 md 文件：
    - 没有新文件 → 输出「无新内容，本次无需入库」并结束；
    - 有新文件 → 继续第 4 步。
 4. 逐条下载新文件 → 按 references/desktop-ingest.md 解析与校验（补全缺失字段；
    相似检查发现疑似重复时：本自动化无人应答 → 跳过该条并在汇报中列出）。
-5. 每条平铺写入收件箱（目录取配置 `preferences.inboxDir`，默认 `00 收件箱/`）
-   根目录，文件名 序号-标题.md（序号＝现有最大序号＋1，两位补零，超 99 自动
-   三位）；写入后回读校验。
+5. 每条平铺写入收件箱（目录取配置 `preferences.modules` 中 type=capture 的
+   模块目录，默认 `00 收件箱/`）根目录，文件名 序号-标题.md（序号＝现有
+   「数字-」开头文件的最大序号＋1，两位补零，超 99 自动三位）；写入后回读校验。
 6. 每条入库成功后，把暂存库中的源文件移动到 `<folder>/归档/<入库当日日期>/`
    （日期中文补零，如 2026年08月15日；目标目录不存在则先创建）。
 7. 按 references/workflow.md 操作后流程执行并核验：frontmatter（开头的标签与字段）、
-   双向链接、日记等，缺失即补正；在当日日记（目录取配置 `preferences.dailyFolder`，
-   默认 03 系统/日记/）追加「[入库]」记录。
+   双向链接、日记与待审阅文件等，缺失即补正；创建/追加当日收件箱
+   `待审阅-YYYY-MM-DD.md`（列出本批条目与路径）；在当日日记（目录取配置
+   `preferences.dailyFolder`，默认 03 系统/日记/）agent 章「入库」小节追加记录。
 8. 汇报（见输出格式）。
 
 【红线】
@@ -60,7 +62,7 @@
 以 WorkBuddy 每日定时自动化为例，把 `{{...}}` 替换为实际值后整段粘贴：
 
 - `{{vault_path}}` → `D:\MyVault`
-- `{{skill_path}}` → `C:\Users\me\.workbuddy\skills\knowops`
+- `{{skill_path}}` → `~/.<你的平台>/skills/knowops`（按实际安装位置填写）
 - `{{repo}}` → `你的GitHub用户名/notes-staging`
 - `{{branch}}` → `main`
 - `{{folder}}` → `我的知识库`（与 knowops.config.json 的 `githubSync.folder` 一致）

@@ -33,22 +33,33 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
   有项目文件夹、可执行资产有所属仓库，都不进库。信息进库须过两道门：**归宿门**
   （库外没有更合适的家）与**形态门**（md 原生承载；由模块准入条件在架构上保证）。
 - **单 vault 配置**：`<vault>/.config/knowops.config.json`，由 agent 直接读写；
-  schema 为 `version / vaultPath / exportRoot / exportEnabled / preferences`，
-  可选顶层键 `githubSync`（GitHub 暂存库同步：`enabled/repo/branch/folder`）。
+  schema 为 `version / vaultPath / exportRoot / exportEnabled / preferences`
+  （preferences 含 `modules` 模块登记索引与日记/模板目录），可选顶层键
+  `githubSync`（GitHub 暂存库同步：`enabled/repo/branch/folder`）。
 - **每次对话前置（bootstrap）**：检测官方工具 skill 可用性 → 定位 vault → 读配置
-  → 读 `.config/agent-rules.md`（若存在）→ 缺配置则按 `references/init-config.md`
-  初始化。任何新对话都能从零接手知识库。
-- **约束收口**：agent 读的个性化约束统一存 `.config/agent-rules.md`；`03 系统/`
-  只放 1 份用户可见文档（用户手册），agent 不读；库的结构与规则变更史由 agent
-  记入 `.config/变更记录.md`（隐藏目录，不占用户可见空间）。
+  → 读 `.config/agent-rules.md`（若存在）与 `03 系统/用户手册.md`「模块规则」
+  章节 → 缺配置则按 `references/init-config.md` 初始化。任何新对话都能从零
+  接手知识库。
+- **单一事实来源**：各模块装什么、怎么入库、怎么分类、怎么命名，唯一落点是
+  库内 `03 系统/用户手册.md` 的「模块规则」章节——用户可见可编辑，同时是
+  agent 必读的执行依据；config 只存机器索引（modules），不存规则副本。agent
+  发现未登记的模块文件夹时，问清规则写进手册，此后按手册执行；模块目录被
+  删除时问询注销（含手册章节同步处理）。
+- **agent 工作范围与审计闭环**：agent 只做格式整理 + 系统运营 + 按用户指令的
+  内容写入，不代运营内容；内容写入后日记详细记录（分「用户/agent」两章）＋
+  收件箱建待审阅文件（用户审阅后删除）；用户无日记的改动由 agent 依文件历史
+  与 git 补记；**用户原话完整记录，不改写、不压缩**。
 - **库内脚本**：`html_export.py`（HTML 镜像导出，与 `html-export.json` 配对，
-  导出默认启用，日记/模板/白板默认不导出）与 `vault_check.py`（结构面校验：
-  frontmatter 可解析/必填属性/type 枚举；收件箱豁免、非 md 跳过），均自包含
-  （标准库），初始化复制到 `.config/scripts/`。
-- **模块结构**：00 收件箱（平铺序号命名，宽进严出，校验豁免）→ 01 知识（主题
-  文档，先单体涨破再拆）→ 02 摘录（长篇/短篇，含超量拆分）→ 03 系统（日记＝
-  操作日志、模板、看板.base、用户文档）→ 04 归档；系统、归档固定末两位，
-  新模块插入其前顺延编号；根目录 `看板.md` 一屏总览（不是模块）。
+  导出默认启用，日记/模板/待审阅/白板默认不导出）与 `vault_check.py`（结构面
+  校验：frontmatter 可解析/必填属性/type——基础枚举硬校验、登记模块按 config
+  校验、未登记只警告；收件箱豁免、非 md 跳过），均自包含（标准库），初始化
+  复制到 `.config/scripts/`。
+- **模块结构（通用地基 + 扩展模块登记制）**：基础模块四个——00 收件箱（平铺
+  序号命名，宽进严出，校验豁免）、01 知识（主题文档，先单体涨破再拆）、
+  03 系统（Daily notes 日记两章节、模板、看板.base、用户手册）、04 归档
+  （中文补零日期）；系统、归档固定末两位，新模块插入其前顺延编号；根目录
+  `看板.md` 一屏总览（不是模块）；摘录为预置登记的扩展模块（初始化询问启用，
+  可停用），其余业务模块由用户建文件夹登记产生，规则全在用户手册。
 - **两 skill 依赖方向**：knowops 解析 everywhere-note 的 capture 产物（字段契约
   `type/capture_kind/created/tags/标题`，一句话标题不带日期，随身端不写归属指向）；
   everywhere-note 不依赖 knowops，且不内嵌任何桌面库结构信息（桌面结构变更不要求
@@ -57,9 +68,9 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
   条目到暂存库 `<folder>/`；knowops 入库时拉取新条目、并把源文件归档到暂存库
   `<folder>/归档/<入库日期>/`。暂存库目录约定两端同步。
 - **操作后核验**：每次写入/修改/移动/删除/归档后核验，缺失即补正——结构面
-  （frontmatter 可解析/必填属性/type 枚举）由库内脚本 `vault_check.py` 输出键值
-  摘要、agent 扫读（批量 ≥3 篇时抽 1 篇全文回读）；语义面（双链/日记/插件与
-  导出）由 agent 回读核验。
+  （frontmatter 可解析/必填属性/type 校验口径）由库内脚本 `vault_check.py` 输出
+  键值摘要、agent 扫读（批量 ≥3 篇时抽 1 篇全文回读）；语义面（原话完整/双链/
+  日记与待审阅/插件与导出）由 agent 回读核验。
 - 工具型 skill（obsidian-cli / obsidian-markdown / obsidian-bases / json-canvas /
   defuddle）来自 [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills)，
   不随本项目打包；knowops 只引用、不复制其内容。
@@ -69,9 +80,9 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
 - knowops 的 SKILL.md 只承载触发、前置引导、加载规则与通用红线；references 按需
   加载（workflow / redlines / init-config / desktop-ingest / properties）。
 - workflow.md 保持**工具无关的中立规范**视角，不写工具名/命令/委托链。
-- `assets/system-manage/` 是库自身文档模板（用户手册——含布局/记录/整理/查找/
-  质量参考的总手册，初始化进 `03 系统/`；变更记录，初始化进 `.config/`）；
-  初始化复制、已存在不覆盖。
+- `assets/system-manage/` 是库自身文档模板（用户手册——含**模块规则**（唯一
+  事实来源，agent 必读）/记录/整理/查找/质量参考的总手册，初始化进
+  `03 系统/`；变更记录，初始化进 `.config/`）；初始化复制、已存在不覆盖。
 - `assets/templates/` 是供 Obsidian Templates 插件使用的笔记模板（主题文档/
   摘录长篇）；`assets/knowledge-example/` 是知识模块的示例主题文档（通用、
   去个人化）。
@@ -84,10 +95,10 @@ git 跟踪：`README.md`、`README.en.md`、`LICENSE`、`.gitignore`、`AGENTS.m
 1. **删除永远进系统回收站且可恢复**。
 2. **变更分级**：高风险操作先展示方案、征得同意后执行；低风险先执行、随后记录。
 3. **不代为 `git init`**。
-4. **信息以用户给出为准**。
+4. **信息以用户给出为准**；**用户原话完整记录，不改写、不压缩**。
 5. **创建前相似检查**。
 6. **重要写入后回读校验**。
-7. **变更操作前读取 `.config/agent-rules.md`**。
+7. **变更操作前读取 `.config/agent-rules.md` 与用户手册「模块规则」章节**。
 8. **Obsidian 操作以官方工具 skill 为准**：前置检测可用性并记录；已安装则加载
    遵循其语法，未安装先与用户确认兜底（安装或 help.obsidian.md），不自行猜测
    命令、不以网络搜索替代。

@@ -25,24 +25,39 @@ experience, and half-formed thoughts.
 
 ## Features
 
-- **Five modules, each with an obvious job**: `00 收件箱` (not yet thought through) /
-  `01 知识` (validated) / `02 摘录` (collected excerpts) / `03 系统` (the base's own
-  traces and docs) / `04 归档` (no longer active); 系统 and 归档 are fixed as the last
-  two, with a root-level `看板.md` as the one-screen overview;
+- **Generic foundation + registered extension modules**: the skill only presets the
+  base skeleton — `00 收件箱` (not yet thought through) / `01 知识` (validated) /
+  `03 系统` (the base's own traces and docs) / `04 归档` (no longer active), plus a
+  root-level `看板.md` as the one-screen overview; 系统 and 归档 stay fixed as the
+  last two. **Adding a module = create a folder in your vault**: the agent asks you
+  for the rules, writes them into the user manual, and follows them from then on —
+  your base grows your way, no skill release required;
+- **Single source of truth**: what each module keeps, how things get ingested,
+  classified and named — all of it lives only in the "模块规则" (module rules)
+  chapter of the in-vault `03 系统/用户手册.md` (user-visible and editable, a
+  must-read for the agent); the config only keeps a machine-readable index — no
+  rule copies, no drift;
 - **Inbox: easy in, strict out**: flat layout, numbered filenames, no subfolders; you
   may drop in files with no formatting at all — rules bind the agent, which fills in
   everything at settlement time; the inbox is exempt from structural checks;
-- **Knowledge by topic**: one document per topic, entries organized in sections; when a
-  section passes about 30 entries a split is proposed and the document is upgraded to a
-  folder of its name — monolith first, split only when it bursts; no hierarchy designed
-  up front;
-- **Excerpts**: long excerpts (poetry, classical prose) get one note per work
-  (named by work title, with author / dynasty / source properties); short quotes
-  (famous sayings, aphorisms, personal reflections) are aggregated by category
-  (split into numbered files past 100 entries); desktop "excerpt: ..." goes
-  straight in, portable excerpts settle via inbox review;
-- **Diary = operation record**: every write/edit/move/delete/archive appends a line,
-  kept by year under `03 系统/日记/` — written automatically, browsable anytime;
+- **Knowledge by topic, verbatim quotes**: one document per topic, entries organized
+  in sections; entry bodies **keep your original words intact** (the agent never
+  rewrites or compresses them; extra explanations are added only with your consent);
+  when a section passes about 30 entries a split is proposed — monolith first, split
+  only when it bursts;
+- **Excerpts = the preset extension module**: onboarding asks whether to enable it;
+  long excerpts get one note per work, short quotes aggregate by category (split
+  into numbered files past 100 entries); every rule is registered in the user manual
+  and the whole module can be retired;
+- **Write-audit loop**: after each batch of content written by the agent (ingest /
+  settlement / archive / delete), a `待审阅-<date>.md` receipt is left in the inbox
+  (visible on the dashboard, deleted after review) and the diary gets a detailed
+  entry;
+- **Diary split into "用户 / agent" chapters**: one file per day (following
+  Obsidian's Daily notes rules, kept by year under `03 系统/日记/`); agent actions
+  are logged by type in the agent chapter, and your manual edits are **back-filled**
+  by the agent from file history and git (with the inference noted) — who did what
+  is always answerable;
 - **Obsidian templates**: `03 系统/模板/` ships two note templates (topic document,
   long excerpt) for use with Obsidian's core Templates plugin;
 - **Progressive loading**: knowops' SKILL.md only carries the trigger, loading rules
@@ -50,21 +65,22 @@ experience, and half-formed thoughts.
   demand;
 - **Portable capture & unified ingest**: @ everywhere-note on a phone/portable device and dictate directly; it generates KB-compliant markdown (a file when supported) and sets a 22:00 reminder; back at the desktop, knowops parses the captures and writes them into `00 收件箱`; the phone only needs this one skill and no transfer channel; the portable skill embeds no desktop-base structure, so desktop restructuring never forces a reinstall;
 - **GitHub staging repo sync (optional)**: you designate a GitHub staging repo; on the phone, when GitHub capability is available (gh CLI / git / GitHub MCP etc.), entries are uploaded into this KB's folder in the staging repo; on the desktop, "ingest" pulls new entries into `00 收件箱` (numbered filenames) and archives the source files into `<KB-name>/归档/<date>/` in the staging repo (split by ingest date); multiple KBs can share one staging repo without conflicts;
-- **Dashboard**: root `看板.md` embeds the views from `03 系统/看板.base` (inbox
-  pending, knowledge recent, excerpts recent); extensible;
+- **Dashboard**: root `看板.md` embeds the live views from `03 系统/看板.base`
+  (inbox pending, knowledge recent); views follow module registration/retirement;
 - **Archive**: `04 归档` uses zero-padded Chinese date folders;
 - **Canvas is free space**: canvases you create are never managed, checked or exported;
 - **Plugin integration rules**: at onboarding, plugins are scanned and the user
   confirms how they integrate; rules are written to hidden config `.config/agent-rules.md`,
   read before every mutating operation and executed afterwards (e.g., version
   commit first, then cloud sync);
-- **Config-driven, version-following**: directories and preferences live in `.config/knowops.config.json` (single vault);
-  schema version follows the skill version;
+- **Config-driven, version-following**: module index and preferences live in
+  `.config/knowops.config.json` (single vault); schema version follows the skill version;
 - **Data-safety red lines**: delete always goes to the system trash and stays
   recoverable; high-risk changes (mass file impact, permanent deletes) ask for
   consent first, while low-risk ones run first and are logged afterwards; never run
   `git init` for the user; similarity check before creating; user-provided info is
-  authoritative; read back and verify after important writes.
+  authoritative (original words never rewritten or compressed); read back and verify
+  after important writes.
 
 ## Installation
 
@@ -105,12 +121,14 @@ git clone https://github.com/The-Daybreaker/KnowOps.git
    - Ingesting captured content/files → read `references/desktop-ingest.md`,
      then load `references/workflow.md` and `references/redlines.md` per its
      header note.
-2. The onboarding wizard confirms step by step: vault path & name, the five-module
-   default structure (lazy loading: inbox/excerpt/archive appear on first write),
-   optional GitHub staging repo sync, plugin integration rules (written to
-   `.config/agent-rules.md`), the `03 系统` user docs and templates, the example
-   topic document, the root dashboard; config lives in the vault's hidden `.config/`
-   directory, and the HTML mirror export is enabled by default
+2. The onboarding wizard confirms step by step: vault path & name, the four base
+   modules (lazy loading: inbox/archive appear on first write), whether to enable
+   the excerpt module (the preset extension; skippable), optional GitHub staging
+   repo sync, plugin integration rules (written to `.config/agent-rules.md`), the
+   `03 系统` user manual and templates (the manual's "模块规则" chapter is what the
+   agent executes against), the example topic document, the root dashboard, and the
+   Daily notes diary setup; config lives in the vault's hidden `.config/` directory,
+   and the HTML mirror export is enabled by default
    (`<vault>/.config/HTML-Export/`).
 3. Load the tool skills (CLI / Markdown / Bases / Canvas / web extraction) on
    demand when their capability is needed.
@@ -122,9 +140,10 @@ Usage examples:
 | Phone: "log: XXX" | everywhere-note generates a KB-compliant md entry and sets a 22:00 reminder; uploads to the staging repo when configured and GitHub capability is available |
 | "Ingest today's phone captures" | knowops loads desktop-ingest.md: user-provided content first; when no content is provided and a staging repo is configured, new entries are pulled from GitHub, written into `00 收件箱` with numbered filenames, and the sources are archived to the staging repo |
 | "Log this: ..." | Writes it to `00 收件箱/` (numbered, with properties & tags) |
-| "Excerpt: 将进酒..." | Long works get a dedicated note under `02 摘录/长篇/诗词/` (named by work title); short quotes are appended to the matching category file under `02 摘录/短篇/` |
-| "File this experience under the topic 架构设计" | Merges it into the matching section of the topic document under `01 知识/` |
-| "Review the inbox" | Judges each item, five destinations: knowledge / excerpt / archive / delete / keep |
+| "Excerpt: 将进酒..." | Ingested per the excerpt chapter of the user manual: long works get a dedicated note (named by work title), short quotes are appended to the matching category file |
+| "File this experience under the topic 架构设计" | Merges it into the matching section of the topic document under `01 知识/` (your original words kept verbatim) |
+| "Review the inbox" | Judges each item against the manual's module rules: destination module / archive / delete / keep |
+| "I made a folder called 读书 for book notes" | The agent asks for the module's ingest & classification rules → writes them into the manual's "模块规则" chapter → follows them from then on |
 | "Archive this note" | Moves it to `04 归档/<today>/` |
 
 ## Layout

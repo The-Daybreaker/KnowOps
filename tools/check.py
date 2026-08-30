@@ -14,18 +14,20 @@
 检查项：
   核心（CI 可跑，不依赖 private/）：
     C1  两 skill SKILL.md frontmatter 可解析且 metadata.version 相等
-    C2  workflow.md 模块表：编号自 00 连续、末两位固定为 系统/归档
+    C2  workflow.md 基础骨架表：编号自 00 连续、末两位固定为 系统/归档
     C3  skill 文档引用的 references/assets/scripts 路径真实存在
     C4  仓库内 JSON 配置可解析
-    C5  README 双语与 automation-prompt-template 中模块编号→名称与模块表一致
-    C6  vault_check.py 内嵌 type 枚举与必填表（REQUIRED/EXCERPT_LONG_EXTRA）
+    C5  README 双语与 automation-prompt-template 中模块编号→名称与基础骨架一致
+    C6  vault_check.py 内嵌 type 基础枚举与必填表（REQUIRED）
         同 properties.md 声明一致（防双源漂移）
     C7  隐私门禁：跟踪内容禁密钥样式/邮箱/本机绝对路径/手机号；
         .gitignore 必备条目齐全（防测试产物再入库）
   私有（本地全量，private/ 存在时启用）：
     P1  版本一致性链 + 开发期文档 frontmatter 分档检查
-    P2  测试库一级目录与 config preferences 匹配
-    P3  测试库笔记 frontmatter 可解析且 type 在枚举内（收件箱豁免）
+    P2  测试库 config preferences.modules 登记清单与一级目录匹配
+        （基础四模块必须在列、末两位固定、编号不重）
+    P3  测试库笔记 frontmatter 可解析且 type 在基础枚举∪登记类型内
+        （收件箱豁免；未登记编号目录为警告）
     P4  模板联动：用户手册（03 系统）、变更记录（.config）、笔记模板、
         示例主题与脚本副本一致
     P5  dist 完整性（--dist）：zip 清单与源目录一致
@@ -179,18 +181,18 @@ def check_c1_skill_versions(rep: Report) -> str | None:
 
 
 def parse_module_table(rep: Report) -> dict[str, str] | None:
-    """解析 workflow.md「模块总览」表格 → {编号: 名称}。同时执行 C2。"""
+    """解析 workflow.md「基础骨架」表格 → {编号: 名称}。同时执行 C2。"""
     wf_path = SKILL_KNOWOPS / "references" / "workflow.md"
     text = safe_read(rep, wf_path, "C2 workflow.md")
     if text is None:
         return None
-    m = re.search(r"## 模块总览.*?(?=\n## |\Z)", text, re.S)
+    m = re.search(r"## 基础骨架.*?(?=\n## |\Z)", text, re.S)
     if not m:
-        rep.error("C2 workflow.md 未找到「## 模块总览」章节")
+        rep.error("C2 workflow.md 未找到「## 基础骨架」章节")
         return None
     rows = re.findall(r"^\|\s*(\d{2})\s+([^\|]+?)\s*\|", m.group(0), re.M)
     if not rows:
-        rep.error("C2 workflow.md 模块表未解析到任何行")
+        rep.error("C2 workflow.md 基础骨架表未解析到任何行")
         return None
     # 先按原始行序查重（直接构造 dict 会静默去重，重号漏检）
     nums_raw = [int(n) for n, _ in rows]
@@ -209,7 +211,13 @@ def parse_module_table(rep: Report) -> dict[str, str] | None:
     if tail != FIXED_TAIL:
         rep.error(f"C2 模块表末 {len(FIXED_TAIL)} 位应为 {FIXED_TAIL}，实际 {tail}")
         return None
-    rep.ok(f"C2 模块表编号连续（{len(table)} 个模块）、末位固定 {FIXED_TAIL}")
+    # C2c：基础四模块必须在骨架中（收件箱/知识/系统/归档）
+    for want in ("收件箱", "知识", "系统", "归档"):
+        if want not in table.values():
+            rep.error(f"C2 基础骨架缺基础模块「{want}」")
+            return None
+    rep.ok(f"C2 基础骨架编号连续（{len(table)} 行）、末位固定 {FIXED_TAIL}、"
+           "基础四模块在列")
     return table
 
 
@@ -303,47 +311,38 @@ def check_c5_module_refs(rep: Report, table: dict[str, str]) -> None:
         rep.ok("C5 README 双语与提示词模板的模块编号→名称与模块表一致")
 
 
-def load_vc_defs(rep: Report) -> tuple[frozenset | None, dict[str, list[str]] | None,
-                                       list[str] | None]:
-    """从 vault_check.py 提取 TYPE_ENUM / REQUIRED / EXCERPT_LONG_EXTRA
-    （C6/P3 共用，单一定义点）。任一提取失败记 error 并返回 None 分量
-    （绝不静默退化为空集）。"""
+def load_vc_defs(rep: Report) -> tuple[frozenset | None, dict[str, list[str]] | None]:
+    """从 vault_check.py 提取 TYPE_ENUM / REQUIRED（C6/P3 共用，单一定义点）。
+    任一提取失败记 error 并返回 None 分量（绝不静默退化为空集）。"""
     vc_path = SKILL_KNOWOPS / "scripts" / "vault_check.py"
     if not vc_path.is_file():
         rep.error("vault_check.py 不存在：skills/knowops/scripts/vault_check.py")
-        return None, None, None
+        return None, None
     vc = safe_read(rep, vc_path, "vault_check.py")
     if vc is None:
-        return None, None, None
+        return None, None
     m = re.search(r"TYPE_ENUM\s*=\s*frozenset\(\s*\{([^}]*)\}", vc, re.S)
     if not m:
         rep.error("vault_check.py 未找到 TYPE_ENUM 定义（正则失配，"
                   "枚举相关检查全部失效，请先修复）")
-        return None, None, None
+        return None, None
     enum = frozenset(re.findall(r"[\"'](\w+)[\"']", m.group(1)))
 
     m2 = re.search(r"REQUIRED\s*=\s*\{(.*?)\n\}", vc, re.S)
     if not m2:
         rep.error("vault_check.py 未找到 REQUIRED 定义（正则失配，"
                   "必填表检查失效，请先修复）")
-        return enum, None, None
+        return enum, None
     required: dict[str, list[str]] = {}
     for t, attrs in re.findall(r'"(\w+)":\s*\[([^\]]*)\]', m2.group(1)):
         required[t] = re.findall(r'"(\w+)"', attrs)
-
-    m3 = re.search(r"EXCERPT_LONG_EXTRA\s*=\s*\[([^\]]*)\]", vc)
-    if not m3:
-        rep.error("vault_check.py 未找到 EXCERPT_LONG_EXTRA 定义")
-        return enum, required, None
-    extra = re.findall(r'"(\w+)"', m3.group(1))
-    return enum, required, extra
+    return enum, required
 
 
-def check_c6_required_sync(rep: Report, required: dict[str, list[str]] | None,
-                           excerpt_extra: list[str] | None) -> None:
-    """C6b：vault_check.py REQUIRED/EXCERPT_LONG_EXTRA 与 properties.md
-    「必填与自由」表一致（表格为文档侧权威定义，见 check_c6_enum_sync 同源思路）。"""
-    if required is None or excerpt_extra is None:
+def check_c6_required_sync(rep: Report, required: dict[str, list[str]] | None) -> None:
+    """C6b：vault_check.py REQUIRED 与 properties.md「必填与自由」表一致
+    （表格为文档侧权威定义；扩展模块必填归用户手册，脚本不内嵌）。"""
+    if required is None:
         return  # 提取失败已在 load_vc_defs 记 error
     props_path = SKILL_KNOWOPS / "references" / "properties.md"
     if not props_path.is_file():
@@ -397,9 +396,6 @@ def check_c6_required_sync(rep: Report, required: dict[str, list[str]] | None,
         if set(required[t]) != toks:
             problems.append(f"type {t} 必填属性漂移：vault_check {sorted(required[t])}"
                             f" vs properties {sorted(toks)}")
-        if t == "excerpt" and set(excerpt_extra) != extra_toks:
-            problems.append(f"excerpt 长篇附加必填漂移：vault_check {sorted(excerpt_extra)}"
-                            f" vs properties {sorted(extra_toks)}")
     if problems:
         for it in problems:
             rep.error(f"C6 必填表双源漂移：{it}")
@@ -571,26 +567,42 @@ def check_p2_test_structure(rep: Report, cfg: dict) -> None:
     if not isinstance(prefs, dict):
         rep.error("P2 knowops.config.json 的 preferences 应为对象")
         prefs = {}
-    dir_keys = ["inboxDir", "knowledgeDir", "excerptDir", "systemDir", "archiveDir"]
+    mods = prefs.get("modules")
+    if not isinstance(mods, list) or not mods:
+        rep.error("P2 preferences 缺 modules 模块清单（应为非空数组）")
+        mods = []
     expected: dict[int, str] = {}
-    for k in dir_keys:
-        val = prefs.get(k)
-        if not val:
-            rep.error(f"P2 preferences 缺 {k}")
+    for m in mods:
+        if not isinstance(m, dict):
+            rep.error("P2 preferences.modules 存在非对象元素")
             continue
-        m = re.match(r"^(\d{2})\s+(.+)$", str(val))
-        if not m:
-            rep.error(f"P2 preferences.{k}={val} 不符合「NN 名称」格式")
+        d = str(m.get("dir", ""))
+        mm = re.match(r"^(\d{2})\s+(.+)$", d)
+        if not mm:
+            rep.error(f"P2 modules dir={d!r} 不符合「NN 名称」格式")
             continue
-        num = int(m.group(1))
+        num = int(mm.group(1))
         if num in expected:
-            rep.error(f"P2 preferences 编号 {num:02d} 重复"
-                      f"（{expected[num]} 与 {m.group(2)}）")
+            rep.error(f"P2 modules 编号 {num:02d} 重复"
+                      f"（{expected[num]} 与 {mm.group(2)}）")
             continue
-        expected[num] = m.group(2)
+        expected[num] = mm.group(2)
+        if not str(m.get("type", "")):
+            rep.error(f"P2 modules dir={d!r} 缺 type")
+
+    # 重复 type（如两个 type=capture 会让收件箱豁免判定歧义）
+    types = [str(m.get("type")) for m in mods
+             if isinstance(m, dict) and m.get("type")]
+    dup_types = sorted({t for t in types if types.count(t) > 1})
+    if dup_types:
+        rep.error(f"P2 modules 重复 type：{dup_types}")
+
+    # 基础四模块必须在登记清单中
+    for want in ("收件箱", "知识", "系统", "归档"):
+        if want not in expected.values():
+            rep.error(f"P2 modules 缺基础模块「{want}」")
 
     # 末两位固定：编号为最大两个连续值，且名称与 FIXED_TAIL 逐位对应
-    # （防 systemDir/archiveDir 名称与键错位）
     if len(expected) >= len(FIXED_TAIL):
         mx = max(expected)
         for off, want in zip(range(len(FIXED_TAIL) - 1, -1, -1), FIXED_TAIL):
@@ -599,25 +611,27 @@ def check_p2_test_structure(rep: Report, cfg: dict) -> None:
                 rep.error(f"P2 倒数第 {off + 1} 位（编号 {mx - off:02d}）"
                           f"应为「{want}」，实际「{got}」")
 
-    # 实际目录 ⊆ expected（懒加载允许缺失）
+    # 实际编号目录 ⊆ expected（未登记目录允许存在——运行期只警告，此处同样警告）
     actual: dict[int, str] = {}
     for d in TEST_VAULT.iterdir():
         if d.name.startswith(".") or not d.is_dir():
             continue
-        m = re.match(r"^(\d{2})\s+(.+)$", d.name)
-        if m:
-            actual[int(m.group(1))] = m.group(2)
+        mm = re.match(r"^(\d{2})\s+(.+)$", d.name)
+        if mm:
+            actual[int(mm.group(1))] = mm.group(2)
     problems = []
     for num, name in sorted(actual.items()):
         if num not in expected:
-            problems.append(f"目录「{num:02d} {name}」不在 config preferences 中")
+            rep.warn(f"P2 目录「{num:02d} {name}」未登记（不在 config "
+                     "preferences.modules 中）")
         elif expected[num] != name:
             problems.append(f"目录「{num:02d} {name}」与 config 值「{expected[num]}」不一致")
     if problems:
         for it in problems:
             rep.error(f"P2 {it}")
     else:
-        rep.ok(f"P2 测试库一级目录与 config 匹配（存在 {len(actual)} 个模块目录）")
+        rep.ok(f"P2 测试库 modules 登记清单与一级目录匹配"
+               f"（登记 {len(expected)} 个、在场 {len(actual)} 个编号目录）")
 
 
 def check_p3_test_frontmatter(rep: Report, cfg: dict,
@@ -626,9 +640,20 @@ def check_p3_test_frontmatter(rep: Report, cfg: dict,
         rep.warn("P3 跳过：TYPE_ENUM 提取失败（见前述 error）")
         return
 
-    prefs = cfg.get("preferences", {})
-    system_dir = str(prefs.get("systemDir", "03 系统"))
-    inbox_dir = str(prefs.get("inboxDir", "00 收件箱"))
+    prefs = cfg.get("preferences", {}) if isinstance(cfg.get("preferences"), dict) else {}
+    mods = prefs.get("modules", []) if isinstance(prefs.get("modules"), list) else []
+
+    def dir_of(t: str) -> str:
+        for m in mods:
+            if isinstance(m, dict) and m.get("type") == t:
+                return str(m.get("dir", ""))
+        return {"capture": "00 收件箱", "system": "03 系统"}.get(t, "")
+
+    inbox_dir = dir_of("capture")
+    system_dir = dir_of("system")
+    # 允许的 type = 基础枚举 ∪ 登记模块类型（扩展模块如 excerpt 随登记放行）
+    allowed = set(type_enum) | {str(m.get("type")) for m in mods
+                                if isinstance(m, dict) and m.get("type")}
 
     no_fm, bad_fm, bad_type = [], [], []
     count = 0
@@ -653,12 +678,12 @@ def check_p3_test_frontmatter(rep: Report, cfg: dict,
         t = fm.get("type")
         if t is None:
             no_fm.append(f"{rel}（有 frontmatter 但无 type）")
-        elif str(t) not in type_enum:
+        elif str(t) not in allowed:
             bad_type.append(f"{rel}：type={t}")
     for it in bad_fm:
         rep.error(f"P3 frontmatter 解析失败：{it}")
     for it in bad_type:
-        rep.error(f"P3 type 越界：{it}")
+        rep.error(f"P3 type 越界（不在基础枚举∪登记类型内）：{it}")
     if no_fm:
         for it in no_fm:
             rep.warn(f"P3 无 frontmatter：{it}")
@@ -670,8 +695,16 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
     prefs = cfg.get("preferences")
     if not isinstance(prefs, dict):
         prefs = {}
-    system_dir = str(prefs.get("systemDir", "03 系统"))
-    knowledge_dir = str(prefs.get("knowledgeDir", "01 知识"))
+    mods = prefs.get("modules", []) if isinstance(prefs.get("modules"), list) else []
+
+    def dir_of(t: str, fallback: str) -> str:
+        for m in mods:
+            if isinstance(m, dict) and m.get("type") == t:
+                return str(m.get("dir", ""))
+        return fallback
+
+    system_dir = dir_of("system", "03 系统")
+    knowledge_dir = dir_of("knowledge", "01 知识")
     tpl_dir = SKILL_KNOWOPS / "assets" / "system-manage"
     tgt_dir = TEST_VAULT / system_dir
     problems = []
@@ -844,9 +877,9 @@ def main() -> int:
     check_c4_json(rep)
     if table:
         check_c5_module_refs(rep, table)
-    vc_enum, vc_required, vc_extra = load_vc_defs(rep)  # C6/P3 共用，单次提取
+    vc_enum, vc_required = load_vc_defs(rep)  # C6/P3 共用，单次提取
     check_c6_enum_sync(rep, vc_enum)
-    check_c6_required_sync(rep, vc_required, vc_extra)
+    check_c6_required_sync(rep, vc_required)
     check_c7_privacy(rep)
 
     # 私有检查
