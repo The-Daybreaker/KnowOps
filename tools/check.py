@@ -23,13 +23,14 @@
     C7  隐私门禁：跟踪内容禁密钥样式/邮箱/本机绝对路径/手机号；
         .gitignore 必备条目齐全（防测试产物再入库）
   私有（本地全量，private/ 存在时启用）：
-    P1  版本一致性链 + 开发期文档 frontmatter 分档检查
+    P1  版本一致性链 + 开发期文档 frontmatter 分档 + 审计归档护栏
+        （CHANGELOG 声明的 AUDIT.md [版本] 章节必须存在）
     P2  测试库 config preferences.modules 登记清单与一级目录匹配
         （基础四模块必须在列、末两位固定、编号不重）
     P3  测试库笔记 frontmatter 可解析且 type 在基础枚举∪登记类型内
         （收件箱豁免；未登记编号目录为警告）
-    P4  模板联动：用户手册（03 系统）、变更记录（.config）、笔记模板、
-        示例主题与脚本副本一致
+    P4  模板联动：用户手册（03 系统，章节锚点）、变更记录（.config）、
+        笔记模板、已移除资产防复现、脚本副本一致
     P5  dist 完整性（--dist）：zip 清单与源目录一致 + 自动化模板附件与源一致
 """
 
@@ -66,6 +67,10 @@ ZIP_JUNK_NAMES = {".DS_Store", "Thumbs.db", "desktop.ini"}
 NO_FM_ALLOW = {
     "看板.md",          # 根目录看板嵌入容器（位置固定）
 }
+
+# P4：笔记模板清单（v3.0.1 起仅主题文档模板 1 份；摘录长篇模板与示例主题已随
+# 模块登记制移除。增删模板改这里——P4 循环与通过文案共用，避免文案漂移）
+P4_NOTE_TEMPLATES = ("主题文档模板.md",)
 
 # C7 隐私门禁：敏感模式（仅扫 git 跟踪内容——精确等于将公开的部分）
 C7_SECRET_PATTERNS = [
@@ -521,6 +526,33 @@ def check_p1_versions(rep: Report, skill_ver: str, cfg: dict | None) -> None:
     else:
         rep.ok(f"P1 CHANGELOG 顶部条目 = {skill_ver}")
 
+    # 审计归档护栏：CHANGELOG 条目声明「归档 dev/AUDIT.md [版本]」的，AUDIT.md
+    # 必须存在对应章节（v3.0.3 起，防「声明归档但实际漏写」复发）。分隔符放宽
+    # 到空白与常用全半角标点（如「AUDIT.md（[3.0.2] 补记…）」），中间含其他
+    # 字符的散文形态不匹配、不误报。
+    aud_path = PRIVATE / "dev" / "AUDIT.md"
+    declared = sorted(set(re.findall(
+        r"AUDIT\.md[\s（(：:、，,]*\[(\d+\.\d+\.\d+)\]", cl)))
+    aud_ok = True
+    if declared:
+        if not aud_path.is_file():
+            rep.error(f"P1 CHANGELOG 声明审计归档 dev/AUDIT.md，但该文件不存在"
+                      f"（声明版本：{declared}）")
+            aud_ok = False
+        else:
+            aud_text = safe_read(rep, aud_path, "P1 AUDIT.md")
+            if aud_text is None:
+                aud_ok = False  # 读取失败已记 error，不级联重复比对
+            else:
+                aud_sections = set(re.findall(
+                    r"^## \[(\d+\.\d+\.\d+)\]", aud_text, re.M))
+                for aud_ver in [v for v in declared if v not in aud_sections]:
+                    rep.error(f"P1 CHANGELOG 声明审计归档 dev/AUDIT.md [{aud_ver}]，"
+                              "但 AUDIT.md 无对应章节")
+                    aud_ok = False
+    if aud_ok:
+        rep.ok(f"P1 审计归档护栏通过（{len(declared)} 处声明）")
+
     # 严格分档（每版必更）：private/AGENTS.md、TEST-REPORT.md
     for label, path in (("private/AGENTS.md", PRIVATE / "AGENTS.md"),
                         ("TEST-REPORT.md", PRIVATE / "dev" / "TEST-REPORT.md")):
@@ -761,7 +793,7 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
     # 主题文档模板 1 份；摘录长篇模板与示例主题已随模块登记制移除）
     note_tpl_src = SKILL_KNOWOPS / "assets" / "templates"
     note_tpl_tgt = tgt_dir / "模板"
-    for name in ("主题文档模板.md",):
+    for name in P4_NOTE_TEMPLATES:
         src, dst = note_tpl_src / name, note_tpl_tgt / name
         if not src.is_file():
             problems.append(f"笔记模板缺失：assets/templates/{name}")
@@ -813,8 +845,9 @@ def check_p4_template_sync(rep: Report, cfg: dict) -> None:
         for it in problems:
             rep.error(f"P4 {it}")
     else:
-        rep.ok("P4 模板联动一致（用户手册 + 变更记录（.config）+ 笔记模板 2 份"
-               " + 示例主题 + 脚本副本）")
+        rep.ok(f"P4 模板联动一致（用户手册锚点 + 变更记录（.config）+ "
+               f"笔记模板 {len(P4_NOTE_TEMPLATES)} 份 + 已移除资产防复现"
+               " + 脚本副本）")
 
 
 def check_p5_dist(rep: Report, version: str) -> None:
