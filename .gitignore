@@ -2,12 +2,43 @@
 .workbuddy/
 # 发布产物（可随时重建）
 dist/
-# 测试产物（forward-test 配置与导出镜像，绝不入库）
-.test-env/
-# 私有目录（个人/开发文档、测试库；内部子 git 管理，不进 GitHub）
-private/
-# 旧版存档（历史参考，不进 GitHub）
-legacy/
+# 临时删除区（宪章红线落地：删除先进 _trash/，不入版本库）
+_trash/
 # Python
 __pycache__/
 *.pyc
+
+*.lnk
+
+# 密钥红线落地：密钥不入库（常见密钥文件名模式，机械防线）
+# 宁可误伤不可漏收——误伤的文件可显式 git add -f 找回
+.env
+.env.*
+*.env
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.crt
+*.cer
+*.p7b
+.htpasswd
+*.ovpn
+secrets/
+*credential*
+*secret*
+token.json
+*.token
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+.netrc
+_netrc
+.pgpass
+.my.cnf
+.vault-token
+service-account*.json
+*-service-account.json

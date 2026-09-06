@@ -2,9 +2,12 @@
 # -*- coding: utf-8 -*-
 """check.py — KnowOps 开发期确定性校验脚本（开发维护用，不随 skill 分发）
 
+位置：发布层 `workspace/tools/`（随公开仓走 CI）；协作层私有件（测试库、
+archive 等）在本仓之外，经父目录可达。
+
 用法：
-  python tools/check.py                  自动模式：检测到 private/ 时含私有检查
-  python tools/check.py --core           仅核心检查（CI 模式；private/ 不在仓库内）
+  python tools/check.py                  自动模式：协作层 test/ 测试库可达时含全量检查
+  python tools/check.py --core           仅核心检查（CI 模式；协作层不在发布仓内）
   python tools/check.py --dist <version> 附加 dist 打包完整性检查（发布后运行）
 
 退出码：0 = 无 error（warning 不影响）；1 = 存在 error；2 = 环境缺依赖
@@ -12,7 +15,7 @@
 依赖：Python 3.10+、PyYAML。文件读写内部强制 UTF-8（规避本机 GBK 默认编码）。
 
 检查项：
-  核心（CI 可跑，不依赖 private/）：
+  核心（CI 可跑，不依赖协作层）：
     C1  两 skill SKILL.md frontmatter 可解析且 metadata.version 相等
     C2  workflow.md 基础骨架表：编号自 00 连续、末两位固定为 系统/归档
     C3  skill 文档引用的 references/assets/scripts 路径真实存在
@@ -22,7 +25,7 @@
         同 properties.md 声明一致（防双源漂移）
     C7  隐私门禁：跟踪内容禁密钥样式/邮箱/本机绝对路径/手机号；
         .gitignore 必备条目齐全（防测试产物再入库）
-  私有（本地全量，private/ 存在时启用）：
+  全量（本地，协作层 test/ 测试库可达时启用）：
     P1  版本一致性链 + 开发期文档 frontmatter 分档 + 审计归档护栏
         （CHANGELOG 声明的 AUDIT.md [版本] 章节必须存在）
     P2  测试库 config preferences.modules 登记清单与一级目录匹配
@@ -49,12 +52,12 @@ except ImportError:  # pragma: no cover
     print("[FATAL] 缺少 PyYAML：请先 `python -m pip install pyyaml`", file=sys.stderr)
     sys.exit(2)
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent          # 发布层（workspace/，公开仓）
+COLLAB = ROOT.parent                                    # 协作层（私有仓根）
 SKILL_KNOWOPS = ROOT / "skills" / "knowops"
 SKILL_NOTE = ROOT / "skills" / "everywhere-note"
 AUTOMATION_TEMPLATE = ROOT / "skills" / "automation-prompt-template.md"
-PRIVATE = ROOT / "private"
-TEST_VAULT = PRIVATE / "test" / "Obsidian测试知识库"
+TEST_VAULT = COLLAB / "test" / "Obsidian测试知识库"
 
 # 模块表末两位固定名称（编号规则：系统倒数第二、归档殿后）
 FIXED_TAIL = ["系统", "归档"]
@@ -100,7 +103,7 @@ C7_ABSPATH_RES = [
 C7_ABSPATH_ALLOW_PREFIX = ("D:\\MyVault", "C:\\Users\\me\\")
 C7_PHONE_RE = re.compile(r"(?<!\d)1[3-9]\d{9}(?!\d)")
 # .gitignore 必备条目：本地目录绝不入库（缺一条即 error）
-C7_REQUIRED_IGNORE = [".workbuddy/", "dist/", "private/", "legacy/", ".test-env/"]
+C7_REQUIRED_IGNORE = [".workbuddy/", "dist/", "_trash/"]
 
 
 def read_text(p: Path) -> str:
@@ -443,15 +446,15 @@ def check_c6_enum_sync(rep: Report, vc_enum: frozenset | None) -> None:
 
 def _c7_tracked_files(rep: Report) -> list[Path]:
     """git 跟踪文件清单（= 将被公开的精确集合）。git 不可用时退化为全盘扫描
-    （排除 .git/、private/、dist/、legacy/、.test-env/、.workbuddy/ 目录），
-    保证门禁不因环境缺失而失效；名为 private 的文件本身仍参与扫描。"""
+    （排除 .git/、dist/、_trash/、.workbuddy/ 目录），保证门禁不因环境缺失而
+    失效。"""
     try:
         out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT,
                              capture_output=True, check=True).stdout.decode("utf-8")
         return [ROOT / name for name in out.split("\0") if name]
     except (OSError, subprocess.CalledProcessError, UnicodeDecodeError) as e:
         rep.warn(f"C7 git 跟踪清单获取失败（{e}），退化为全盘扫描")
-        skip_dirs = {".git", "private", "dist", "legacy", ".test-env", ".workbuddy"}
+        skip_dirs = {".git", "dist", "_trash", ".workbuddy"}
         return [p for p in ROOT.rglob("*")
                 if p.is_file()
                 and not (set(p.parts[:-1]) & skip_dirs)]
@@ -500,7 +503,7 @@ def check_c7_privacy(rep: Report) -> None:
 
 
 # ---------------------------------------------------------------------------
-# 私有检查（private/ 存在时）
+# 全量检查（协作层 test/ 测试库可达时）
 # ---------------------------------------------------------------------------
 
 def load_test_config(rep: Report) -> dict | None:
@@ -513,8 +516,8 @@ def load_test_config(rep: Report) -> dict | None:
 
 
 def check_p1_versions(rep: Report, skill_ver: str, cfg: dict | None) -> None:
-    # CHANGELOG 顶部条目与历史版本集合
-    cl = safe_read(rep, PRIVATE / "dev" / "CHANGELOG.md", "P1 CHANGELOG.md")
+    # CHANGELOG 顶部条目与历史版本集合（发布仓根，公开）
+    cl = safe_read(rep, ROOT / "CHANGELOG.md", "P1 CHANGELOG.md")
     if cl is None:
         return
     entries = re.findall(r"^## \[(\d+\.\d+\.\d+)\]", cl, re.M)
@@ -530,13 +533,13 @@ def check_p1_versions(rep: Report, skill_ver: str, cfg: dict | None) -> None:
     # 必须存在对应章节（v3.0.3 起，防「声明归档但实际漏写」复发）。分隔符放宽
     # 到空白与常用全半角标点（如「AUDIT.md（[3.0.2] 补记…）」），中间含其他
     # 字符的散文形态不匹配、不误报。
-    aud_path = PRIVATE / "dev" / "AUDIT.md"
+    aud_path = COLLAB / "archive" / "audit" / "AUDIT.md"
     declared = sorted(set(re.findall(
         r"AUDIT\.md[\s（(：:、，,]*\[(\d+\.\d+\.\d+)\]", cl)))
     aud_ok = True
     if declared:
         if not aud_path.is_file():
-            rep.error(f"P1 CHANGELOG 声明审计归档 dev/AUDIT.md，但该文件不存在"
+            rep.error(f"P1 CHANGELOG 声明审计归档 archive/audit/AUDIT.md，但该文件不存在"
                       f"（声明版本：{declared}）")
             aud_ok = False
         else:
@@ -547,15 +550,14 @@ def check_p1_versions(rep: Report, skill_ver: str, cfg: dict | None) -> None:
                 aud_sections = set(re.findall(
                     r"^## \[(\d+\.\d+\.\d+)\]", aud_text, re.M))
                 for aud_ver in [v for v in declared if v not in aud_sections]:
-                    rep.error(f"P1 CHANGELOG 声明审计归档 dev/AUDIT.md [{aud_ver}]，"
-                              "但 AUDIT.md 无对应章节")
+                    rep.error(f"P1 CHANGELOG 声明审计归档 archive/audit/AUDIT.md "
+                              f"[{aud_ver}]，但 AUDIT.md 无对应章节")
                     aud_ok = False
     if aud_ok:
         rep.ok(f"P1 审计归档护栏通过（{len(declared)} 处声明）")
 
-    # 严格分档（每版必更）：private/AGENTS.md、TEST-REPORT.md
-    for label, path in (("private/AGENTS.md", PRIVATE / "AGENTS.md"),
-                        ("TEST-REPORT.md", PRIVATE / "dev" / "TEST-REPORT.md")):
+    # 严格分档（每版必更）：协作层总纲 AGENTS.md
+    for label, path in (("AGENTS.md（总纲）", COLLAB / "AGENTS.md"),):
         fm = read_fm(rep, path, f"P1 {label}")
         if fm is None:
             continue  # 读取/解析失败已记 error
@@ -566,9 +568,9 @@ def check_p1_versions(rep: Report, skill_ver: str, cfg: dict | None) -> None:
             rep.ok(f"P1 {label} version = {v}")
 
     # 滞后分档（须为 CHANGELOG 历史版本；本次无相关改动的版本允许滞后）：
-    # DESIGN.md、AUDIT.md（审计档案，首次审计建立前允许不存在）
-    for label, path in (("DESIGN.md", PRIVATE / "dev" / "DESIGN.md"),
-                        ("AUDIT.md", PRIVATE / "dev" / "AUDIT.md")):
+    # design.md、AUDIT.md（审计档案，首次审计建立前允许不存在）
+    for label, path in (("design.md", COLLAB / "context" / "design" / "design.md"),
+                        ("AUDIT.md", COLLAB / "archive" / "audit" / "AUDIT.md")):
         if label == "AUDIT.md" and not path.is_file():
             continue
         fm = read_fm(rep, path, f"P1 {label}")
@@ -854,7 +856,7 @@ def check_p5_dist(rep: Report, version: str) -> None:
     if not re.fullmatch(r"\d+\.\d+\.\d+", version):
         rep.error(f"P5 --dist 版本号格式非法：{version!r}（应为 X.Y.Z）")
         return
-    dist_dir = PRIVATE / "dist" / version
+    dist_dir = ROOT / "dist" / version
     if not dist_dir.is_dir():
         rep.error(f"P5 dist 目录不存在：{dist_dir.relative_to(ROOT).as_posix()}")
         return
@@ -938,9 +940,9 @@ def main() -> int:
     check_c6_required_sync(rep, vc_required)
     check_c7_privacy(rep)
 
-    # 私有检查
-    private_on = not args.core and PRIVATE.is_dir()
-    if private_on:
+    # 全量检查（协作层 test/ 测试库可达时）
+    full_on = not args.core and TEST_VAULT.is_dir()
+    if full_on:
         cfg = load_test_config(rep)
         if skill_ver:
             check_p1_versions(rep, skill_ver, cfg)
@@ -953,9 +955,9 @@ def main() -> int:
         if args.dist:
             check_p5_dist(rep, args.dist)
     else:
-        print("[跳过] 私有检查（private/ 不存在或 --core 模式）")
+        print("[跳过] 全量检查（协作层 test/ 测试库不可达，或 --core 模式）")
         if args.dist:
-            rep.error("P5 --dist 需要在本地（private/ 存在）运行")
+            rep.error("P5 --dist 需要在本地（协作层 test/ 测试库可达）运行")
 
     # 汇总输出
     print(f"\n-- 通过 {len(rep.passes)} 项 --")
@@ -971,7 +973,7 @@ def main() -> int:
             print(f"  [FAIL] {it}")
         print(f"\n结论：校验未通过（{len(rep.errors)} 个 error）")
         return 1
-    print(f"\n结论：校验通过（私有检查：{'已启用' if private_on else '已跳过'}）")
+    print(f"\n结论：校验通过（全量检查：{'已启用' if full_on else '已跳过'}）")
     return 0
 
 
