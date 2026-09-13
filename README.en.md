@@ -1,188 +1,179 @@
-# KnowOps: Obsidian Knowledge Management Skills
+# KnowOps: Obsidian Knowledge-Management Skills for AI Agents
 
-KnowOps is a set of **Obsidian knowledge-management skills** for AI agents: two skills
-that keep your knowledge base well organized — **a desktop entry point + portable
-capture**, installed by device type and designed to work together.
+**English**: this file · **中文**: [README.md](README.md)
 
-## What is this
+KnowOps is a set of Obsidian knowledge-management skills you install into an AI agent. Once installed, the agent knows how to take care of your knowledge base: capture a thought the moment it arrives, with no need to decide where it belongs; when you have a moment, say the word and it files those notes away under rules you define; and genuinely validated experience gradually settles into topic documents you can return to again and again — in your own original words, never rewritten on your behalf.
 
-When managing a personal knowledge base in Obsidian, an agent needs two things:
-*how the content should be organized* (what modules the knowledge base has, how inbox
-items are settled, along which axis knowledge accumulates), and *how to operate
-Obsidian* (read/write notes via the official CLI, respect delete red lines). This repo
-puts both into one desktop skill (`knowops`) that loads its references on demand, plus
-a portable skill (`everywhere-note`) for quick capture on phones/tablets.
+It consists of two skills, installed by device and designed to work together:
 
-The base only keeps content that has **no better home**: todos belong in a todo app,
-project files belong in project folders, executable scripts and templates belong in
-their own repos — none of those enter the base. What lives here: excerpts, validated
-experience, and half-formed thoughts.
-
-| Skill | Role | One-liner |
+| Skill | Installed on | Role |
 |---|---|---|
-| **knowops** | Desktop entry point | "How the KB should be organized + how to operate Obsidian", loaded progressively via references; works alone |
-| **everywhere-note** | Portable capture | Capture with @ on the phone, get standard md + a 22:00 reminder |
+| **knowops** | A computer (a device that can operate the base) | The base's steward: how content is organized and how Obsidian is operated; installing it alone runs the whole base |
+| **everywhere-note** | Phones / tablets and other portable devices | The portable note-taker: @ it and dictate; it shapes a clean note and reminds you that evening to collect it on the computer |
 
-## Features
+> Do not install both skills on the same device — they would compete for the same triggers.
 
-- **Generic foundation + registered extension modules**: the skill only presets the
-  base skeleton — `00 收件箱` (not yet thought through) / `01 知识` (validated) /
-  `03 系统` (the base's own traces and docs) / `04 归档` (no longer active), plus a
-  root-level `看板.md` as the one-screen overview; 系统 and 归档 stay fixed as the
-  last two. **Adding a module = create a folder in your vault**: the agent asks you
-  for the rules, writes them into the user manual, and follows them from then on —
-  your base grows your way, no skill release required;
-- **Single source of truth**: what each module keeps, how things get ingested,
-  classified and named — all of it lives only in the "模块规则" (module rules)
-  chapter of the in-vault `03 系统/用户手册.md` (user-visible and editable, a
-  must-read for the agent); the config only keeps a machine-readable index — no
-  rule copies, no drift;
-- **Inbox: easy in, strict out**: flat layout, numbered filenames, no subfolders; you
-  may drop in files with no formatting at all — rules bind the agent, which fills in
-  everything at settlement time; the inbox is exempt from structural checks;
-- **Knowledge by topic, verbatim quotes**: one document per topic, entries organized
-  in sections; entry bodies **keep your original words intact** (the agent never
-  rewrites or compresses them; extra explanations are added only with your consent);
-  when a section passes about 30 entries a split is proposed — monolith first, split
-  only when it bursts;
-- **Excerpts = the preset extension module**: onboarding asks whether to enable it;
-  long excerpts get one note per work, short quotes aggregate by category (split
-  into numbered files past 100 entries); every rule is registered in the user manual
-  and the whole module can be retired;
-- **Write-audit loop**: after each batch of content written by the agent (ingest /
-  settlement / archive / delete), a `待审阅-<date>.md` receipt is left in the inbox
-  (visible on the dashboard, deleted after review) and the diary gets a detailed
-  entry;
-- **Diary split into "用户 / agent" chapters**: one file per day (following
-  Obsidian's Daily notes rules, kept by year under `03 系统/日记/`); agent actions
-  are logged by type in the agent chapter, and your manual edits are **back-filled**
-  by the agent from file history and git (with the inference noted) — who did what
-  is always answerable;
-- **Obsidian templates**: `03 系统/模板/` ships the topic-document template for
-  use with Obsidian's core Templates plugin;
-- **Progressive loading**: knowops' SKILL.md only carries the trigger, loading rules
-  and common red lines; workflow.md, redlines.md and desktop-ingest.md are read on
-  demand;
-- **Portable capture & unified ingest**: @ everywhere-note on a phone/portable device and dictate directly; it generates KB-compliant markdown (a file when supported) and sets a 22:00 reminder; back at the desktop, knowops parses the captures and writes them into `00 收件箱`; the phone only needs this one skill and no transfer channel; the portable skill embeds no desktop-base structure, so desktop restructuring never forces a reinstall;
-- **GitHub staging repo sync (optional)**: you designate a GitHub staging repo; on the phone, when GitHub capability is available (gh CLI / git / GitHub MCP etc.), entries are uploaded into this KB's folder in the staging repo; on the desktop, "ingest" pulls new entries into `00 收件箱` (numbered filenames) and archives the source files into `<KB-name>/归档/<date>/` in the staging repo (split by ingest date); multiple KBs can share one staging repo without conflicts;
-- **Dashboard**: root `看板.md` embeds the live views from `03 系统/看板.base`
-  (inbox pending, knowledge recent); views follow module registration/retirement;
-- **Archive**: `04 归档` uses zero-padded Chinese date folders;
-- **Canvas is free space**: canvases you create are never managed, checked or exported;
-- **Plugin integration rules**: at onboarding, plugins are scanned and the user
-  confirms how they integrate; rules are written to the user manual's "agent
-  约束" chapter (same book as the module rules, viewable and editable anytime),
-  read before every mutating operation and executed afterwards (e.g., version
-  commit first, then cloud sync);
-- **Config-driven, version-following**: module index and preferences live in
-  `.config/knowops.config.json` (single vault); schema version follows the skill version;
-- **Data-safety red lines**: delete always goes to the system trash and stays
-  recoverable; high-risk changes (mass file impact, permanent deletes) ask for
-  consent first, while low-risk ones run first and are logged afterwards; never run
-  `git init` for the user; similarity check before creating; user-provided info is
-  authoritative (original words never rewritten or compressed); read back and verify
-  after important writes.
+Here is the journey of a record, from an offhand remark to settled experience:
+
+```text
+[Phone / Tablet]
+  @everywhere-note and dictate directly
+        │  shaped into a clean note, with a 22:00 reminder to process it
+        ▼
+[Your Computer] collect: paste / hand over a file, or auto-pull from a GitHub staging repo
+        │
+        ▼
+  00 收件箱 (Inbox) — drop freely, zero fuss
+        │  you say "review the inbox"; the agent routes each item
+        ├─▶ merge into 01 知识 & other modules (validated experience)
+        ├─▶ move to 04 归档 (inactive, stored by date)
+        ├─▶ delete (system trash, recoverable)
+        └─▶ still unclear — stays in the inbox
+```
+
+## How it takes care of your knowledge base
+
+This section follows the order of everyday use: what you actually experience, and why things are arranged this way.
+
+### When capturing, you don't have to think about anything
+
+Knowledge bases usually fail not for lack of things to record, but because the act of recording is too much trouble: pick a category first, follow a format, come up with a naming rule — hesitate once and the thought is gone. KnowOps moves all of that off your shoulders. Say "log this" to the agent on the computer, or just create a file in `00 收件箱` yourself — no format to fill, no title to settle first, just drop it in. Agent-written entries automatically carry a sequence number and properties so they're easy to browse later; your own hand-written files have no requirements at all, and the inbox runs no format checks.
+
+Classification is deliberately postponed to organizing time. Information is often incomplete at the moment of capture, and classifying in a hurry tends to go wrong — an agent holding only fragments gets it wrong just as often; judging where something belongs is far more reliable once the whole item lies in front of you. So at the capture end, the only thing you need to do is keep it.
+
+It's just as easy on the phone. @ everywhere-note and dictate; it shapes the content into a clean note for you to check, and if anything was captured that day it sets a 22:00 reminder so you don't forget to process it back at the computer. How the content reaches the computer is up to you — paste it yourself, or designate a GitHub repo as a relay and let the desktop pull automatically, as covered later.
+
+"Don't think when capturing" doesn't mean "store everything". Todos are better off in a todo app, project materials belong in their project folders, and runnable templates belong to their code repositories — keeping another copy in the knowledge base only leaves you with a stale replica that costs effort to sync. This base is reserved for something else: excerpts you read, experience that has been validated, and thoughts not yet worked out. Deciding whether something belongs here comes down to two questions: does it have a more suitable home elsewhere? Can it be conveyed in a single note?
+
+### When organizing, the rules are yours
+
+When you have a moment, say "review the inbox", and the agent goes through it item by item, routing each by its content: experience belonging to a topic is merged into the matching topic document; inactive items move into date-based archive folders; things confirmed useless are deleted to the system trash (recoverable); anything still unclear stays in the inbox. Missing information such as dates and tags is filled in at this point.
+
+How does it know where each item belongs? From a **User Manual that lives in your own base**. What every module holds, how content enters, how it's classified and named — the rules all live in `03 系统/用户手册.md`, which you can open and edit at any time; the agent reads it before every piece of work and follows your rules. The rules have exactly this one home, and the config stores only a machine-oriented directory index, so two disagreeing copies of the rules can never happen.
+
+Opening a new module doesn't require waiting for anyone to update the skill. Create a folder in the base (say, 读书 / "reading"), tell the agent what it's for, what counts as belonging, and how it's organized internally; once it has asked and understood, it writes the rules into the manual, adds an entry on the dashboard, and follows them from then on. If you later delete that folder, it asks whether to remove the manual section too or mark it retired with history kept. You decide what shape the knowledge base grows into; the skill supplies only a general way of working.
+
+### Experience settles into topics, in your original words
+
+Genuinely valuable experience lives in `01 知识`, organized by topic — one document per topic, rather than forced into abstract drawers like "principles / methods / cases", because topics are the real thread along which you recall knowledge. Inside a document, sections and numbered paragraphs ("一、二、三") organize the content; each paragraph carries one piece of experience, stating the conclusion together with its full context.
+
+One rule here doesn't budge: your words are recorded exactly as you say them. The agent doesn't polish, rewrite or compress on your behalf, because your original wording holds the shape and nuance of your thinking at that moment — once "tidied up", it can't be recovered. If it believes some background is worth adding, it asks you first and appends it as a new paragraph, rather than mixing it into your own words.
+
+Structurally, it insists on "grow in one place first; split only when it's full". A topic starts in a single document; only when a section reaches roughly 30 paragraphs and genuinely becomes awkward to navigate does the agent propose splitting it into a standalone document, with the original becoming a folder that holds them — never designing layers in advance, before the content exists. Whether a module deserves to exist follows the same logic: look at whether real content actually flows through it, not at whether it "might be useful someday".
+
+`02 摘录` (excerpts) is the one preset example module, for collected poetry, quotes and sentences; initialization asks whether to enable it. On, long works each get their own note while short quotes aggregate by category, and a category past 100 entries splits automatically; leaving it off doesn't affect anything, and the manual keeps that section as a model of "how module rules are written".
+
+### Every step is on record, and a mistaken deletion is recoverable
+
+When you hand a knowledge base to an agent, the fear is that it changes things without your knowing. KnowOps makes every write accountable. Under `03 系统/日记` there is one diary file per day, split into "user" and "agent" chapters: agent actions are logged in detail across seven categories (ingest, settle, organize, archive, delete, back-fill, system); changes you made by hand without noting are back-filled as far as possible from file records and git history, marked as inference. After each batch, a "review" checklist also appears in the inbox, stating what changed and where to look — delete it once you've checked; the root dashboard shows in real time what's waiting and what was recently updated.
+
+Behind this sits the agent's defined role: a steward, not an author. It handles formatting, system upkeep and writes on your explicit instruction; it never decides on its own what "should be recorded", and never proactively adds to your documents. The content stays yours, which is also why you always have a clear picture of what's in the base.
+
+Safety isn't left to "it'll be careful" either — it's written into fixed rules: deletion always goes through the system trash and stays recoverable; changes affecting many files, or irreversible ones, show you a plan and wait for your go-ahead; every important write is read back for verification. Notes are also incrementally exported, by default, to standalone HTML that opens without Obsidian, for reading on other devices; the canvases you draw yourself are entirely free space — never managed, checked or exported.
+
+> The division of labor in one sentence: **you** define the structure and the trade-offs, the **skill** provides responsibilities, contracts and safety boundaries, the **agent** organizes and maintains accordingly, and **Obsidian** keeps the result as notes that are readable, linkable and recoverable.
+
+## What the base looks like after initialization
+
+```text
+My Knowledge Base/
+├── 看板.md            # the front door: a one-screen overview (embedded live views)
+├── 00 收件箱/          # the entry for every quick note; flat, no subfolders
+├── 01 知识/            # validated experience, converged into topic documents
+├── 03 系统/            # facilities: user manual, diary, templates, dashboard data
+├── 04 归档/            # inactive content worth keeping, stored by date
+└── .config/           # hidden: config, change history, scripts, HTML mirror
+```
+
+Each of the four base modules is memorable in one line: the inbox holds "not yet thought through", knowledge holds "validated", system holds "the base's own traces and manual", and archive holds "no longer active". `03 系统` and `04 归档` are fixed as the last two positions; every future module is inserted before them and renumbered in order. The root `看板.md` is the overview entry, not a module.
+
+Initialization doesn't create a pile of empty folders: it places only `03 系统` (user manual, templates) and the root dashboard first, while the inbox, knowledge and archive appear the first time something is written to them. `.config/` is the hidden facilities layer for the config, change history, scripts and exported HTML mirror, so it never occupies your visible space in Obsidian.
 
 ## Installation
 
-Install by device type — **do not install both skills on the same device** (they
-would compete for the same triggers):
+Choose by device — **never install both on the same device**:
 
 | Device | Install |
 |---|---|
-| Desktop (can operate the knowledge base) | `skills/knowops/` |
-| Phone/tablet/portable device | `skills/everywhere-note/` |
+| Desktop computer (operates the knowledge base) | `skills/knowops/` |
+| Phone / tablet / portable device | `skills/everywhere-note/` |
 
-Copy the matching directory into your agent's **user-level skill directory** (location
-varies by platform; see your platform's skill installation docs; typically
-`~/.<platform>/skills/`), or clone this repo:
+Installation always means "copy the skill folder into your agent's user-level skill directory" (the location varies by platform, typically `~/.<platform>/skills/`; follow your platform's instructions). Obtain it either way:
+
+- Download `<skill>-vX.Y.Z.zip` from [GitHub Releases](https://github.com/The-Daybreaker/KnowOps/releases) (generated on every release; the skill folder is the zip root, ready to unpack);
+- Or clone the repo and copy manually:
 
 ```sh
 git clone https://github.com/The-Daybreaker/KnowOps.git
-# then copy the matching directory under skills/ into the user-level skill directory
+# then copy the matching skill folder under skills/ into the user-level skill directory
 ```
 
-> You can also download the `<skill>-vX.Y.Z.zip` package from GitHub Releases
-> (generated on every release; the skill directory is the zip root).
+**Where concrete Obsidian operations come from**: knowops doesn't reimplement a set of operating commands. Concrete capabilities — reading and writing notes, Markdown, Bases, Canvas, web extraction — are delegated to the officially maintained tool skills: obsidian-cli, obsidian-markdown, obsidian-bases, json-canvas and defuddle, from [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills); installing them as well is recommended (see "Related projects" below). The system works without them: knowops checks with you first and falls back to the official Obsidian help docs rather than guessing commands from memory.
 
-> **Dependencies**: knowops delegates concrete syntax and commands to the official
-> tool skills (obsidian-cli / obsidian-markdown / obsidian-bases / json-canvas /
-> defuddle) from the official Obsidian skills repository
-> [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills); install them
-> separately (see "Related projects"). If they are missing, knowops falls back to
-> the official Obsidian docs.
+## Getting Started
 
-## Quick start
+### First run: the initialization wizard
 
-1. When a desktop task triggers `knowops`, read the references per the loading rules
-   in SKILL.md:
-   - Recording/managing/organizing content → read `references/workflow.md` first,
-     and run the **onboarding wizard** when needed;
-   - Obsidian operations → read `references/redlines.md` first;
-   - Ingesting captured content/files → read `references/desktop-ingest.md`,
-     then load `references/workflow.md` and `references/redlines.md` per its
-     header note.
-2. The onboarding wizard confirms step by step: vault path & name, the four base
-   modules (lazy loading: inbox/archive appear on first write), whether to enable
-   the excerpt module (the preset extension; skippable), optional GitHub staging
-   repo sync, plugin integration rules (written to the manual's "agent 约束"
-   chapter), the `03 系统` user manual and templates (the manual's "模块规则"
-   chapter is what the agent executes against), the root dashboard, and the
-   Daily notes diary setup; config lives in the vault's hidden `.config/` directory,
-   and the HTML mirror export is enabled by default
-   (`<vault>/.config/HTML-Export/`).
-3. Load the tool skills (CLI / Markdown / Bases / Canvas / web extraction) on
-   demand when their capability is needed.
+A desktop knowledge-base task triggers knowops; when it finds an uninitialized base, it confirms things with you in order, one question at a time, rather than dumping everything at once:
 
-Usage examples:
+1. The vault's actual path and name;
+2. The four base modules and the root dashboard (along with an explanation of the extension mechanism: you create folders, it asks for the rules);
+3. Whether to enable the preset "excerpts" extension module;
+4. Whether to configure GitHub staging-repo sync (skippable);
+5. Scan existing plugins and confirm integration rules one by one (for example, "commit first, then cloud sync"), written into the "agent constraints" chapter of the User Manual;
+6. Place the user manual and note templates under `03 系统/`, and guide you to enable Obsidian's core Templates and Daily notes plugins;
+7. Create the root dashboard and enable the HTML mirror export as needed.
+
+All configuration lives in the hidden in-base file `.config/knowops.config.json`, one per vault. For a pre-existing base with content, the agent never migrates or changes anything automatically — it discusses how to proceed with you on the spot.
+
+### Daily use: just ask in natural language
 
 | You say | The agent does |
 |---|---|
-| Phone: "log: XXX" | everywhere-note generates a KB-compliant md entry and sets a 22:00 reminder; uploads to the staging repo when configured and GitHub capability is available |
-| "Ingest today's phone captures" | knowops loads desktop-ingest.md: user-provided content first; when no content is provided and a staging repo is configured, new entries are pulled from GitHub, written into `00 收件箱` with numbered filenames, and the sources are archived to the staging repo |
-| "Log this: ..." | Writes it to `00 收件箱/` (numbered, with properties & tags) |
-| "Excerpt: 将进酒..." | Ingested per the excerpt chapter of the user manual: long works get a dedicated note (named by work title), short quotes are appended to the matching category file |
-| "File this experience under the topic 架构设计" | Merges it into the matching section of the topic document under `01 知识/` (your original words kept verbatim) |
-| "Review the inbox" | Judges each item against the manual's module rules: destination module / archive / delete / keep |
-| "I made a folder called 读书 for book notes" | The agent asks for the module's ingest & classification rules → writes them into the manual's "模块规则" chapter → follows them from then on |
-| "Archive this note" | Moves it to `04 归档/<today>/` |
+| On the phone: "log: ..." | everywhere-note shapes a clean note and sets a 22:00 reminder; uploads to the staging repo when configured and GitHub-capable |
+| "Ingest today's phone captures" | Takes content you provide first; with none provided and a staging repo configured, pulls new entries, writes them into `00 收件箱` with numbered names, and archives the staging sources |
+| "Log this: ..." | Writes to `00 收件箱/` with a numbered name, complete properties and tags |
+| "Excerpt: 将进酒, ..." | Ingests per the manual's excerpt rules: long works stand alone, short quotes append to their category |
+| "File this experience under the topic 架构设计" | Merges it into the matching section of the topic document under `01 知识/`, keeping your words verbatim |
+| "Review the inbox" | Routes each item: destination module / archive / delete / keep |
+| "I made a folder called 读书 for book notes" | Asks for the module's rules → writes them into the User Manual → follows them thereafter |
+| "Archive this note" | Moves it to `04 归档/<today's date>/` |
+| "What did I change recently?" | Reads the diary and review receipts and gives you a timeline |
 
-## Layout
+### Scheduled automatic ingest
 
-```
+To have the desktop collect new staging-repo entries on a schedule, use `skills/automation-prompt-template.md`: copy the template onto an agent platform that supports scheduled or event-triggered tasks, and replace the vault path, skill location and staging-repo placeholders. It does only one thing — "check the staging repo → ingest → archive sources" — and stops to report whenever it is unsure, deciding nothing on its own. The template ships with every Release.
+
+## Repository Layout
+
+```text
 KnowOps/
 ├── README.md / README.en.md / LICENSE / .gitignore / AGENTS.md
-├── tools/                        # dev-time validation script (check.py)
-├── .github/workflows/            # CI (core checks on push/PR)
+├── tools/                          # dev-time validation (check.py, also used by CI)
+├── .github/workflows/              # core checks on push / PR
 └── skills/
-    ├── knowops/                     # Desktop entry point
-    │   ├── SKILL.md                 # trigger + loading rules + common red lines
-    │   ├── references/
-    │   │   ├── workflow.md          # workflow spec (two gates/module flows/diary/post-op)
-    │   │   ├── init-config.md       # onboarding/GitHub staging/plugin integration/config & HTML export/scripts
-    │   │   ├── properties.md        # properties/naming/layout/lifecycle design
-    │   │   ├── redlines.md          # execution red lines + direct-write exceptions
-    │   │   └── desktop-ingest.md    # captured content / GitHub staging pull → 00 收件箱
-    │   ├── scripts/                 # html_export / vault_check
+    ├── knowops/                    # the single desktop entry point
+    │   ├── SKILL.md                # triggers, loading rules, common red lines (kept thin)
+    │   ├── references/             # business details, loaded on demand to avoid rule clashes
+    │   │   ├── workflow.md         # workflow: two gates, module flows, diary, post-op
+    │   │   ├── init-config.md      # wizard, plugin integration, config & HTML export
+    │   │   ├── properties.md       # properties, naming, layout and lifecycle
+    │   │   ├── redlines.md         # execution red lines and direct-write exceptions
+    │   │   └── desktop-ingest.md   # captured content / staging pull → inbox
+    │   ├── scripts/                # lightweight scripts shipped with the skill: html_export, vault_check
     │   └── assets/
-    │       ├── system-manage/       # vault doc templates (user manual→03 系统; change log→.config)
-    │       ├── templates/           # note template (topic document, for the Obsidian Templates plugin)
-    │       └── html-export.json     # HTML export range config template
-    ├── everywhere-note/             # Portable capture (optional GitHub staging sync; single-file)
+    │       ├── system-manage/      # the base's own document templates (user manual, change log)
+    │       ├── templates/          # note templates (topic document, for the Templates plugin)
+    │       └── html-export.json    # HTML export scope config
+    ├── everywhere-note/            # portable capture, self-contained in one file
     │   └── SKILL.md
-    └── automation-prompt-template.md  # automation prompt template for scheduled ingest
+    └── automation-prompt-template.md  # prompt template for scheduled automatic ingest
 ```
 
-## Related projects
+## Related Projects
 
-The tool skills are installed copies from the **official Obsidian skills
-repository**, updatable from upstream:
-
-- [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) — Official
-  Obsidian agent skills (obsidian-cli / obsidian-markdown / obsidian-bases /
-  json-canvas / defuddle)
-- [kepano/defuddle](https://github.com/kepano/defuddle) — web page content
-  extraction library
+- [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) — the officially maintained agent skill set for Obsidian (obsidian-cli / obsidian-markdown / obsidian-bases / json-canvas / defuddle), to which KnowOps delegates concrete Obsidian operations;
+- [kepano/defuddle](https://github.com/kepano/defuddle) — web page content extraction library.
 
 ## License
 
